@@ -47,6 +47,8 @@ export const NEIGHBORHOOD_BADGES = [
   { id: 'neighborhood-golden-gate-park', neighborhood: 'Golden Gate Park', name: 'GG Park Guide' },
   { id: 'neighborhood-haight-ashbury', neighborhood: 'Haight-Ashbury', name: 'Love & Haight' },
   { id: 'neighborhood-hayes-valley', neighborhood: 'Hayes Valley', name: 'Hayes Valley Hottie' },
+  { id: 'neighborhood-hunters-point', neighborhood: 'Hunters Point', name: 'Hunters Point Hustler' },
+  { id: 'neighborhood-india-basin', neighborhood: 'India Basin', name: 'India Basin Icon' },
   { id: 'neighborhood-inner-parkside', neighborhood: 'Inner Parkside', name: 'Inner Parkside Pacesetter' },
   { id: 'neighborhood-ingleside-terrace', neighborhood: 'Ingleside Terrace', name: 'Ingleside Insider' },
   { id: 'neighborhood-japantown', neighborhood: 'Japantown', name: 'Japantown Jaunter' },

@@ -904,7 +904,7 @@ export default function StairwayMap({
           defaultZoom={12}
           minZoom={11}
           gestureHandling="greedy"
-          disableDefaultUI={false}
+          disableDefaultUI
           fullscreenControl={false}
           zoomControl={false}
           streetViewControl={false}
