@@ -114,6 +114,13 @@ export default function App() {
                 >
                   Feedback
                 </button>
+                <a
+                  className="header-menu-item"
+                  href="mailto:info@urbanhikersf.com"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Support
+                </a>
 
                 {!loading &&
                   (user ? (

@@ -15,59 +15,6 @@ import { getRatingStyle } from '../ratingColors';
 import BadgeEarnedModal from './BadgeEarnedModal';
 import ConfirmDialog from './ConfirmDialog';
 
-// Resize + re-encode a captured photo before upload. Modern phone cameras
-// produce multi-MB images; on iOS Safari in particular, camera capture
-// (via capture="environment") already puts real memory pressure on the
-// tab, and holding a large original file in memory while it uploads can
-// cause the OS to silently reload the page mid-verification -- which
-// looks exactly like "nothing happened," no error shown anywhere.
-// Shrinking the file right after capture reduces that risk and speeds
-// up the upload.
-function compressPhoto(file, maxDimension = 1600, quality = 0.8) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
-
-    img.onload = () => {
-      let { width, height } = img;
-      if (width > maxDimension || height > maxDimension) {
-        if (width >= height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-
-      canvas.toBlob(
-        (blob) => {
-          URL.revokeObjectURL(objectUrl);
-          if (!blob) {
-            reject(new Error('compression-produced-no-blob'));
-            return;
-          }
-          resolve(new File([blob], 'checkin.jpg', { type: 'image/jpeg' }));
-        },
-        'image/jpeg',
-        quality
-      );
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('image-load-failed'));
-    };
-
-    img.src = objectUrl;
-  });
-}
-
 const SF_CENTER = { lat: 37.7749, lng: -122.4194 };
 
 // Keeps the map locked to San Francisco proper -- including Treasure Island
@@ -411,18 +358,9 @@ export default function StairwayMap({
     setVerifyStatus('verifying');
     setVerifyErrorMsg('');
 
-    let uploadFile = file;
-    try {
-      uploadFile = await compressPhoto(file);
-    } catch (err) {
-      // Compression is a mitigation, not a requirement -- if it fails for
-      // any reason, fall back to the original file rather than blocking
-      // verification entirely.
-      console.error('Photo compression failed, using original file', err);
-      uploadFile = file;
-    }
-
-    const { error, distance } = await verifyWithPhoto(selected, uploadFile);
+    // The snapshot confirms that the camera flow completed, but it never
+    // leaves the device. Only the successful GPS-verified check-in is saved.
+    const { error, distance } = await verifyWithPhoto(selected);
 
     if (error) {
       setVerifyStatus('error');

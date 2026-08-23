@@ -172,7 +172,7 @@ export function CheckInsProvider({ children }) {
   );
 
   const verifyWithPhoto = useCallback(
-    async (stairway, photoFile) => {
+    async (stairway) => {
       if (!user) return { error: 'not-signed-in' };
 
       if (!navigator.geolocation) {
@@ -240,21 +240,6 @@ export function CheckInsProvider({ children }) {
         };
       }
 
-      const filePath = `${user.id}/${stairway.id}-${Date.now()}.jpg`;
-      const { error: uploadError } = await supabase.storage
-        .from('checkin-photos')
-        .upload(filePath, photoFile, {
-          contentType: photoFile.type || 'image/jpeg',
-        });
-
-      if (uploadError) {
-        return { error: 'upload-failed' };
-      }
-
-      const { data: urlData } = supabase.storage
-        .from('checkin-photos')
-        .getPublicUrl(filePath);
-
       const nowIso = new Date().toISOString();
 
       const { error: upsertError } = await supabase.from('check_ins').upsert(
@@ -262,22 +247,12 @@ export function CheckInsProvider({ children }) {
           user_id: user.id,
           stairway_id: stairway.id,
           verification_method: 'photo-verified',
-          photo_url: urlData.publicUrl,
           verified_at: nowIso,
         },
         { onConflict: 'user_id,stairway_id' }
       );
 
       if (upsertError) {
-        const { error: cleanupError } = await supabase.storage
-          .from('checkin-photos')
-          .remove([filePath]);
-        if (cleanupError) {
-          console.error(
-            'Failed to clean up unsaved verification photo',
-            cleanupError
-          );
-        }
         return { error: 'save-failed' };
       }
 
@@ -288,9 +263,6 @@ export function CheckInsProvider({ children }) {
       });
       setCheckedInMethods((prev) =>
         new Map(prev).set(stairway.id, 'photo-verified')
-      );
-      setCheckedInPhotoUrls((prev) =>
-        new Map(prev).set(stairway.id, urlData.publicUrl)
       );
 
       return { error: null };

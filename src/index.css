@@ -652,10 +652,12 @@ html, body, #root {
   background: none;
   border: none;
   padding: 10px 12px;
+  font: inherit;
   font-size: 14px;
   border-radius: 6px;
   cursor: pointer;
   color: #222;
+  text-decoration: none;
 }
 
 .header-menu-item:hover {
