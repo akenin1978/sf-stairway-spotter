@@ -38,6 +38,7 @@ export default function StatsModal({ onClose }) {
         const { data, error } = await supabase
           .from('stairways')
           .select('id, neighborhood')
+          .eq('active', true)
           .range(from, from + pageSize - 1);
         if (error || !data) break;
         all = all.concat(data);

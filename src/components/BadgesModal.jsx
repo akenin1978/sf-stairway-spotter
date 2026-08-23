@@ -85,6 +85,7 @@ export default function BadgesModal({ onClose }) {
         const { data, error } = await supabase
           .from('stairways')
           .select('id, neighborhood, rating')
+          .eq('active', true)
           // Same filter the map itself uses -- a stairway with no
           // coordinates yet can't be shown or checked in on, so it
           // shouldn't count toward "total" here either. Without this,

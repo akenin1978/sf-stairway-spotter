@@ -756,8 +756,11 @@ export default function StairwayMap({
 
   useEffect(() => {
     let isMounted = true;
+    let isLoadingStairways = false;
 
     async function loadStairways() {
+      if (isLoadingStairways) return;
+      isLoadingStairways = true;
       // A single unbounded request silently caps out at Supabase's
       // default max-rows-per-request limit (1,000) -- with 1,100+
       // stairways, that meant the last ~100 or so never actually loaded,
@@ -773,6 +776,7 @@ export default function StairwayMap({
         const { data, error } = await supabase
           .from('stairways')
           .select('*')
+          .eq('active', true)
           .not('latitude', 'is', null)
           .not('longitude', 'is', null)
           .order('id', { ascending: true })
@@ -783,6 +787,7 @@ export default function StairwayMap({
             setError(error.message);
             setLoading(false);
           }
+          isLoadingStairways = false;
           return;
         }
 
@@ -795,12 +800,20 @@ export default function StairwayMap({
 
       if (!isMounted) return;
       setStairways(allRows);
+      setError(null);
       setLoading(false);
+      isLoadingStairways = false;
     }
 
     loadStairways();
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') loadStairways();
+    };
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+
     return () => {
       isMounted = false;
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
   }, []);
 

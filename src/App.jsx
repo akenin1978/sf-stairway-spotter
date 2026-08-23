@@ -33,6 +33,7 @@ export default function App() {
     supabase
       .from('stairways')
       .select('id', { count: 'exact', head: true })
+      .eq('active', true)
       .then(({ count }) => {
         if (count != null) setTotalStairways(count);
       });
