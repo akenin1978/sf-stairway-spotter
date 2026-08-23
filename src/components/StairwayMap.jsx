@@ -745,6 +745,8 @@ export default function StairwayMap({
           minZoom={11}
           gestureHandling="greedy"
           disableDefaultUI={false}
+          streetViewControl={false}
+          clickableIcons={false}
           mapTypeControlOptions={
             window.google?.maps?.MapTypeControlStyle
               ? { style: window.google.maps.MapTypeControlStyle.DROPDOWN_MENU }
