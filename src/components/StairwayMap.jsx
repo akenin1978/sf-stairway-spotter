@@ -344,6 +344,13 @@ export default function StairwayMap({
   // --- Custom confirm dialog state (replaces window.confirm, which always
   // shows the raw site URL -- not ideal before we have a custom domain) ---
   const [confirmAction, setConfirmAction] = useState(null); // { message, onConfirm } | null
+  const [completionMessage, setCompletionMessage] = useState('');
+
+  async function closeSelectedAfterSuccess(stairwayId, message) {
+    setCompletionMessage(message);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setSelected((current) => (current?.id === stairwayId ? null : current));
+  }
 
   // Shared logic for adding a check-in + checking for newly-earned badges.
   // Pulled out of the button's onClick so both the direct-toggle path and
@@ -360,6 +367,13 @@ export default function StairwayMap({
         })
         .catch((err) => console.error('Badge check failed', err));
     }
+
+    if (!result.error) {
+      await closeSelectedAfterSuccess(
+        stairway.id,
+        wasAdding ? 'Spotted! ✓' : 'Removed from spotted.'
+      );
+    }
   }
 
   // --- Photo verification state ---
@@ -370,6 +384,7 @@ export default function StairwayMap({
   useEffect(() => {
     setVerifyStatus('idle');
     setVerifyErrorMsg('');
+    setCompletionMessage('');
   }, [selected]);
 
   async function completePhotoVerification(stairway) {
@@ -409,7 +424,7 @@ export default function StairwayMap({
           if (newBadges && newBadges.length > 0) setBadgeQueue(newBadges);
         })
         .catch((err) => console.error('Badge check failed', err));
-      setSelected(null);
+      await closeSelectedAfterSuccess(stairway.id, 'Photo verified! ★');
     }
   }
 
@@ -611,7 +626,7 @@ export default function StairwayMap({
     }
   }
 
-  function handleCheckInNearby() {
+  async function handleCheckInNearby() {
     setNearbyError('');
     setNearbyMessage('');
 
@@ -623,51 +638,54 @@ export default function StairwayMap({
     }
 
     setLocatingNearby(true);
-    getCurrentDevicePosition({ enableHighAccuracy: true, timeout: 10000 })
-      .then((pos) => {
-        const location = {
+    try {
+      let location = myLocation;
+      if (!location) {
+        const pos = await getCurrentDevicePosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+        location = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         };
         setMyLocation(location);
-        setPanTarget(location);
+      }
+      setPanTarget(location);
 
-        const sorted = stairways
-          .map((stairway) => ({
-            stairway,
-            distanceMeters: distanceToStairwayMeters(location, stairway),
-          }))
-          .sort((a, b) => a.distanceMeters - b.distanceMeters);
-        const withinCheckInRange = sorted.filter(
-          (item) => item.distanceMeters <= GPS_THRESHOLD_METERS
+      const sorted = stairways
+        .map((stairway) => ({
+          stairway,
+          distanceMeters: distanceToStairwayMeters(location, stairway),
+        }))
+        .sort((a, b) => a.distanceMeters - b.distanceMeters);
+      const withinCheckInRange = sorted.filter(
+        (item) => item.distanceMeters <= GPS_THRESHOLD_METERS
+      );
+
+      if (withinCheckInRange.length === 1) {
+        setSelected(withinCheckInRange[0].stairway);
+        setNearbyOpen(false);
+      } else {
+        setNearbyStairways(
+          withinCheckInRange.length > 1 ? withinCheckInRange : sorted.slice(0, 5)
         );
-
-        if (withinCheckInRange.length === 1) {
-          setSelected(withinCheckInRange[0].stairway);
-          setNearbyOpen(false);
-        } else {
-          setNearbyStairways(
-            withinCheckInRange.length > 1
-              ? withinCheckInRange
-              : sorted.slice(0, 5)
-          );
-          setNearbyMessage(
-            withinCheckInRange.length > 1
-              ? 'Choose the stairway you are at.'
-              : "Sorry, there aren't any stairways within 300 feet. Here are the closest ones."
-          );
-          setNearbyOpen(true);
-        }
-        setLocatingNearby(false);
-      })
-      .catch(() => {
-        setNearbyStairways([]);
-        setNearbyError(
-          "Couldn't get your location. Check your device's location permissions and try again."
+        setNearbyMessage(
+          withinCheckInRange.length > 1
+            ? 'Choose the stairway you are at.'
+            : "Sorry, there aren't any stairways within 300 feet. Here are the closest ones."
         );
         setNearbyOpen(true);
-        setLocatingNearby(false);
-      });
+      }
+    } catch {
+      setNearbyStairways([]);
+      setNearbyError(
+        "Couldn't get your location. Check your device's location permissions and try again."
+      );
+      setNearbyOpen(true);
+    } finally {
+      setLocatingNearby(false);
+    }
   }
 
   function selectNearbyStairway(stairway) {
@@ -874,13 +892,11 @@ export default function StairwayMap({
           minZoom={11}
           gestureHandling="greedy"
           disableDefaultUI={false}
+          fullscreenControl={false}
+          zoomControl={false}
           streetViewControl={false}
+          mapTypeControl={false}
           clickableIcons={false}
-          mapTypeControlOptions={
-            window.google?.maps?.MapTypeControlStyle
-              ? { style: window.google.maps.MapTypeControlStyle.DROPDOWN_MENU }
-              : undefined
-          }
           onClick={(e) => {
             if (spotMode) {
               const latLng = e.detail?.latLng;
@@ -1016,7 +1032,11 @@ export default function StairwayMap({
                   </p>
                 ) : null}
 
-                {user ? (
+                {completionMessage ? (
+                  <div className="checkin-success" role="status">
+                    {completionMessage}
+                  </div>
+                ) : user ? (
                   <>
                     <button
                       className={

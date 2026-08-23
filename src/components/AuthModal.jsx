@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { isNativeApp } from '../nativeDevice';
 
 export default function AuthModal({ onClose }) {
+  const nativeApp = isNativeApp();
   const [mode, setMode] = useState('sign-in'); // 'sign-in' | 'sign-up'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,10 +75,10 @@ export default function AuthModal({ onClose }) {
               type="button"
               className="google-signin-button"
               onClick={handleGoogleSignIn}
-              disabled={status === 'submitting'}
+              disabled={nativeApp || status === 'submitting'}
             >
               <GoogleIcon />
-              Continue with Google
+              {nativeApp ? 'Google sign-in coming soon' : 'Continue with Google'}
             </button>
 
             <div className="auth-divider">
