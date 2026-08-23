@@ -38,15 +38,16 @@ export default function App() {
       });
   }, []);
 
-  // Shown once ever, only to first-time visitors who aren't signed in.
-  // Dismissing (Skip, "Get started", or swiping past the last slide) sets
-  // a permanent localStorage flag on this device.
+  // Shown once on the first launch of this installation/device, regardless
+  // of whether an account session already exists. Dismissing (Skip,
+  // "Get started", or swiping past the last slide) sets a permanent local
+  // flag, so logging in or out never makes the slides appear again.
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading) {
       const seen = localStorage.getItem('sf_stairway_onboarding_seen') === 'true';
       if (!seen) setShowOnboarding(true);
     }
-  }, [loading, user]);
+  }, [loading]);
 
   function dismissOnboarding() {
     localStorage.setItem('sf_stairway_onboarding_seen', 'true');

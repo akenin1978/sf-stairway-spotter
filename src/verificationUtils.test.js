@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   GPS_THRESHOLD_FEET,
   GPS_THRESHOLD_METERS,
+  distanceToStairwayMeters,
   getVerificationThresholdMeters,
   haversineDistanceMeters,
   pointToSegmentDistanceMeters,
@@ -75,5 +76,31 @@ describe('verification threshold', () => {
     expect(
       getVerificationThresholdMeters({ verification_radius_feet: 500 })
     ).toBeCloseTo(152.4, 2);
+  });
+});
+
+describe('distanceToStairwayMeters', () => {
+  const point = { lat: 37.7749, lng: -122.4194 };
+
+  it('measures to an ordinary stairway marker', () => {
+    expect(
+      distanceToStairwayMeters(point, {
+        latitude: 37.7759,
+        longitude: -122.4194,
+      })
+    ).toBeGreaterThan(100);
+  });
+
+  it('measures to the nearest point on a stairway verification line', () => {
+    expect(
+      distanceToStairwayMeters(point, {
+        latitude: 0,
+        longitude: 0,
+        verification_line_start_lat: 37.7749,
+        verification_line_start_lng: -122.42,
+        verification_line_end_lat: 37.7749,
+        verification_line_end_lng: -122.418,
+      })
+    ).toBeLessThan(0.01);
   });
 });

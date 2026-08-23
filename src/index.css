@@ -285,6 +285,131 @@ html, body, #root {
   position: relative;
 }
 
+.check-in-nearby-button {
+  position: absolute;
+  right: 10px;
+  bottom: 96px;
+  z-index: 6;
+  min-height: 52px;
+  padding: 0 20px 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: #4b3ce0;
+  color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.check-in-nearby-button:hover {
+  background: #3c30bd;
+}
+
+.check-in-nearby-button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.check-in-nearby-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: white;
+  color: #4b3ce0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.nearby-stairways-card {
+  width: min(92vw, 460px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nearby-stairways-card h2 {
+  margin-bottom: 4px;
+}
+
+.nearby-stairways-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-y: auto;
+}
+
+.nearby-stairway-item {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  color: #222;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.nearby-stairway-item:hover {
+  background: #f5f4ff;
+  border-color: #9d96eb;
+}
+
+.nearby-stairway-thumbnail,
+.nearby-stairway-thumbnail-placeholder {
+  width: 58px;
+  height: 58px;
+  border-radius: 7px;
+  flex: 0 0 58px;
+}
+
+.nearby-stairway-thumbnail {
+  display: block;
+  object-fit: cover;
+  background: #eee;
+}
+
+.nearby-stairway-thumbnail-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eeedfe;
+  color: #4b3ce0;
+  font-size: 30px;
+}
+
+.nearby-stairway-details,
+.nearby-stairway-description,
+.nearby-stairway-meta {
+  display: block;
+}
+
+.nearby-stairway-details {
+  min-width: 0;
+}
+
+.nearby-stairway-description {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.nearby-stairway-meta {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #666;
+}
+
 .controls-panel {
   position: absolute;
   bottom: 24px;

@@ -14,6 +14,10 @@ import MapControlsPanel from './MapControlsPanel';
 import { getRatingStyle } from '../ratingColors';
 import BadgeEarnedModal from './BadgeEarnedModal';
 import ConfirmDialog from './ConfirmDialog';
+import {
+  GPS_THRESHOLD_METERS,
+  distanceToStairwayMeters,
+} from '../verificationUtils';
 
 const SF_CENTER = { lat: 37.7749, lng: -122.4194 };
 
@@ -244,7 +248,7 @@ function LocateMeButton({ onLocate, locating }) {
       title="Find my location"
       style={{
         position: 'absolute',
-        bottom: '96px',
+        bottom: '164px',
         right: '10px',
         width: '40px',
         height: '40px',
@@ -275,6 +279,26 @@ function LocateMeButton({ onLocate, locating }) {
       )}
     </button>
   );
+}
+
+function CheckInNearbyButton({ onClick, locating, disabled }) {
+  return (
+    <button
+      type="button"
+      className="check-in-nearby-button"
+      onClick={onClick}
+      disabled={disabled || locating}
+    >
+      <span className="check-in-nearby-icon" aria-hidden="true">✓</span>
+      {locating ? 'Finding you…' : 'Check In'}
+    </button>
+  );
+}
+
+function formatNearbyDistance(distanceMeters) {
+  const feet = Math.round(distanceMeters / 0.3048);
+  if (feet < 1000) return `${feet} ft away`;
+  return `${(feet / 5280).toFixed(1)} mi away`;
 }
 
 function formatSpottedDate(isoString) {
@@ -500,6 +524,11 @@ export default function StairwayMap({
   const [myHeading, setMyHeading] = useState(null);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [nearbyOpen, setNearbyOpen] = useState(false);
+  const [nearbyStairways, setNearbyStairways] = useState([]);
+  const [nearbyMessage, setNearbyMessage] = useState('');
+  const [nearbyError, setNearbyError] = useState('');
+  const [locatingNearby, setLocatingNearby] = useState(false);
   const locationWatchIdRef = useRef(null);
   const hasCenteredRef = useRef(false);
 
@@ -543,6 +572,72 @@ export default function StairwayMap({
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  }
+
+  function handleCheckInNearby() {
+    setNearbyError('');
+    setNearbyMessage('');
+
+    if (!navigator.geolocation) {
+      setNearbyStairways([]);
+      setNearbyError('Location services are not available in this browser.');
+      setNearbyOpen(true);
+      return;
+    }
+
+    setLocatingNearby(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const location = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        setMyLocation(location);
+        setPanTarget(location);
+
+        const sorted = stairways
+          .map((stairway) => ({
+            stairway,
+            distanceMeters: distanceToStairwayMeters(location, stairway),
+          }))
+          .sort((a, b) => a.distanceMeters - b.distanceMeters);
+        const withinCheckInRange = sorted.filter(
+          (item) => item.distanceMeters <= GPS_THRESHOLD_METERS
+        );
+
+        if (withinCheckInRange.length === 1) {
+          setSelected(withinCheckInRange[0].stairway);
+          setNearbyOpen(false);
+        } else {
+          setNearbyStairways(
+            withinCheckInRange.length > 1
+              ? withinCheckInRange
+              : sorted.slice(0, 5)
+          );
+          setNearbyMessage(
+            withinCheckInRange.length > 1
+              ? 'Choose the stairway you are at.'
+              : "Sorry, there aren't any stairways within 300 feet. Here are the closest ones."
+          );
+          setNearbyOpen(true);
+        }
+        setLocatingNearby(false);
+      },
+      () => {
+        setNearbyStairways([]);
+        setNearbyError(
+          "Couldn't get your location. Check your device's location permissions and try again."
+        );
+        setNearbyOpen(true);
+        setLocatingNearby(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  function selectNearbyStairway(stairway) {
+    setNearbyOpen(false);
+    setSelected(stairway);
   }
 
   // Stop watching when the map unmounts -- otherwise this would keep
@@ -973,12 +1068,21 @@ export default function StairwayMap({
           )}
         </Map>
 
-        <LocateMeButton onLocate={handleLocateMe} locating={locating} />
+        {!spotMode && (
+          <>
+            <CheckInNearbyButton
+              onClick={handleCheckInNearby}
+              locating={locatingNearby}
+              disabled={loading || stairways.length === 0}
+            />
+            <LocateMeButton onLocate={handleLocateMe} locating={locating} />
+          </>
+        )}
         {locationError && (
           <div
             style={{
               position: 'absolute',
-              bottom: '142px',
+              bottom: '212px',
               right: '10px',
               maxWidth: '220px',
               background: '#ffffff',
@@ -1171,6 +1275,69 @@ export default function StairwayMap({
                 ))
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {nearbyOpen && (
+        <div className="modal-backdrop" onClick={() => setNearbyOpen(false)}>
+          <div
+            className="modal-card nearby-stairways-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="modal-close"
+              onClick={() => setNearbyOpen(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2>Stairways Near You</h2>
+            {nearbyError ? (
+              <p className="modal-error">{nearbyError}</p>
+            ) : (
+              <>
+                <p className="modal-context">{nearbyMessage}</p>
+                <div className="nearby-stairways-list">
+                  {nearbyStairways.map(({ stairway, distanceMeters }) => (
+                    <button
+                      key={stairway.id}
+                      type="button"
+                      className="nearby-stairway-item"
+                      onClick={() => selectNearbyStairway(stairway)}
+                    >
+                      {stairway.direct_photo_url ? (
+                        <img
+                          className="nearby-stairway-thumbnail"
+                          src={uncroppedPhotoUrl(stairway.direct_photo_url)}
+                          alt=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <span
+                          className="nearby-stairway-thumbnail-placeholder"
+                          aria-hidden="true"
+                        >
+                          ▟
+                        </span>
+                      )}
+                      <span className="nearby-stairway-details">
+                        <span className="nearby-stairway-description">
+                          {stairway.description || 'Stairway'}
+                        </span>
+                        <span className="nearby-stairway-meta">
+                          {formatNearbyDistance(distanceMeters)}
+                          {stairway.neighborhood
+                            ? ` · ${stairway.neighborhood}`
+                            : ''}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

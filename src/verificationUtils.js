@@ -51,3 +51,32 @@ export function getVerificationThresholdMeters(stairway) {
     ? stairway.verification_radius_feet * 0.3048
     : GPS_THRESHOLD_METERS;
 }
+
+export function distanceToStairwayMeters(point, stairway) {
+  const hasLine =
+    stairway.verification_line_start_lat != null &&
+    stairway.verification_line_start_lng != null &&
+    stairway.verification_line_end_lat != null &&
+    stairway.verification_line_end_lng != null;
+
+  if (hasLine) {
+    return pointToSegmentDistanceMeters(
+      point,
+      {
+        lat: stairway.verification_line_start_lat,
+        lng: stairway.verification_line_start_lng,
+      },
+      {
+        lat: stairway.verification_line_end_lat,
+        lng: stairway.verification_line_end_lng,
+      }
+    );
+  }
+
+  return haversineDistanceMeters(
+    point.lat,
+    point.lng,
+    stairway.latitude,
+    stairway.longitude
+  );
+}
