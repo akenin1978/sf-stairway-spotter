@@ -194,8 +194,8 @@ export default function OnboardingCarousel({ totalStairways, onDismiss }) {
 
         .onboarding-skip {
           position: absolute;
-          top: 20px;
-          right: 20px;
+          top: calc(env(safe-area-inset-top, 0px) + 12px);
+          right: calc(env(safe-area-inset-right, 0px) + 16px);
           border: none;
           background: none;
           font-size: 15px;

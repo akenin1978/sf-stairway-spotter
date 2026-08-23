@@ -18,6 +18,14 @@ import {
   GPS_THRESHOLD_METERS,
   distanceToStairwayMeters,
 } from '../verificationUtils';
+import {
+  captureTemporaryVerificationPhoto,
+  clearDeviceLocationWatch,
+  getCurrentDevicePosition,
+  isNativeApp,
+  startDeviceLocationWatch,
+  supportsDeviceGeolocation,
+} from '../nativeDevice';
 
 const SF_CENTER = { lat: 37.7749, lng: -122.4194 };
 
@@ -62,6 +70,7 @@ function ratingKey(rating) {
 // plain device-name check alone would wrongly treat an iPad as a desktop
 // -- checking for touch support alongside catches that case too.
 function isMobileOrTablet() {
+  if (isNativeApp()) return true;
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent || '';
   const isObviouslyMobile = /iPhone|iPad|iPod|Android/i.test(ua);
@@ -363,36 +372,21 @@ export default function StairwayMap({
     setVerifyErrorMsg('');
   }, [selected]);
 
-  async function handlePhotoSelected(e) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!selected) return;
-
-    // Previously this silently did nothing if no file came back from the
-    // camera/picker (e.g. cancelled, or a capture that didn't register) --
-    // that's indistinguishable from "it saved" without this message.
-    if (!file) {
-      setVerifyStatus('error');
-      setVerifyErrorMsg(
-        "No photo was captured -- try again and make sure to take or choose a photo."
-      );
-      return;
-    }
-
+  async function completePhotoVerification(stairway) {
     setVerifyStatus('verifying');
     setVerifyErrorMsg('');
 
     // The snapshot confirms that the camera flow completed, but it never
     // leaves the device. Only the successful GPS-verified check-in is saved.
-    const { error, distance } = await verifyWithPhoto(selected);
+    const { error, distance } = await verifyWithPhoto(stairway);
 
     if (error) {
       setVerifyStatus('error');
       if (error === 'too-far') {
-        const applicableThreshold = selected.verification_radius_feet ?? 300;
+        const applicableThreshold = stairway.verification_radius_feet ?? 300;
         const isLine =
-          selected.verification_line_start_lat != null &&
-          selected.verification_line_end_lat != null;
+          stairway.verification_line_start_lat != null &&
+          stairway.verification_line_end_lat != null;
         setVerifyErrorMsg(
           isLine
             ? `You're about ${distance}ft from the nearest point along this stretch -- get within ${applicableThreshold}ft to verify.`
@@ -409,14 +403,50 @@ export default function StairwayMap({
       }
     } else {
       setVerifyStatus('idle');
-      const updatedIds = new Set(checkedInIds).add(selected.id);
-      checkAndAwardBadges(stairways, updatedIds, selected.id)
+      const updatedIds = new Set(checkedInIds).add(stairway.id);
+      checkAndAwardBadges(stairways, updatedIds, stairway.id)
         .then((newBadges) => {
           if (newBadges && newBadges.length > 0) setBadgeQueue(newBadges);
         })
         .catch((err) => console.error('Badge check failed', err));
       setSelected(null);
     }
+  }
+
+  async function handleNativePhotoVerification() {
+    if (!selected) return;
+    const stairway = selected;
+    let temporaryPhoto;
+    try {
+      temporaryPhoto = await captureTemporaryVerificationPhoto();
+      if (!temporaryPhoto) return;
+      await completePhotoVerification(stairway);
+    } catch (error) {
+      setVerifyStatus('error');
+      setVerifyErrorMsg(
+        error?.message === 'camera-permission-denied'
+          ? 'Camera access is needed for on-site verification. You can enable it in your device settings.'
+          : 'No photo was captured. Try again when you are ready.'
+      );
+    } finally {
+      await temporaryPhoto?.discard();
+    }
+  }
+
+  async function handlePhotoSelected(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!selected) return;
+
+    if (!file) {
+      setVerifyStatus('error');
+      setVerifyErrorMsg(
+        "No photo was captured -- try again and make sure to take or choose a photo."
+      );
+      return;
+    }
+
+    await completePhotoVerification(selected);
   }
 
   // --- "My Spotted Stairways" list state ---
@@ -538,8 +568,8 @@ export default function StairwayMap({
   // the browser while actually moving, so it's null when stationary;
   // that's why the flare only appears once you're walking, not the
   // instant you tap the button.
-  function handleLocateMe() {
-    if (!navigator.geolocation) {
+  async function handleLocateMe() {
+    if (!supportsDeviceGeolocation()) {
       setLocationError('Location services are not available in this browser.');
       return;
     }
@@ -547,11 +577,13 @@ export default function StairwayMap({
     setLocationError('');
 
     if (locationWatchIdRef.current != null) {
-      navigator.geolocation.clearWatch(locationWatchIdRef.current);
+      await clearDeviceLocationWatch(locationWatchIdRef.current);
     }
     hasCenteredRef.current = false;
 
-    locationWatchIdRef.current = navigator.geolocation.watchPosition(
+    try {
+      locationWatchIdRef.current = await startDeviceLocationWatch(
+      { enableHighAccuracy: true, timeout: 10000 },
       (pos) => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setMyLocation(loc);
@@ -569,16 +601,21 @@ export default function StairwayMap({
           "Couldn't get your location -- check your device's location permissions."
         );
         setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+      }
+      );
+    } catch {
+      setLocationError(
+        "Couldn't get your location -- check your device's location permissions."
+      );
+      setLocating(false);
+    }
   }
 
   function handleCheckInNearby() {
     setNearbyError('');
     setNearbyMessage('');
 
-    if (!navigator.geolocation) {
+    if (!supportsDeviceGeolocation()) {
       setNearbyStairways([]);
       setNearbyError('Location services are not available in this browser.');
       setNearbyOpen(true);
@@ -586,8 +623,8 @@ export default function StairwayMap({
     }
 
     setLocatingNearby(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+    getCurrentDevicePosition({ enableHighAccuracy: true, timeout: 10000 })
+      .then((pos) => {
         const location = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
@@ -622,17 +659,15 @@ export default function StairwayMap({
           setNearbyOpen(true);
         }
         setLocatingNearby(false);
-      },
-      () => {
+      })
+      .catch(() => {
         setNearbyStairways([]);
         setNearbyError(
           "Couldn't get your location. Check your device's location permissions and try again."
         );
         setNearbyOpen(true);
         setLocatingNearby(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+      });
   }
 
   function selectNearbyStairway(stairway) {
@@ -645,29 +680,28 @@ export default function StairwayMap({
   useEffect(() => {
     return () => {
       if (locationWatchIdRef.current != null) {
-        navigator.geolocation.clearWatch(locationWatchIdRef.current);
+        clearDeviceLocationWatch(locationWatchIdRef.current);
       }
     };
   }, []);
 
   function handleUseMyLocation() {
-    if (!navigator.geolocation) {
+    if (!supportsDeviceGeolocation()) {
       setSpotErrorMsg('Location services are not available in this browser.');
       return;
     }
     setSpotErrorMsg('');
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+    getCurrentDevicePosition({ enableHighAccuracy: true, timeout: 10000 })
+      .then((pos) => {
         setSpotLocation({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           source: 'gps',
         });
-      },
-      () => {
+      })
+      .catch(() => {
         setSpotErrorMsg("Couldn't get your location -- try tapping the map instead.");
-      }
-    );
+      });
   }
 
   async function handleSpotSubmit(e) {
@@ -1022,7 +1056,11 @@ export default function StairwayMap({
                       (isMobileOrTablet() ? (
                         <button
                           className="verify-photo-button"
-                          onClick={() => verifyFileInputRef.current?.click()}
+                          onClick={() =>
+                            isNativeApp()
+                              ? handleNativePhotoVerification()
+                              : verifyFileInputRef.current?.click()
+                          }
                           disabled={verifyStatus === 'verifying'}
                         >
                           {verifyStatus === 'verifying'

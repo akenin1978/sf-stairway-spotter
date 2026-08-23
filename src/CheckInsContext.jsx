@@ -8,10 +8,13 @@ import {
 import { supabase } from './supabaseClient';
 import { useAuth } from './AuthContext';
 import {
+  distanceToStairwayMeters,
   getVerificationThresholdMeters,
-  haversineDistanceMeters,
-  pointToSegmentDistanceMeters,
 } from './verificationUtils';
+import {
+  getCurrentDevicePosition,
+  supportsDeviceGeolocation,
+} from './nativeDevice';
 import { fetchAllCheckIns, storagePathFromPublicUrl } from './checkInData';
 
 export { storagePathFromPublicUrl } from './checkInData';
@@ -175,27 +178,19 @@ export function CheckInsProvider({ children }) {
     async (stairway) => {
       if (!user) return { error: 'not-signed-in' };
 
-      if (!navigator.geolocation) {
+      if (!supportsDeviceGeolocation()) {
         return { error: 'no-geolocation' };
       }
 
-      const position = await new Promise((resolve) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ pos }),
-          (err) => resolve({ err }),
-          { enableHighAccuracy: true, timeout: 15000 }
-        );
-      });
-
-      if (position.err || !position.pos) {
+      let position;
+      try {
+        position = await getCurrentDevicePosition({
+          enableHighAccuracy: true,
+          timeout: 15000,
+        });
+      } catch {
         return { error: 'location-failed' };
       }
-
-      const hasLine =
-        stairway.verification_line_start_lat != null &&
-        stairway.verification_line_start_lng != null &&
-        stairway.verification_line_end_lat != null &&
-        stairway.verification_line_end_lng != null;
 
       // Three ways a stairway can be checked, in order of precedence:
       //  1. A line (street/trail with a real start and end) -- distance
@@ -206,27 +201,13 @@ export function CheckInsProvider({ children }) {
       //     bigger circle, for a stairway that's roughly one spot but
       //     longer/taller than most.
       //  3. The app-wide default circle, for everything else.
-      const distanceMeters = hasLine
-        ? pointToSegmentDistanceMeters(
-            {
-              lat: position.pos.coords.latitude,
-              lng: position.pos.coords.longitude,
-            },
-            {
-              lat: stairway.verification_line_start_lat,
-              lng: stairway.verification_line_start_lng,
-            },
-            {
-              lat: stairway.verification_line_end_lat,
-              lng: stairway.verification_line_end_lng,
-            }
-          )
-        : haversineDistanceMeters(
-            position.pos.coords.latitude,
-            position.pos.coords.longitude,
-            stairway.latitude,
-            stairway.longitude
-          );
+      const distanceMeters = distanceToStairwayMeters(
+        {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        },
+        stairway
+      );
 
       // For a line, this is the tolerance to either side of it, not a
       // "how far from the center" radius -- reuses the same column for

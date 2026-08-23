@@ -3,7 +3,7 @@ import Legend from './Legend';
 import FiltersPanel from './FiltersPanel';
 
 export default function MapControlsPanel(props) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('legend'); // 'legend' | 'filters'
 
   return (
