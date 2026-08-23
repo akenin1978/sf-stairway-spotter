@@ -45,8 +45,15 @@ async function resolveDirectImageUrl(shareUrl) {
   // Google Photos share pages embed an Open Graph image tag for link
   // previews (e.g. what shows up when you paste the link into iMessage).
   // That tag's content is the real, direct image URL we want.
-  const match = html.match(/<meta property="og:image" content="([^"]+)"/);
-  return match ? match[1] : null;
+  const match =
+    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+  return match
+    ? match[1]
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;|&#x27;/g, "'")
+    : null;
 }
 
 async function main() {

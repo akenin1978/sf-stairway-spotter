@@ -36,8 +36,83 @@ function databaseHeaders(secretKey: string, prefer?: string) {
   };
 }
 
+function decodeHtmlAttribute(value: string) {
+  return value
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&#x27;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+async function resolveDirectPhotoUrl(shareUrl: string) {
+  if (!/^https:\/\/photos\.app\.goo\.gl\//i.test(shareUrl)) return null;
+
+  const response = await fetch(shareUrl, {
+    redirect: 'follow',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; SFStairwaySpotter/1.0)',
+      Accept: 'text/html,application/xhtml+xml',
+    },
+  });
+  if (!response.ok) throw new Error(`Google Photos returned ${response.status}`);
+
+  const html = await response.text();
+  const match =
+    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+  return match ? decodeHtmlAttribute(match[1]) : null;
+}
+
+async function fetchExistingPhotoState(
+  batch: Record<string, unknown>[],
+  secretKey: string
+) {
+  const ids = batch.map((row) => String(row.id || '')).filter(Boolean);
+  if (ids.length === 0) return new Map<string, Record<string, unknown>>();
+
+  const filter = `in.(${ids.join(',')})`;
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/stairways?select=id,photo_url,direct_photo_url&id=${encodeURIComponent(filter)}`,
+    { headers: databaseHeaders(secretKey) }
+  );
+  if (!response.ok) {
+    throw new Error(`Could not read existing photos: ${response.status} ${await response.text()}`);
+  }
+
+  const rows = await response.json();
+  return new Map(rows.map((row: Record<string, unknown>) => [String(row.id), row]));
+}
+
 async function upsertRows(batch: Record<string, unknown>[], secretKey: string) {
-  const activeBatch = batch.map((row) => ({ ...row, active: true }));
+  const existingById = await fetchExistingPhotoState(batch, secretKey);
+  let resolvedPhotos = 0;
+  let failedPhotos = 0;
+
+  const activeBatch = await Promise.all(batch.map(async (row) => {
+    const existing = existingById.get(String(row.id));
+    const photoUrl = typeof row.photo_url === 'string' ? row.photo_url.trim() : '';
+    const photoChanged = photoUrl !== String(existing?.photo_url || '');
+    let directPhotoUrl = photoChanged ? null : existing?.direct_photo_url || null;
+
+    if (photoUrl && !directPhotoUrl) {
+      try {
+        directPhotoUrl = await resolveDirectPhotoUrl(photoUrl);
+        if (directPhotoUrl) resolvedPhotos += 1;
+        else failedPhotos += 1;
+      } catch (error) {
+        failedPhotos += 1;
+        console.error(`Could not resolve photo for ${row.id}:`, error);
+      }
+    }
+
+    return {
+      ...row,
+      active: true,
+      direct_photo_url: directPhotoUrl,
+    };
+  }));
+
   const response = await fetch(
     `${SUPABASE_URL}/rest/v1/stairways?on_conflict=id`,
     {
@@ -54,7 +129,12 @@ async function upsertRows(batch: Record<string, unknown>[], secretKey: string) {
     throw new Error(`Supabase returned ${response.status}: ${await response.text()}`);
   }
 
-  return json({ success: true, count: activeBatch.length });
+  return json({
+    success: true,
+    count: activeBatch.length,
+    resolvedPhotos,
+    failedPhotos,
+  });
 }
 
 async function fetchActiveStairways(secretKey: string) {
