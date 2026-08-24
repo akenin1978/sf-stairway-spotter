@@ -1,6 +1,6 @@
 export const LAUNCH_LINKS = {
-  privacy: 'https://sfstairwayspotter.com/privacy',
-  terms: 'https://sfstairwayspotter.com/terms',
-  support: 'https://sfstairwayspotter.com/support',
-  deleteAccount: 'https://sfstairwayspotter.com/delete-account',
+  privacy: 'https://sf-stairway-spotter.vercel.app/privacy',
+  terms: 'https://sf-stairway-spotter.vercel.app/terms',
+  support: 'https://sf-stairway-spotter.vercel.app/support',
+  deleteAccount: 'https://sf-stairway-spotter.vercel.app/delete-account',
 };
