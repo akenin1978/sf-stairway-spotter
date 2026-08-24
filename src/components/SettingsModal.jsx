@@ -3,6 +3,7 @@ import { Filter } from 'bad-words';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns, storagePathFromPublicUrl } from '../CheckInsContext';
+import { LAUNCH_LINKS } from '../launchLinks';
 
 const profanityFilter = new Filter();
 
@@ -263,6 +264,25 @@ export default function SettingsModal({ onClose }) {
             <button type="submit" disabled={status === 'saving'}>
               {status === 'saving' ? 'Saving…' : 'Save'}
             </button>
+
+            <div className="settings-legal-links" aria-label="Help and legal">
+              <a href={LAUNCH_LINKS.support} target="_blank" rel="noreferrer">
+                Support
+              </a>
+              <a href={LAUNCH_LINKS.privacy} target="_blank" rel="noreferrer">
+                Privacy Policy
+              </a>
+              <a href={LAUNCH_LINKS.terms} target="_blank" rel="noreferrer">
+                Terms of Use
+              </a>
+              <a
+                href={LAUNCH_LINKS.deleteAccount}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Account deletion information
+              </a>
+            </div>
 
             <div className="settings-danger-zone">
               {deleteStatus === 'error' && (

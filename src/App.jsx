@@ -11,6 +11,7 @@ import FriendsModal from './components/FriendsModal';
 import { useAuth } from './AuthContext';
 import { useCheckIns } from './CheckInsContext';
 import { supabase } from './supabaseClient';
+import { LAUNCH_LINKS } from './launchLinks';
 
 export default function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -116,14 +117,6 @@ export default function App() {
                 >
                   Feedback
                 </button>
-                <a
-                  className="header-menu-item"
-                  href="mailto:info@urbanhikersf.com"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Support
-                </a>
-
                 {!loading &&
                   (user ? (
                     <>
@@ -194,6 +187,43 @@ export default function App() {
                       Sign in
                     </button>
                   ))}
+                <div className="header-menu-divider" />
+                <a
+                  className="header-menu-item"
+                  href={LAUNCH_LINKS.support}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Support
+                </a>
+                <a
+                  className="header-menu-item"
+                  href={LAUNCH_LINKS.privacy}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Privacy Policy
+                </a>
+                <a
+                  className="header-menu-item"
+                  href={LAUNCH_LINKS.terms}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Terms of Use
+                </a>
+                <a
+                  className="header-menu-item"
+                  href={LAUNCH_LINKS.deleteAccount}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Delete Account
+                </a>
               </div>
             </>
           )}
