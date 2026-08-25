@@ -27,7 +27,9 @@ import {
   supportsDeviceGeolocation,
 } from '../nativeDevice';
 
-const SF_CENTER = { lat: 37.7749, lng: -122.4194 };
+// Slightly south of the city's geographic midpoint so the dense stairway
+// area sits visually centered above the bottom map controls on a phone.
+const SF_CENTER = { lat: 37.74, lng: -122.4194 };
 
 // Keeps the map locked to San Francisco proper -- including Treasure Island
 // and Alcatraz -- so it can't be panned out across the country, while
@@ -122,6 +124,28 @@ function PanToUserLocation({ target }) {
     map.panTo({ lat: target.lat, lng: target.lng });
     map.setZoom(16);
   }, [map, target]);
+
+  return null;
+}
+
+// Start signed-out visitors with the whole city framed cleanly, and return
+// to that same home view once when authentication changes. After this one
+// reset the map remains completely under the user's control.
+function MapHomeView({ sessionKey, signedIn }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+    map.setCenter(SF_CENTER);
+    map.setZoom(signedIn ? 12 : 11);
+    const frame = requestAnimationFrame(() => {
+      // Match the phone launch crop measured from the approved reference:
+      // move the map content right while retaining the centered vertical
+      // framing and one Treasure Island marker at the edge.
+      map.panBy(-40, 0);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [map, sessionKey, signedIn]);
 
   return null;
 }
@@ -337,6 +361,12 @@ export default function StairwayMap({
   const { checkedInIds, checkedInDates, checkedInMethods, toggleCheckIn, verifyWithPhoto } =
     useCheckIns();
   const { checkAndAwardBadges } = useBadges();
+
+  // A stairway selected before signing in or out should never carry over
+  // into the new session's clean home view.
+  useEffect(() => {
+    setSelected(null);
+  }, [user?.id]);
 
   // --- Badge-earned alert state ---
   const [badgeQueue, setBadgeQueue] = useState([]);
@@ -757,6 +787,7 @@ export default function StairwayMap({
   useEffect(() => {
     let isMounted = true;
     let isLoadingStairways = false;
+    let lastLoadedAt = 0;
 
     async function loadStairways() {
       if (isLoadingStairways) return;
@@ -768,14 +799,31 @@ export default function StairwayMap({
       // batches, stopping only once a page comes back with fewer rows
       // than we asked for, guarantees we always get everything regardless
       // of how large the table grows or what the server's cap is set to.
-      const PAGE_SIZE = 500;
+      const PAGE_SIZE = 1000;
       let allRows = [];
       let from = 0;
 
       while (true) {
         const { data, error } = await supabase
           .from('stairways')
-          .select('*')
+          .select(
+            [
+              'id',
+              'description',
+              'latitude',
+              'longitude',
+              'neighborhood',
+              'rating',
+              'stair_count',
+              'direct_photo_url',
+              'photo_url',
+              'verification_radius_feet',
+              'verification_line_start_lat',
+              'verification_line_start_lng',
+              'verification_line_end_lat',
+              'verification_line_end_lng',
+            ].join(',')
+          )
           .eq('active', true)
           .not('latitude', 'is', null)
           .not('longitude', 'is', null)
@@ -802,12 +850,14 @@ export default function StairwayMap({
       setStairways(allRows);
       setError(null);
       setLoading(false);
+      lastLoadedAt = Date.now();
       isLoadingStairways = false;
     }
 
     loadStairways();
     const refreshWhenVisible = () => {
-      if (document.visibilityState === 'visible') loadStairways();
+      const isStale = Date.now() - lastLoadedAt > 60_000;
+      if (document.visibilityState === 'visible' && isStale) loadStairways();
     };
     document.addEventListener('visibilitychange', refreshWhenVisible);
 
@@ -901,7 +951,7 @@ export default function StairwayMap({
         <Map
           style={{ width: '100%', height: '100%' }}
           defaultCenter={SF_CENTER}
-          defaultZoom={12}
+          defaultZoom={11}
           minZoom={11}
           gestureHandling="greedy"
           disableDefaultUI
@@ -926,6 +976,10 @@ export default function StairwayMap({
             strictBounds: true,
           }}
         >
+          <MapHomeView
+            sessionKey={user?.id ?? 'signed-out'}
+            signedIn={Boolean(user)}
+          />
           <MapRecenter target={selected} />
           <PanToUserLocation target={panTarget} />
           <ViewportBoundsTracker
