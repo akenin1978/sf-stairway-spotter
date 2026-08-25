@@ -131,13 +131,13 @@ function PanToUserLocation({ target }) {
 // Start signed-out visitors with the whole city framed cleanly, and return
 // to that same home view once when authentication changes. After this one
 // reset the map remains completely under the user's control.
-function MapHomeView({ sessionKey, signedIn }) {
+function MapHomeView({ sessionKey }) {
   const map = useMap();
 
   useEffect(() => {
     if (!map) return;
     map.setCenter(SF_CENTER);
-    map.setZoom(signedIn ? 12 : 11);
+    map.setZoom(12);
     const frame = requestAnimationFrame(() => {
       // Match the phone launch crop measured from the approved reference:
       // move the map content right while retaining the centered vertical
@@ -145,7 +145,7 @@ function MapHomeView({ sessionKey, signedIn }) {
       map.panBy(-40, 0);
     });
     return () => cancelAnimationFrame(frame);
-  }, [map, sessionKey, signedIn]);
+  }, [map, sessionKey]);
 
   return null;
 }
@@ -951,7 +951,7 @@ export default function StairwayMap({
         <Map
           style={{ width: '100%', height: '100%' }}
           defaultCenter={SF_CENTER}
-          defaultZoom={11}
+          defaultZoom={12}
           minZoom={11}
           gestureHandling="greedy"
           disableDefaultUI
@@ -976,10 +976,7 @@ export default function StairwayMap({
             strictBounds: true,
           }}
         >
-          <MapHomeView
-            sessionKey={user?.id ?? 'signed-out'}
-            signedIn={Boolean(user)}
-          />
+          <MapHomeView sessionKey={user?.id ?? 'signed-out'} />
           <MapRecenter target={selected} />
           <PanToUserLocation target={panTarget} />
           <ViewportBoundsTracker

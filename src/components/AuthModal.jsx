@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { isNativeApp } from '../nativeDevice';
+import {
+  isNativeGoogleConfigured,
+  signInWithNativeProvider,
+} from '../nativeAuth';
 
 export default function AuthModal({ onClose }) {
   const nativeApp = isNativeApp();
@@ -39,6 +43,25 @@ export default function AuthModal({ onClose }) {
   async function handleGoogleSignIn() {
     setStatus('submitting');
     setErrorMsg('');
+    if (nativeApp) {
+      try {
+        await signInWithNativeProvider('google');
+        onClose();
+      } catch (error) {
+        if (error?.code === 'USER_CANCELLED') {
+          setStatus('idle');
+          return;
+        }
+        setStatus('error');
+        setErrorMsg(
+          error?.message === 'google-native-not-configured'
+            ? 'Google sign-in needs its iPhone client ID configured first.'
+            : 'Google sign-in could not be completed. Please try again.'
+        );
+      }
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin },
@@ -49,6 +72,24 @@ export default function AuthModal({ onClose }) {
     if (error) {
       setStatus('error');
       setErrorMsg(error.message);
+    }
+  }
+
+  async function handleAppleSignIn() {
+    setStatus('submitting');
+    setErrorMsg('');
+    try {
+      await signInWithNativeProvider('apple');
+      onClose();
+    } catch (error) {
+      if (error?.code === 'USER_CANCELLED') {
+        setStatus('idle');
+        return;
+      }
+      setStatus('error');
+      setErrorMsg(
+        'Apple sign-in could not be completed. Confirm Sign in with Apple is enabled for this app.'
+      );
     }
   }
 
@@ -71,14 +112,31 @@ export default function AuthModal({ onClose }) {
           <>
             <h2>{mode === 'sign-in' ? 'Sign in' : 'Create an account'}</h2>
 
+            {nativeApp && (
+              <button
+                type="button"
+                className="apple-signin-button"
+                onClick={handleAppleSignIn}
+                disabled={status === 'submitting'}
+              >
+                <AppleIcon />
+                Continue with Apple
+              </button>
+            )}
+
             <button
               type="button"
               className="google-signin-button"
               onClick={handleGoogleSignIn}
-              disabled={nativeApp || status === 'submitting'}
+              disabled={
+                status === 'submitting' ||
+                (nativeApp && !isNativeGoogleConfigured())
+              }
             >
               <GoogleIcon />
-              {nativeApp ? 'Google sign-in coming soon' : 'Continue with Google'}
+              {nativeApp && !isNativeGoogleConfigured()
+                ? 'Google sign-in setup required'
+                : 'Continue with Google'}
             </button>
 
             <div className="auth-divider">
@@ -156,6 +214,17 @@ export default function AuthModal({ onClose }) {
         )}
       </div>
     </div>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M17.05 12.54c-.03-3.18 2.6-4.73 2.72-4.8a5.85 5.85 0 0 0-4.61-2.5c-1.94-.2-3.82 1.16-4.81 1.16-1.01 0-2.54-1.14-4.19-1.1a6.1 6.1 0 0 0-5.13 3.13c-2.23 3.86-.57 9.54 1.57 12.66 1.07 1.53 2.31 3.24 3.96 3.18 1.62-.07 2.22-1.02 4.18-1.02 1.93 0 2.5 1.02 4.2.98 1.73-.03 2.82-1.53 3.85-3.07a12.6 12.6 0 0 0 1.76-3.58 5.5 5.5 0 0 1-3.5-5.04ZM13.9 3.18A5.57 5.57 0 0 0 15.18-.8a5.65 5.65 0 0 0-3.66 1.9 5.3 5.3 0 0 0-1.31 3.83 4.67 4.67 0 0 0 3.69-1.75Z"
+      />
+    </svg>
   );
 }
 

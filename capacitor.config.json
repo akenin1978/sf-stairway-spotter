@@ -1,5 +1,16 @@
 {
   "appId": "com.sfstairwayspotter.app",
   "appName": "SF Stairway Spotter",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "SocialLogin": {
+      "providers": {
+        "google": true,
+        "facebook": false,
+        "apple": true,
+        "twitter": false
+      },
+      "logLevel": 1
+    }
+  }
 }

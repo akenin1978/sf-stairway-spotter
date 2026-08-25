@@ -18,16 +18,29 @@
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.736603816888-4crkvh5pl36jjt97p92g4ddueo70qckv</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>Take a temporary stairway photo to confirm an on-site visit. The photo is not saved or uploaded.</string>
+	<string>SF Stairway Spotter uses the camera to take a temporary photo that verifies your stairway visit. The photo is not saved or uploaded.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Use your location to find nearby stairways and confirm on-site visits when you choose those features.</string>
+	<string>SF Stairway Spotter uses your location while the app is open to find nearby stairways and verify check-ins you choose to make.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
