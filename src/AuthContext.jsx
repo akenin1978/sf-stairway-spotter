@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
+import { clearNativeGoogleSession } from './nativeAuth';
 
 const AuthContext = createContext(null);
 
@@ -27,11 +28,18 @@ export function AuthProvider({ children }) {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  async function signOut() {
+    const provider = session?.user?.app_metadata?.provider;
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    if (provider === 'google') await clearNativeGoogleSession();
+  }
+
   const value = {
     session,
     user: session?.user ?? null,
     loading,
-    signOut: () => supabase.auth.signOut(),
+    signOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

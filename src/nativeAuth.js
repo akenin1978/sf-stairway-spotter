@@ -12,6 +12,19 @@ export function isNativeGoogleConfigured() {
   return Boolean(googleIOSClientId && googleWebClientId);
 }
 
+export async function clearNativeGoogleSession() {
+  if (!isNativeApp() || !isNativeGoogleConfigured()) return;
+
+  try {
+    await initializeNativeAuth();
+    await SocialLogin.logout({ provider: 'google' });
+  } catch (error) {
+    // Signing out of the app must still succeed if Google's local session
+    // cannot be cleared. The next Google login can recover normally.
+    console.warn('Could not clear the saved Google sign-in session', error);
+  }
+}
+
 async function initializeNativeAuth() {
   if (!isNativeApp()) throw new Error('native-auth-unavailable');
   if (!initializePromise) {
