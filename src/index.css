@@ -582,13 +582,14 @@ html, body, #root {
 
 .legend-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 
 .legend-dot {
   width: 12px;
   height: 12px;
+  margin-top: 4px;
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.2);
   flex-shrink: 0;

@@ -1,4 +1,4 @@
-import { RATING_STYLES, UNRATED_STYLE } from '../ratingColors';
+import { RATING_STYLES } from '../ratingColors';
 
 export default function Legend() {
   const entries = [5, 4, 3, 2, 1].map((rating) => ({
@@ -9,7 +9,7 @@ export default function Legend() {
 
   return (
     <div>
-      {[...entries, { key: 'unrated', ...UNRATED_STYLE }].map(
+      {entries.map(
         ({ key, rating, color, label, description }) => (
           <div className="legend-row" key={key} title={description}>
             <span className="legend-dot" style={{ backgroundColor: color }} />
