@@ -11,6 +11,161 @@ html, body, #root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* --- Animated app launch screen --- */
+.launch-animation {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: max(28px, env(safe-area-inset-top)) 28px max(28px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% 35%, rgba(177, 144, 255, 0.74), transparent 42%),
+    linear-gradient(145deg, #3627c8 0%, #503de4 55%, #7457ec 100%);
+  color: #fff;
+  opacity: 1;
+  transition: opacity 0.55s ease, visibility 0.55s ease;
+}
+
+.launch-animation-glow {
+  position: absolute;
+  width: min(130vw, 680px);
+  aspect-ratio: 1;
+  border: 90px solid rgba(255, 255, 255, 0.045);
+  border-radius: 50%;
+  transform: translate(-45%, 58%);
+}
+
+.launch-animation-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.launch-animation-dots {
+  width: min(64vw, 290px);
+  aspect-ratio: 1.08;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: clamp(7px, 2.1vw, 12px);
+  align-items: center;
+  justify-items: center;
+  margin-bottom: 36px;
+}
+
+.launch-animation-dot {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  box-shadow: 0 12px 18px rgba(28, 17, 104, 0.3), inset 0 -5px 0 rgba(0, 0, 0, 0.09);
+  opacity: 0;
+  transform: translateY(-34px) scale(0.72);
+  animation: launch-dot-bounce 0.62s cubic-bezier(0.22, 1.55, 0.45, 1) forwards;
+  animation-delay: calc(0.08s + var(--dot-index) * 0.035s);
+}
+
+.launch-animation-dot:nth-child(-n + 5) { grid-row: 5; }
+.launch-animation-dot:nth-child(1) { grid-column: 1; }
+.launch-animation-dot:nth-child(2) { grid-column: 2; }
+.launch-animation-dot:nth-child(3) { grid-column: 3; }
+.launch-animation-dot:nth-child(4) { grid-column: 4; }
+.launch-animation-dot:nth-child(5) { grid-column: 5; }
+.launch-animation-dot:nth-child(n + 6):nth-child(-n + 9) { grid-row: 4; }
+.launch-animation-dot:nth-child(6) { grid-column: 2; }
+.launch-animation-dot:nth-child(7) { grid-column: 3; }
+.launch-animation-dot:nth-child(8) { grid-column: 4; }
+.launch-animation-dot:nth-child(9) { grid-column: 5; }
+.launch-animation-dot:nth-child(n + 10):nth-child(-n + 12) { grid-row: 3; }
+.launch-animation-dot:nth-child(10) { grid-column: 3; }
+.launch-animation-dot:nth-child(11) { grid-column: 4; }
+.launch-animation-dot:nth-child(12) { grid-column: 5; }
+.launch-animation-dot:nth-child(n + 13):nth-child(-n + 14) { grid-row: 2; }
+.launch-animation-dot:nth-child(13) { grid-column: 4; }
+.launch-animation-dot:nth-child(14) { grid-column: 5; }
+.launch-animation-dot:nth-child(15) { grid-column: 5; grid-row: 1; }
+
+.launch-animation-dot-red { background: #f33222; }
+.launch-animation-dot-orange { background: #ff8410; }
+.launch-animation-dot-yellow { background: #ffc919; }
+.launch-animation-dot-green { background: #5ab120; }
+.launch-animation-dot-blue { background: #1297dd; }
+
+.launch-animation h1 {
+  margin: 0;
+  font-size: clamp(34px, 9vw, 50px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+  opacity: 0;
+  animation: launch-copy-in 0.5s ease 0.42s forwards;
+}
+
+.launch-animation p {
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(14px, 4vw, 18px);
+  opacity: 0;
+  animation: launch-copy-in 0.5s ease 0.55s forwards;
+}
+
+.launch-animation-exiting {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.launch-animation-exiting .launch-animation-dot {
+  opacity: 1;
+  animation: launch-dot-depart 0.62s cubic-bezier(0.55, 0, 0.9, 0.55) forwards;
+  animation-delay: calc(var(--dot-index) * 0.01s);
+}
+
+.launch-animation-exiting h1,
+.launch-animation-exiting p {
+  animation: launch-copy-out 0.3s ease forwards;
+}
+
+@keyframes launch-dot-bounce {
+  0% { opacity: 0; transform: translateY(-34px) scale(0.72); }
+  64% { opacity: 1; transform: translateY(7px) scale(1.06); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes launch-dot-depart {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  24% { transform: translate(0, -12px) scale(1.08); }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dot-exit-x), var(--dot-exit-y)) scale(3.4);
+  }
+}
+
+@keyframes launch-copy-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes launch-copy-out {
+  to { opacity: 0; transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launch-animation-dot,
+  .launch-animation h1,
+  .launch-animation p {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .launch-animation-exiting { transition-duration: 0.3s; }
+}
+
 /* --- Marketing landing page --- */
 .landing-page {
   height: 100%;

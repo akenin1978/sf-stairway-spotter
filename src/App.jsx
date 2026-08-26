@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import StairwayMap from './components/StairwayMap';
 import OnboardingCarousel from './components/OnboardingCarousel';
 import FeedbackModal from './components/FeedbackModal';
@@ -8,12 +8,15 @@ import BadgesModal from './components/BadgesModal';
 import StatsModal from './components/StatsModal';
 import LeaderboardModal from './components/LeaderboardModal';
 import FriendsModal from './components/FriendsModal';
+import LaunchAnimation from './components/LaunchAnimation';
 import { useAuth } from './AuthContext';
 import { useCheckIns } from './CheckInsContext';
 import { supabase } from './supabaseClient';
 import { LAUNCH_LINKS } from './launchLinks';
 
 export default function App() {
+  const [showLaunchAnimation, setShowLaunchAnimation] = useState(true);
+  const dismissLaunchAnimation = useCallback(() => setShowLaunchAnimation(false), []);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackStairway, setFeedbackStairway] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
@@ -68,6 +71,10 @@ export default function App() {
 
   return (
     <div className="app">
+      {showLaunchAnimation && (
+        <LaunchAnimation onComplete={dismissLaunchAnimation} />
+      )}
+
       {showOnboarding && (
         <OnboardingCarousel
           totalStairways={totalStairways}
