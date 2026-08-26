@@ -1272,11 +1272,19 @@ html, body, #root {
 
 .spotted-controls select {
   flex: 1;
+  min-width: 0;
+  width: 100%;
   padding: 6px 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 13px;
   background: white;
+}
+
+@media (max-width: 480px) {
+  .spotted-controls {
+    flex-direction: column;
+  }
 }
 
 .spotted-list {

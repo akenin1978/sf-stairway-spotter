@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>SF Stairway Spotter</string>
+	<string>SF Stairways</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -39,6 +39,10 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>SF Stairway Spotter uses the camera to take a temporary photo that verifies your stairway visit. The photo is not saved or uploaded.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SF Stairway Spotter accesses your photo library only if you choose a photo while verifying a stairway visit.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>SF Stairway Spotter uses your location to find nearby stairways and verify check-ins you choose to make.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SF Stairway Spotter uses your location while the app is open to find nearby stairways and verify check-ins you choose to make.</string>
 	<key>UIApplicationSceneManifest</key>
