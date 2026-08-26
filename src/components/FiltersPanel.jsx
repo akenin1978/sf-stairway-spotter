@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RATING_STYLES, UNRATED_STYLE } from '../ratingColors';
+import { RATING_STYLES } from '../ratingColors';
 
 export default function FiltersPanel({
   visibleRatings,
@@ -26,7 +26,7 @@ export default function FiltersPanel({
     <div>
       <p className="filters-section-title">Rating</p>
       <div className="filters-pill-row">
-        {[...ratingEntries, { key: 'unrated', ...UNRATED_STYLE }].map(
+        {ratingEntries.map(
           ({ key, rating, color, label }) => (
             <label className="filters-pill" key={key} title={label}>
               <input
@@ -35,7 +35,7 @@ export default function FiltersPanel({
                 onChange={() => onToggleRating(key)}
               />
               <span className="legend-dot" style={{ backgroundColor: color }} />
-              <span>{rating ?? 'N/A'}</span>
+              <span>{rating}</span>
             </label>
           )
         )}
