@@ -23,8 +23,8 @@ export default function LaunchAnimation({ onComplete }) {
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const exitTimer = window.setTimeout(() => setExiting(true), reduceMotion ? 350 : 1100);
-    const completeTimer = window.setTimeout(onComplete, reduceMotion ? 700 : 1800);
+    const exitTimer = window.setTimeout(() => setExiting(true), reduceMotion ? 350 : 1400);
+    const completeTimer = window.setTimeout(onComplete, reduceMotion ? 700 : 2200);
 
     return () => {
       window.clearTimeout(exitTimer);

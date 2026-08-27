@@ -1,4 +1,7 @@
 import appIconUrl from '../../ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png';
+import badgesImageUrl from '../assets/landing/badges.jpg';
+import checkInImageUrl from '../assets/landing/check-in.jpg';
+import mapImageUrl from '../assets/landing/map.jpg';
 import { LAUNCH_LINKS } from '../launchLinks';
 
 const WEB_APP_URL = 'https://sfstairwayspotter.app';
@@ -6,18 +9,24 @@ const SUPPORT_EMAIL = 'info@urbanhikersf.com';
 
 const features = [
   {
-    number: '01',
-    title: 'Find hidden stairways',
+    image: mapImageUrl,
+    imageAlt: 'SF Stairway Spotter map filled with color-coded stairway markers',
+    imagePosition: 'center 38%',
+    title: 'Uncover the city’s stairways',
     body: 'Browse more than 1,200 public stairways across San Francisco, color-coded by rating.',
   },
   {
-    number: '02',
+    image: checkInImageUrl,
+    imageAlt: 'Nearby stairways displayed in the SF Stairway Spotter check-in screen',
+    imagePosition: 'center 23%',
     title: 'Track every climb',
     body: 'Check in as you explore, build streaks, and watch your personal stairway count grow.',
   },
   {
-    number: '03',
-    title: 'Earn neighborhood badges',
+    image: badgesImageUrl,
+    imageAlt: 'Earned neighborhood badges in SF Stairway Spotter',
+    imagePosition: 'center 20%',
+    title: 'Earn badges for your explorations',
     body: 'Turn a walk across the city into a collection of discoveries, milestones, and local challenges.',
   },
 ];
@@ -61,16 +70,15 @@ export default function LandingPage() {
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <p className="landing-eyebrow">The city is full of hidden steps</p>
-          <h1>Find your next favorite San Francisco stairway.</h1>
+          <p className="landing-eyebrow">Step up, San Francisco!</p>
+          <h1>San&nbsp;Francisco’s stairways are now at your fingertips.</h1>
           <p className="landing-hero-intro">
-            Discover, track, and explore more than 1,200 public stairways—one
-            colorful climb at a time.
+            Discover, track, and explore more than 1,200 public stairways — one
+            climb at a time.
           </p>
           <div className="landing-actions">
-            <a className="landing-primary-button" href={WEB_APP_URL}>Explore the map</a>
             <a
-              className="landing-secondary-button"
+              className="landing-primary-button"
               href={`mailto:${SUPPORT_EMAIL}?subject=SF%20Stairway%20Spotter%20beta`}
             >
               Join the beta
@@ -103,17 +111,23 @@ export default function LandingPage() {
 
       <section className="landing-features" id="how-it-works">
         <div className="landing-section-heading">
-          <p className="landing-eyebrow">Make the city your staircase</p>
-          <h2>A map for curious walkers.</h2>
+          <p className="landing-eyebrow">Conquer the city’s stairs</p>
+          <h2>An app for curious walkers.</h2>
           <p>
-            Plan an outing or simply see what is around the next corner. An
-            account is optional until you want to save your progress.
+            Plan an outing or see what’s around the next corner.
+            <br />
+            An account is optional until you want to save your progress.
           </p>
         </div>
         <div className="landing-feature-grid">
           {features.map((feature) => (
-            <article key={feature.number}>
-              <span>{feature.number}</span>
+            <article key={feature.title}>
+              <img
+                className="landing-feature-image"
+                src={feature.image}
+                alt={feature.imageAlt}
+                style={{ objectPosition: feature.imagePosition }}
+              />
               <h3>{feature.title}</h3>
               <p>{feature.body}</p>
             </article>
