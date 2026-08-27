@@ -26,7 +26,7 @@ const features = [
     image: badgesImageUrl,
     imageAlt: 'Earned neighborhood badges in SF Stairway Spotter',
     imagePosition: 'center 20%',
-    title: 'Earn badges for your explorations',
+    title: 'Earn badges as you go',
     body: 'Turn a walk across the city into a collection of discoveries, milestones, and local challenges.',
   },
 ];
