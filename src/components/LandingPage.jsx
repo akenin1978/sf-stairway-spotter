@@ -12,8 +12,8 @@ const features = [
     image: mapImageUrl,
     imageAlt: 'SF Stairway Spotter map filled with color-coded stairway markers',
     imagePosition: 'center 38%',
-    title: 'Uncover the city’s stairways',
-    body: 'Browse more than 1,200 public stairways across San Francisco, color-coded by rating.',
+    title: 'Discover SF’s stairways',
+    body: 'Browse photos of 1,200+ public stairways across San Francisco, with dots color-coded by rating.',
   },
   {
     image: checkInImageUrl,
@@ -139,7 +139,7 @@ export default function LandingPage() {
         <img src={appIconUrl} alt="SF Stairway Spotter app icon" />
         <div>
           <p className="landing-eyebrow">Ready to take the first step?</p>
-          <h2>There is always another stairway.</h2>
+          <h2>There’s always another stairway.</h2>
         </div>
         <a className="landing-primary-button" href={WEB_APP_URL}>Open SF Stairway Spotter</a>
       </section>
