@@ -26,6 +26,7 @@ const features = [
     image: badgesImageUrl,
     imageAlt: 'Earned neighborhood badges in SF Stairway Spotter',
     imagePosition: 'center 20%',
+    imageClassName: 'landing-feature-image-badges',
     title: 'Earn badges as you go',
     body: 'Turn a walk across the city into a collection of discoveries, milestones, and local challenges.',
   },
@@ -84,7 +85,7 @@ export default function LandingPage() {
               Join the beta
             </a>
           </div>
-          <p className="landing-beta-note">iPhone beta testing is underway · Android coming next</p>
+          <p className="landing-beta-note">iPhone beta testing is underway · Android coming soon</p>
         </div>
 
         <div className="landing-hero-art" aria-label="Colorful stairway-rating dots">
@@ -111,7 +112,7 @@ export default function LandingPage() {
 
       <section className="landing-features" id="how-it-works">
         <div className="landing-section-heading">
-          <p className="landing-eyebrow">Conquer the city’s stairs</p>
+          <p className="landing-eyebrow">See San Francisco differently</p>
           <h2>An app for curious walkers.</h2>
           <p>
             Plan an outing or see what’s around the next corner.
@@ -123,7 +124,7 @@ export default function LandingPage() {
           {features.map((feature) => (
             <article key={feature.title}>
               <img
-                className="landing-feature-image"
+                className={`landing-feature-image ${feature.imageClassName || ''}`}
                 src={feature.image}
                 alt={feature.imageAlt}
                 style={{ objectPosition: feature.imagePosition }}

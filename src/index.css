@@ -489,6 +489,11 @@ html, body, #root {
   object-fit: cover;
 }
 
+.landing-feature-image-badges {
+  border-top: 1px solid #d8d7dc;
+  box-sizing: border-box;
+}
+
 .landing-feature-grid h3 {
   margin: 24px 12px 12px;
   font-size: 22px;
