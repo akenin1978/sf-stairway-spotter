@@ -137,7 +137,11 @@ function MapHomeView({ sessionKey }) {
   useEffect(() => {
     if (!map) return;
     map.setCenter(SF_CENTER);
-    map.setZoom(12);
+    // A desktop browser has much more horizontal room than a phone. Using
+    // the phone's zoom there made the city feel cropped on arrival, while
+    // zoom 11 gives web visitors an immediate whole-city overview. Keep the
+    // approved, closer phone framing unchanged.
+    map.setZoom(isMobileOrTablet() ? 12 : 11);
     const frame = requestAnimationFrame(() => {
       // Match the phone launch crop measured from the approved reference:
       // move the map content right while retaining the centered vertical
@@ -367,6 +371,31 @@ export default function StairwayMap({
   useEffect(() => {
     setSelected(null);
   }, [user?.id]);
+
+  // Photo URLs are deliberately left out of the 1,200+ row startup query.
+  // Fetch the two photo fields only for the marker somebody actually opens,
+  // which keeps the initial map payload substantially smaller without
+  // changing the information shown in the card.
+  useEffect(() => {
+    if (!selected?.id || selected.direct_photo_url || selected.photo_url) return;
+    let isCurrent = true;
+
+    supabase
+      .from('stairways')
+      .select('direct_photo_url, photo_url')
+      .eq('id', selected.id)
+      .single()
+      .then(({ data, error }) => {
+        if (!isCurrent || error || !data) return;
+        setSelected((current) =>
+          current?.id === selected.id ? { ...current, ...data } : current
+        );
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [selected?.id]);
 
   // --- Badge-earned alert state ---
   const [badgeQueue, setBadgeQueue] = useState([]);
@@ -815,8 +844,6 @@ export default function StairwayMap({
               'neighborhood',
               'rating',
               'stair_count',
-              'direct_photo_url',
-              'photo_url',
               'verification_radius_feet',
               'verification_line_start_lat',
               'verification_line_start_lng',
@@ -951,7 +978,7 @@ export default function StairwayMap({
         <Map
           style={{ width: '100%', height: '100%' }}
           defaultCenter={SF_CENTER}
-          defaultZoom={12}
+          defaultZoom={isMobileOrTablet() ? 12 : 11}
           minZoom={11}
           gestureHandling="greedy"
           disableDefaultUI
