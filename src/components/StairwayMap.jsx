@@ -1526,10 +1526,11 @@ export default function StairwayMap({
       {newStairwayNotice && (
         <NewStairwayModal
           stairwayCount={newStairwayNotice.stairwayCount}
+          stairways={newStairwayNotice.stairways}
           addedCount={newStairwayNotice.addedCount}
           onDismiss={() => setNewStairwayNotice(null)}
-          onShow={() => {
-            setSelected(newStairwayNotice.stairway);
+          onShow={(stairway) => {
+            setSelected(stairway);
             setNewStairwayNotice(null);
           }}
         />

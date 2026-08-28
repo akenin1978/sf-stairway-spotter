@@ -2,9 +2,9 @@ export const KNOWN_STAIRWAY_IDS_KEY =
   'sf-stairway-spotter:known-stairway-ids:v1';
 export const ROLLOUT_BASELINE_COUNT = 1238;
 
-function newestByTimestamp(stairways) {
+function newestFirst(stairways) {
   const timestamp = (row) => Date.parse(row.updated_at || '') || 0;
-  return [...stairways].sort((a, b) => timestamp(b) - timestamp(a))[0];
+  return [...stairways].sort((a, b) => timestamp(b) - timestamp(a));
 }
 
 export function findNewStairwayNotice(stairways, storedValue, isReturningUser = false) {
@@ -15,8 +15,10 @@ export function findNewStairwayNotice(stairways, storedValue, isReturningUser = 
     if (!isReturningUser) return null;
     const addedCount = stairways.length - ROLLOUT_BASELINE_COUNT;
     if (addedCount <= 0) return null;
+    const additions = newestFirst(stairways).slice(0, addedCount);
     return {
-      stairway: newestByTimestamp(stairways),
+      stairway: additions[0],
+      stairways: additions,
       addedCount,
       stairwayCount: stairways.length,
     };
@@ -34,8 +36,11 @@ export function findNewStairwayNotice(stairways, storedValue, isReturningUser = 
   const additions = stairways.filter((row) => !knownIds.has(row.id));
   if (additions.length === 0) return null;
 
+  const sortedAdditions = newestFirst(additions);
+
   return {
-    stairway: newestByTimestamp(additions),
+    stairway: sortedAdditions[0],
+    stairways: sortedAdditions,
     addedCount: additions.length,
     stairwayCount: stairways.length,
   };

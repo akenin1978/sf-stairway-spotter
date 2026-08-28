@@ -26,6 +26,7 @@ describe('new stairway notices', () => {
 
     expect(findNewStairwayNotice([...baseline, firstAddition], null, true)).toEqual({
       stairway: firstAddition,
+      stairways: [firstAddition],
       addedCount: 1,
       stairwayCount: 1239,
     });
@@ -46,6 +47,7 @@ describe('new stairway notices', () => {
   it('chooses the most recently updated genuinely new stairway', () => {
     expect(findNewStairwayNotice(stairways, '[]')).toEqual({
       stairway: stairways[1],
+      stairways: [stairways[1], stairways[0]],
       addedCount: 2,
       stairwayCount: 2,
     });

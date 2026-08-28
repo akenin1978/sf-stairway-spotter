@@ -1,4 +1,14 @@
-export default function NewStairwayModal({ stairwayCount, addedCount, onShow, onDismiss }) {
+import { useState } from 'react';
+
+export default function NewStairwayModal({
+  stairwayCount,
+  stairways,
+  addedCount,
+  onShow,
+  onDismiss,
+}) {
+  const hasMultiple = addedCount > 1;
+  const [showList, setShowList] = useState(false);
   const headline =
     addedCount === 1
       ? 'A new stairway joined the map!'
@@ -31,9 +41,40 @@ export default function NewStairwayModal({ stairwayCount, addedCount, onShow, on
         </div>
         <h2 id="new-stairway-title">{headline}</h2>
         <p>San Francisco now has {stairwayCount.toLocaleString()} stairways.</p>
-        <button type="button" className="new-stairway-show" onClick={onShow}>
-          Show me <span aria-hidden="true">→</span>
-        </button>
+        {hasMultiple && showList ? (
+          <div className="new-stairway-list" aria-label="New stairways">
+            {stairways.map((stairway) => (
+              <button
+                type="button"
+                className="new-stairway-list-item"
+                key={stairway.id}
+                onClick={() => onShow(stairway)}
+              >
+                <span>
+                  <strong>{stairway.description || 'New stairway'}</strong>
+                  {stairway.neighborhood && <small>{stairway.neighborhood}</small>}
+                </span>
+                <span aria-hidden="true">→</span>
+              </button>
+            ))}
+          </div>
+        ) : hasMultiple ? (
+          <button
+            type="button"
+            className="new-stairway-show"
+            onClick={() => setShowList(true)}
+          >
+            See all {addedCount} <span aria-hidden="true">→</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="new-stairway-show"
+            onClick={() => onShow(stairways[0])}
+          >
+            Show me <span aria-hidden="true">→</span>
+          </button>
+        )}
       </section>
 
       <style>{`
@@ -93,6 +134,52 @@ export default function NewStairwayModal({ stairwayCount, addedCount, onShow, on
           color: #676372;
           font-size: 16px;
           line-height: 1.45;
+        }
+
+        .new-stairway-list {
+          display: grid;
+          gap: 8px;
+          max-height: min(42vh, 300px);
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+          text-align: left;
+        }
+
+        .new-stairway-list-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          width: 100%;
+          border: 1px solid #dedce6;
+          border-radius: 14px;
+          padding: 12px 14px;
+          background: #ffffff;
+          color: #29243b;
+          font-size: 15px;
+          text-align: left;
+          cursor: pointer;
+        }
+
+        .new-stairway-list-item:hover {
+          border-color: #4b3ce0;
+          background: #f7f6ff;
+        }
+
+        .new-stairway-list-item strong,
+        .new-stairway-list-item small {
+          display: block;
+        }
+
+        .new-stairway-list-item strong {
+          line-height: 1.3;
+        }
+
+        .new-stairway-list-item small {
+          margin-top: 3px;
+          color: #777281;
+          font-size: 13px;
         }
 
         .new-stairway-show {
