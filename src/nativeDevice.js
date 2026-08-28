@@ -11,6 +11,10 @@ export function isNativeApp() {
   return Capacitor.isNativePlatform();
 }
 
+export function isAndroidApp() {
+  return isNativeApp() && Capacitor.getPlatform() === 'android';
+}
+
 export function supportsDeviceGeolocation() {
   return isNativeApp() || Boolean(globalThis.navigator?.geolocation);
 }

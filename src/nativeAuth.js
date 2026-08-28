@@ -1,6 +1,6 @@
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { supabase } from './supabaseClient';
-import { isNativeApp } from './nativeDevice';
+import { isAndroidApp, isNativeApp } from './nativeDevice';
 
 const APPLE_CLIENT_ID = 'com.sfstairwayspotter.app';
 const googleIOSClientId = import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID;
@@ -28,9 +28,13 @@ export async function clearNativeGoogleSession() {
 async function initializeNativeAuth() {
   if (!isNativeApp()) throw new Error('native-auth-unavailable');
   if (!initializePromise) {
-    const options = {
-      apple: { clientId: APPLE_CLIENT_ID },
-    };
+    const options = {};
+    // Apple uses the native system API on iOS. Android needs a separate
+    // browser callback flow, so do not let an unconfigured Apple provider
+    // prevent Google from initializing there.
+    if (!isAndroidApp()) {
+      options.apple = { clientId: APPLE_CLIENT_ID };
+    }
     if (isNativeGoogleConfigured()) {
       options.google = {
         iOSClientId: googleIOSClientId,
@@ -70,8 +74,9 @@ export async function signInWithNativeProvider(provider) {
     provider,
     options: {
       nonce: nonce.hashed,
-      scopes: provider === 'apple' ? ['email', 'name'] : ['email', 'profile'],
-      ...(provider === 'google' ? { forcePrompt: true } : {}),
+      ...(provider === 'apple'
+        ? { scopes: ['email', 'name'] }
+        : { forcePrompt: true }),
     },
   });
 

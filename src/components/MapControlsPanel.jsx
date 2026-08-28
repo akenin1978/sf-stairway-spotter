@@ -7,7 +7,12 @@ export default function MapControlsPanel(props) {
   const [activeTab, setActiveTab] = useState('legend'); // 'legend' | 'filters'
 
   return (
-    <div className="controls-panel">
+    <div
+      className="controls-panel"
+      onTouchStart={(event) => event.stopPropagation()}
+      onTouchMove={(event) => event.stopPropagation()}
+      onWheel={(event) => event.stopPropagation()}
+    >
       <div className="controls-header">
         <button
           className={`controls-tab ${activeTab === 'legend' ? 'active' : ''}`}

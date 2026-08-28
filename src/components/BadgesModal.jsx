@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useCheckIns } from '../CheckInsContext';
 import { useBadges } from '../BadgesContext';
@@ -114,13 +114,19 @@ export default function BadgesModal({ onClose }) {
 
   const loading = badgesLoading || loadingStairways;
 
-  function neighborhoodProgress(neighborhoodName) {
-    const inNeighborhood = stairways.filter(
-      (s) => s.neighborhood === neighborhoodName
-    );
-    const spotted = inNeighborhood.filter((s) => checkedInIds.has(s.id));
-    return { spotted: spotted.length, total: inNeighborhood.length };
-  }
+  const neighborhoodProgressByName = useMemo(() => {
+    const progress = new Map();
+    stairways.forEach((stairway) => {
+      const current = progress.get(stairway.neighborhood) || {
+        spotted: 0,
+        total: 0,
+      };
+      current.total += 1;
+      if (checkedInIds.has(stairway.id)) current.spotted += 1;
+      progress.set(stairway.neighborhood, current);
+    });
+    return progress;
+  }, [stairways, checkedInIds]);
 
   const totalSpotted = checkedInIds.size;
   const totalStairways = stairways.length;
@@ -149,9 +155,11 @@ export default function BadgesModal({ onClose }) {
             <h3 className="badges-section-heading">Neighborhoods</h3>
             <div className="badges-grid">
               {NEIGHBORHOOD_BADGES.map((badge) => {
-                const { spotted, total } = neighborhoodProgress(
-                  badge.neighborhood
-                );
+                const { spotted, total } =
+                  neighborhoodProgressByName.get(badge.neighborhood) || {
+                    spotted: 0,
+                    total: 0,
+                  };
                 return (
                   <BadgeMedallion
                     key={badge.id}

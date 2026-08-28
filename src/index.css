@@ -858,6 +858,9 @@ html, body, #root {
   max-width: 640px;
   max-height: 85dvh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 /* --- Leaderboard --- */
@@ -1220,6 +1223,9 @@ html, body, #root {
 .controls-body {
   padding: 10px 12px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .legend-row {
@@ -1294,6 +1300,9 @@ html, body, #root {
 .filters-neighborhood-list {
   max-height: 160px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   border: 1px solid #eee;
   border-radius: 6px;
   padding: 4px 8px;
