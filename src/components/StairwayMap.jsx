@@ -14,6 +14,7 @@ import MapControlsPanel from './MapControlsPanel';
 import { getRatingStyle } from '../ratingColors';
 import BadgeEarnedModal from './BadgeEarnedModal';
 import ConfirmDialog from './ConfirmDialog';
+import NewStairwayModal from './NewStairwayModal';
 import {
   GPS_THRESHOLD_METERS,
   distanceToStairwayMeters,
@@ -26,6 +27,11 @@ import {
   startDeviceLocationWatch,
   supportsDeviceGeolocation,
 } from '../nativeDevice';
+import {
+  findNewStairwayNotice,
+  KNOWN_STAIRWAY_IDS_KEY,
+  serializeKnownStairwayIds,
+} from '../newStairwayNotice';
 
 // Slightly south of the city's geographic midpoint so the dense stairway
 // area sits visually centered above the bottom map controls on a phone.
@@ -359,6 +365,7 @@ export default function StairwayMap({
 }) {
   const [stairways, setStairways] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [newStairwayNotice, setNewStairwayNotice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
@@ -844,6 +851,7 @@ export default function StairwayMap({
               'neighborhood',
               'rating',
               'stair_count',
+              'updated_at',
               'verification_radius_feet',
               'verification_line_start_lat',
               'verification_line_start_lng',
@@ -874,6 +882,26 @@ export default function StairwayMap({
       }
 
       if (!isMounted) return;
+
+      // Establish a quiet baseline the first time this version runs. On
+      // later visits, compare IDs instead of the total count so a removed
+      // stairway cannot make us miss a genuinely new one. UUIDs are random,
+      // so updated_at is used only to choose the newest of several additions.
+      try {
+        const notice = findNewStairwayNotice(
+          allRows,
+          localStorage.getItem(KNOWN_STAIRWAY_IDS_KEY),
+          localStorage.getItem('sf_stairway_onboarding_seen') === 'true'
+        );
+        if (notice) setNewStairwayNotice(notice);
+        localStorage.setItem(
+          KNOWN_STAIRWAY_IDS_KEY,
+          serializeKnownStairwayIds(allRows)
+        );
+      } catch {
+        // Private browsing/storage restrictions should never block the map.
+      }
+
       setStairways(allRows);
       setError(null);
       setLoading(false);
@@ -1493,6 +1521,18 @@ export default function StairwayMap({
 
       {badgeQueue.length > 0 && (
         <BadgeEarnedModal badges={badgeQueue} onClose={() => setBadgeQueue([])} />
+      )}
+
+      {newStairwayNotice && (
+        <NewStairwayModal
+          stairwayCount={newStairwayNotice.stairwayCount}
+          addedCount={newStairwayNotice.addedCount}
+          onDismiss={() => setNewStairwayNotice(null)}
+          onShow={() => {
+            setSelected(newStairwayNotice.stairway);
+            setNewStairwayNotice(null);
+          }}
+        />
       )}
 
       {confirmAction && (
