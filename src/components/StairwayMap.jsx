@@ -58,6 +58,8 @@ const SF_BOUNDS = {
 // The set of rating "buckets" that can be toggled on/off: 5 down to 1, plus
 // a special 'unrated' bucket for anything with no rating value.
 const ALL_RATING_KEYS = [5, 4, 3, 2, 1, 'unrated'];
+const VERIFICATION_PRIVACY_HINT_DISMISSED_KEY =
+  'sf_stairway_verification_privacy_hint_dismissed';
 
 // Google's photo links end in a size/crop instruction like "=w600-h315-p-k"
 // (width-height-pad/crop-flag). Swapping it for just a width (no height, no
@@ -445,6 +447,26 @@ export default function StairwayMap({
   // --- Photo verification state ---
   const [verifyStatus, setVerifyStatus] = useState('idle'); // idle | verifying | error
   const [verifyErrorMsg, setVerifyErrorMsg] = useState('');
+  const [showVerificationPrivacyHint, setShowVerificationPrivacyHint] =
+    useState(() => {
+      try {
+        return (
+          localStorage.getItem(VERIFICATION_PRIVACY_HINT_DISMISSED_KEY) !==
+          'true'
+        );
+      } catch {
+        return true;
+      }
+    });
+
+  const dismissVerificationPrivacyHint = () => {
+    setShowVerificationPrivacyHint(false);
+    try {
+      localStorage.setItem(VERIFICATION_PRIVACY_HINT_DISMISSED_KEY, 'true');
+    } catch {
+      // The hint still dismisses for this session if storage is unavailable.
+    }
+  };
   const verifyFileInputRef = useRef(null);
 
   useEffect(() => {
@@ -1204,7 +1226,7 @@ export default function StairwayMap({
                         >
                           {verifyStatus === 'verifying'
                             ? 'Verifying…'
-                            : '📷 Verify on site'}
+                            : '📷 Photo verify'}
                         </button>
                       ) : (
                         <p className="verify-desktop-hint">
@@ -1213,11 +1235,22 @@ export default function StairwayMap({
                       ))}
 
                     {checkedInMethods.get(selected.id) !== 'photo-verified' &&
-                      isMobileOrTablet() && (
-                        <p className="verify-desktop-hint">
-                          Uses your location and a temporary camera photo. The
-                          photo is not saved or uploaded.
-                        </p>
+                      isMobileOrTablet() &&
+                      showVerificationPrivacyHint && (
+                        <div className="verify-privacy-hint">
+                          <span>
+                            Uses your location and a temporary camera photo. The
+                            photo is not saved or uploaded.
+                          </span>
+                          <button
+                            type="button"
+                            className="verify-privacy-hint-dismiss"
+                            onClick={dismissVerificationPrivacyHint}
+                            aria-label="Dismiss photo verification information"
+                          >
+                            ×
+                          </button>
+                        </div>
                       )}
 
                     <input
