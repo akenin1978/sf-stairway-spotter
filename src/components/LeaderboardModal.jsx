@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
+import ReportUserModal, { UserSafetyMenu } from './ReportUserModal';
 
 const NEIGHBOR_WINDOW = 10; // how many ranks above/below the user to show
 
-function LeaderboardRow({ rank, entry, isMe, isFriend }) {
+function LeaderboardRow({ rank, entry, isMe, isFriend, onReport, onBlock }) {
   return (
     <div className={'leaderboard-row' + (isMe ? ' leaderboard-row-me' : '')}>
       <span className="leaderboard-rank">#{rank}</span>
@@ -14,6 +15,9 @@ function LeaderboardRow({ rank, entry, isMe, isFriend }) {
         {isMe && <span className="leaderboard-you-tag"> (you)</span>}
       </span>
       <span className="leaderboard-count">{entry.verified_count}</span>
+      {!isMe && (
+        <UserSafetyMenu person={entry} onReport={onReport} onBlock={onBlock} />
+      )}
     </div>
   );
 }
@@ -24,6 +28,7 @@ export default function LeaderboardModal({ onClose }) {
   const [friendIds, setFriendIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [reportingUser, setReportingUser] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -31,12 +36,14 @@ export default function LeaderboardModal({ onClose }) {
     Promise.all([
       supabase.rpc('get_leaderboard'),
       supabase.rpc('get_my_friends'),
-    ]).then(([leaderboardRes, friendsRes]) => {
+      supabase.rpc('get_hidden_user_ids'),
+    ]).then(([leaderboardRes, friendsRes, hiddenRes]) => {
       if (!isMounted) return;
       if (leaderboardRes.error) {
         setError(leaderboardRes.error.message);
       } else {
-        setEntries(leaderboardRes.data || []);
+        const hiddenIds = new Set((hiddenRes.data || []).map((row) => row.user_id));
+        setEntries((leaderboardRes.data || []).filter((entry) => !hiddenIds.has(entry.user_id)));
       }
       if (!friendsRes.error && friendsRes.data) {
         setFriendIds(
@@ -54,6 +61,23 @@ export default function LeaderboardModal({ onClose }) {
       isMounted = false;
     };
   }, []);
+
+  async function handleBlock(person) {
+    if (!window.confirm(`Block ${person.display_name}? You won't see each other on the leaderboard or be able to send friend requests.`)) return;
+    const { error: blockError } = await supabase.rpc('block_user', {
+      p_target_user_id: person.user_id,
+    });
+    if (blockError) {
+      setError("We couldn't block this user. Please try again.");
+      return;
+    }
+    setEntries((current) => current.filter((entry) => entry.user_id !== person.user_id));
+    setFriendIds((current) => {
+      const next = new Set(current);
+      next.delete(person.user_id);
+      return next;
+    });
+  }
 
   const myIndex = entries.findIndex((e) => e.user_id === user?.id);
   const topTen = entries.slice(0, 10);
@@ -77,7 +101,7 @@ export default function LeaderboardModal({ onClose }) {
 
         <h2>Leaderboard</h2>
         <p className="modal-context">
-          Ranked by photo-verified check-ins. <span className="leaderboard-friend-icon">★</span> marks a friend.
+          Ranked by on-site verified check-ins. <span className="leaderboard-friend-icon">★</span> marks a friend.
         </p>
 
         {loading && <p className="modal-context">Loading…</p>}
@@ -101,6 +125,8 @@ export default function LeaderboardModal({ onClose }) {
                   entry={entry}
                   isMe={entry.user_id === user?.id}
                   isFriend={friendIds.has(entry.user_id)}
+                  onReport={setReportingUser}
+                  onBlock={handleBlock}
                 />
               ))}
             </div>
@@ -118,6 +144,8 @@ export default function LeaderboardModal({ onClose }) {
                       entry={entry}
                       isMe={entry.user_id === user?.id}
                       isFriend={friendIds.has(entry.user_id)}
+                      onReport={setReportingUser}
+                      onBlock={handleBlock}
                     />
                   ))}
                 </div>
@@ -133,6 +161,13 @@ export default function LeaderboardModal({ onClose }) {
           </>
         )}
       </div>
+      {reportingUser && (
+        <ReportUserModal
+          userToReport={reportingUser}
+          context="leaderboard"
+          onClose={() => setReportingUser(null)}
+        />
+      )}
     </div>
   );
 }

@@ -56,7 +56,8 @@ function PrivacyPage() {
         </li>
         <li>
           <strong>Activity information:</strong> stairway check-ins, verification
-          method, dates, badges, streaks, leaderboard preferences, and friends.
+          method, dates, badges, streaks, leaderboard preferences, friends,
+          blocked-user choices, and safety reports.
         </li>
         <li>
           <strong>Location:</strong> precise location is accessed only when you
@@ -64,9 +65,9 @@ function PrivacyPage() {
           that feature and is not used for advertising.
         </li>
         <li>
-          <strong>Camera:</strong> when you choose photo verification, the app
-          captures a temporary photo to verify an on-site visit. The photo is not
-          saved or uploaded.
+          <strong>Camera:</strong> when you choose on-site verification, the app
+          captures a temporary camera photo and checks your location. The photo
+          is not saved or uploaded.
         </li>
         <li>
           <strong>Messages and submissions:</strong> feedback, reported issues,
@@ -79,8 +80,9 @@ function PrivacyPage() {
       <p>
         We use this information to operate authentication and accounts, display
         stairways, record progress, award badges, provide social features you
-        select, verify visits, answer support requests, review submissions, keep
-        the app secure, and fix problems.
+        select, verify visits, answer support requests, review submissions and
+        safety reports, prevent unwanted contact, keep the app secure, and fix
+        problems.
       </p>
 
       <h2>Service providers</h2>
@@ -95,7 +97,7 @@ function PrivacyPage() {
       <p>
         We do not sell personal information. At launch, the app does not contain
         third-party advertising or behavioral advertising trackers. An optional
-        display name and photo-verified total appear publicly only if you choose
+        display name and on-site verified total appear publicly only if you choose
         to join the leaderboard.
       </p>
 
@@ -105,6 +107,10 @@ function PrivacyPage() {
         <li>
           Feedback messages and optional reply emails are normally kept for up to
           12 months, unless they are needed longer to resolve an active matter.
+        </li>
+        <li>
+          Safety reports are kept as needed to investigate abuse, enforce our
+          terms, and document moderation decisions.
         </li>
         <li>
           Pending stairway submissions are kept while they are reviewed. Rejected

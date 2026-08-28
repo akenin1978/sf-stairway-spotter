@@ -94,7 +94,7 @@ export default function OnboardingCarousel({ totalStairways, onDismiss }) {
     {
       icon: <MapIcon />,
       title: 'Find, then check in',
-      body: 'Browse stairways on the map, then check in with a quick tap or photo when you arrive.',
+      body: 'Browse stairways on the map, then mark them as spotted or verify on site when you arrive.',
     },
     {
       icon: (

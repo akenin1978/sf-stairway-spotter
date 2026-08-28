@@ -160,7 +160,7 @@ export default function SettingsModal({ onClose }) {
 
     const confirmed = window.confirm(
       'Delete your account? This permanently removes your account, every ' +
-      'stairway you\'ve checked off, all your photo verifications, and any ' +
+      'stairway you\'ve checked off, all your on-site verifications, and any ' +
       'badges or leaderboard standing tied to it. This cannot be undone.'
     );
     if (!confirmed) return;
@@ -220,7 +220,7 @@ export default function SettingsModal({ onClose }) {
                   Show me on the leaderboard
                 </span>
                 <span className="settings-toggle-hint">
-                  Only photo-verified check-ins count toward it.
+                  Only on-site verified check-ins count toward it.
                 </span>
               </span>
               <span className="settings-toggle">

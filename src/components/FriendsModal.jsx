@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
+import ReportUserModal, { UserSafetyMenu } from './ReportUserModal';
 
 export default function FriendsModal({ onClose }) {
   const { user } = useAuth();
@@ -9,11 +10,17 @@ export default function FriendsModal({ onClose }) {
   const [emailInput, setEmailInput] = useState('');
   const [sendStatus, setSendStatus] = useState('idle'); // idle | sending | error
   const [sendError, setSendError] = useState('');
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [reportingUser, setReportingUser] = useState(null);
 
   async function refresh() {
     setLoading(true);
-    const { data, error } = await supabase.rpc('get_my_friends');
-    if (!error) setFriends(data || []);
+    const [friendsResult, blockedResult] = await Promise.all([
+      supabase.rpc('get_my_friends'),
+      supabase.rpc('get_my_blocked_users'),
+    ]);
+    if (!friendsResult.error) setFriends(friendsResult.data || []);
+    if (!blockedResult.error) setBlockedUsers(blockedResult.data || []);
     setLoading(false);
   }
 
@@ -85,6 +92,33 @@ export default function FriendsModal({ onClose }) {
     refresh();
   }
 
+  function asSafetyPerson(friend) {
+    return {
+      user_id: friend.friend_user_id,
+      display_name: friend.friend_display_name || 'this user',
+    };
+  }
+
+  async function handleBlock(person) {
+    if (!window.confirm(`Block ${person.display_name}? This removes any friendship and prevents future requests in either direction.`)) return;
+    const { error } = await supabase.rpc('block_user', {
+      p_target_user_id: person.user_id,
+    });
+    if (error) {
+      setSendStatus('error');
+      setSendError("We couldn't block this user. Please try again.");
+      return;
+    }
+    refresh();
+  }
+
+  async function handleUnblock(person) {
+    const { error } = await supabase.rpc('unblock_user', {
+      p_target_user_id: person.user_id,
+    });
+    if (!error) refresh();
+  }
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
@@ -140,6 +174,11 @@ export default function FriendsModal({ onClose }) {
                       >
                         Decline
                       </button>
+                      <UserSafetyMenu
+                        person={asSafetyPerson(f)}
+                        onReport={setReportingUser}
+                        onBlock={handleBlock}
+                      />
                     </div>
                   ))}
                 </div>
@@ -160,6 +199,11 @@ export default function FriendsModal({ onClose }) {
                       >
                         Cancel
                       </button>
+                      <UserSafetyMenu
+                        person={asSafetyPerson(f)}
+                        onReport={setReportingUser}
+                        onBlock={handleBlock}
+                      />
                     </div>
                   ))}
                 </div>
@@ -184,13 +228,45 @@ export default function FriendsModal({ onClose }) {
                     >
                       Remove
                     </button>
+                    <UserSafetyMenu
+                      person={asSafetyPerson(f)}
+                      onReport={setReportingUser}
+                      onBlock={handleBlock}
+                    />
                   </div>
                 ))}
               </div>
             )}
+
+            {blockedUsers.length > 0 && (
+              <>
+                <h3 className="friends-section-heading">Blocked</h3>
+                <div className="friends-list">
+                  {blockedUsers.map((person) => (
+                    <div key={person.user_id} className="friends-row">
+                      <span className="friends-name">{person.display_name}</span>
+                      <button
+                        type="button"
+                        className="friends-decline-button"
+                        onClick={() => handleUnblock(person)}
+                      >
+                        Unblock
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
+      {reportingUser && (
+        <ReportUserModal
+          userToReport={reportingUser}
+          context="friends"
+          onClose={() => setReportingUser(null)}
+        />
+      )}
     </div>
   );
 }

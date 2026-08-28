@@ -928,6 +928,91 @@ html, body, #root {
   color: #4b3ce0;
 }
 
+.user-safety-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.user-safety-menu-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: transparent;
+  color: #777;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-safety-menu-button:hover {
+  background: #eceaf8;
+}
+
+.user-safety-menu-popover {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 4px);
+  right: 0;
+  display: grid;
+  min-width: 110px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.user-safety-menu-popover button {
+  border: 0;
+  border-radius: 5px;
+  padding: 7px 9px;
+  background: transparent;
+  color: #333;
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-safety-menu-popover button:hover {
+  background: #f5f4ff;
+}
+
+.user-safety-menu-popover .user-safety-block {
+  color: #b3261e;
+}
+
+.safety-modal-backdrop {
+  z-index: 120;
+}
+
+.safety-field {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.safety-field select {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 9px;
+  background: #fff;
+  font: inherit;
+  font-weight: 400;
+}
+
+.safety-done-button {
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  padding: 10px;
+  background: #4b3ce0;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .badges-section-heading {
   font-size: 15px;
   margin: 20px 0 10px;
@@ -2124,6 +2209,55 @@ html, body, #root {
   font-size: 12px;
   color: #888888;
   font-weight: 400;
+}
+
+.friends-modal-card {
+  max-width: 520px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.friends-add-form {
+  display: flex;
+  gap: 8px;
+}
+
+.friends-add-form input {
+  min-width: 0;
+  flex: 1;
+}
+
+.friends-section-heading {
+  margin: 18px 0 8px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  font-size: 14px;
+}
+
+.friends-list {
+  display: grid;
+  gap: 7px;
+}
+
+.friends-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 7px 0;
+}
+
+.friends-name {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.friends-pending-tag {
+  color: #777;
+  font-size: 12px;
 }
 
 .stats-modal-card {

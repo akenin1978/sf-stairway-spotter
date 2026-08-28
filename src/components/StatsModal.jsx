@@ -134,7 +134,7 @@ export default function StatsModal({ onClose }) {
               </div>
             </div>
             <p className="stats-streak-hint">
-              A streak counts consecutive weeks with at least one photo-verified check-in.
+              A streak counts consecutive weeks with at least one on-site verified check-in.
             </p>
 
             <div className="stats-summary-row">

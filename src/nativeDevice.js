@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import {
   Camera,
   CameraDirection,
+  CameraSource,
   EncodingType,
 } from '@capacitor/camera';
 import { Filesystem } from '@capacitor/filesystem';
@@ -91,6 +92,7 @@ export async function captureTemporaryVerificationPhoto() {
     correctOrientation: true,
     encodingType: EncodingType.JPEG,
     saveToGallery: false,
+    source: CameraSource.Camera,
     cameraDirection: CameraDirection.Rear,
     editable: 'no',
     includeMetadata: false,

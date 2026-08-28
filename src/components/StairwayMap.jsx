@@ -490,7 +490,7 @@ export default function StairwayMap({
           if (newBadges && newBadges.length > 0) setBadgeQueue(newBadges);
         })
         .catch((err) => console.error('Badge check failed', err));
-      await closeSelectedAfterSuccess(stairway.id, 'Photo verified! ★');
+      await closeSelectedAfterSuccess(stairway.id, 'On-site verified! ★');
     }
   }
 
@@ -1175,7 +1175,7 @@ export default function StairwayMap({
                         if (isVerified) {
                           setConfirmAction({
                             message:
-                              "This will remove your photo verification for this stairway too -- there's no way to undo it. Continue?",
+                              "This will remove your on-site verification for this stairway too -- there's no way to undo it. Continue?",
                             onConfirm: () => performCheckInToggle(selected),
                           });
                           return;
@@ -1204,13 +1204,21 @@ export default function StairwayMap({
                         >
                           {verifyStatus === 'verifying'
                             ? 'Verifying…'
-                            : '📷 Verify with photo'}
+                            : '📷 Verify on site'}
                         </button>
                       ) : (
                         <p className="verify-desktop-hint">
-                          Open this app on mobile to verify with a photo.
+                          Open this app on mobile for on-site verification.
                         </p>
                       ))}
+
+                    {checkedInMethods.get(selected.id) !== 'photo-verified' &&
+                      isMobileOrTablet() && (
+                        <p className="verify-desktop-hint">
+                          Uses your location and a temporary camera photo. The
+                          photo is not saved or uploaded.
+                        </p>
+                      )}
 
                     <input
                       ref={verifyFileInputRef}
@@ -1436,7 +1444,7 @@ export default function StairwayMap({
                       {s.description || 'Stairway'}
                       {checkedInMethods.get(s.id) === 'photo-verified' && (
                         <span className="spotted-list-item-verified">
-                          ★ Verified
+                          ★ On-site verified
                         </span>
                       )}
                     </span>
