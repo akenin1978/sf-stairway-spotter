@@ -1,5 +1,10 @@
 import { useState } from 'react';
 
+function thumbnailPhotoUrl(url) {
+  if (!url) return url;
+  return url.replace(/=[^=]*$/, '=w160');
+}
+
 export default function NewStairwayModal({
   stairwayCount,
   stairways,
@@ -50,6 +55,22 @@ export default function NewStairwayModal({
                 key={stairway.id}
                 onClick={() => onShow(stairway)}
               >
+                {stairway.direct_photo_url ? (
+                  <img
+                    className="new-stairway-thumbnail"
+                    src={thumbnailPhotoUrl(stairway.direct_photo_url)}
+                    alt=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span
+                    className="new-stairway-thumbnail-placeholder"
+                    aria-hidden="true"
+                  >
+                    ▟
+                  </span>
+                )}
                 <span>
                   <strong>{stairway.description || 'New stairway'}</strong>
                   {stairway.neighborhood && <small>{stairway.neighborhood}</small>}
@@ -149,7 +170,6 @@ export default function NewStairwayModal({
         .new-stairway-list-item {
           display: flex;
           align-items: center;
-          justify-content: space-between;
           gap: 14px;
           width: 100%;
           border: 1px solid #dedce6;
@@ -160,6 +180,32 @@ export default function NewStairwayModal({
           font-size: 15px;
           text-align: left;
           cursor: pointer;
+        }
+
+        .new-stairway-thumbnail,
+        .new-stairway-thumbnail-placeholder {
+          flex: 0 0 54px;
+          width: 54px;
+          height: 54px;
+          border-radius: 10px;
+        }
+
+        .new-stairway-thumbnail {
+          object-fit: cover;
+          background: #eeecf4;
+        }
+
+        .new-stairway-thumbnail-placeholder {
+          display: grid;
+          place-items: center;
+          background: #eeecf4;
+          color: #777281;
+          font-size: 24px;
+        }
+
+        .new-stairway-list-item > span:nth-last-child(2) {
+          min-width: 0;
+          flex: 1;
         }
 
         .new-stairway-list-item:hover {

@@ -1,27 +1,21 @@
-export const KNOWN_STAIRWAY_IDS_KEY =
-  'sf-stairway-spotter:known-stairway-ids:v1';
-export const ROLLOUT_BASELINE_COUNT = 1238;
+const KNOWN_STAIRWAY_IDS_KEY_PREFIX =
+  'sf-stairway-spotter:known-stairway-ids:v2';
+
+export function knownStairwayIdsKey(userId) {
+  return userId ? `${KNOWN_STAIRWAY_IDS_KEY_PREFIX}:${userId}` : null;
+}
 
 function newestFirst(stairways) {
   const timestamp = (row) => Date.parse(row.updated_at || '') || 0;
   return [...stairways].sort((a, b) => timestamp(b) - timestamp(a));
 }
 
-export function findNewStairwayNotice(stairways, storedValue, isReturningUser = false) {
-  // The count at the moment this feature ships lets the very first new
-  // stairway trigger the celebration even for somebody who did not open the
-  // app once between the feature deployment and that database addition.
+export function findNewStairwayNotice(stairways, storedValue) {
+  // A missing account-specific snapshot always means this is the account's
+  // first visit. Establish a quiet baseline instead of treating the entire
+  // map as newly added.
   if (!storedValue) {
-    if (!isReturningUser) return null;
-    const addedCount = stairways.length - ROLLOUT_BASELINE_COUNT;
-    if (addedCount <= 0) return null;
-    const additions = newestFirst(stairways).slice(0, addedCount);
-    return {
-      stairway: additions[0],
-      stairways: additions,
-      addedCount,
-      stairwayCount: stairways.length,
-    };
+    return null;
   }
 
   let storedIds;

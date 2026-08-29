@@ -29,7 +29,7 @@ import {
 } from '../nativeDevice';
 import {
   findNewStairwayNotice,
-  KNOWN_STAIRWAY_IDS_KEY,
+  knownStairwayIdsKey,
   serializeKnownStairwayIds,
 } from '../newStairwayNotice';
 
@@ -846,6 +846,7 @@ export default function StairwayMap({
     let isMounted = true;
     let isLoadingStairways = false;
     let lastLoadedAt = 0;
+    setNewStairwayNotice(null);
 
     async function loadStairways() {
       if (isLoadingStairways) return;
@@ -905,21 +906,43 @@ export default function StairwayMap({
 
       if (!isMounted) return;
 
-      // Establish a quiet baseline the first time this version runs. On
-      // later visits, compare IDs instead of the total count so a removed
-      // stairway cannot make us miss a genuinely new one. UUIDs are random,
-      // so updated_at is used only to choose the newest of several additions.
+      // Signed-out visitors never receive this account-specific notice. A
+      // newly signed-in account establishes a quiet baseline on its first
+      // visit; later visits compare IDs so removals cannot hide additions.
       try {
-        const notice = findNewStairwayNotice(
-          allRows,
-          localStorage.getItem(KNOWN_STAIRWAY_IDS_KEY),
-          localStorage.getItem('sf_stairway_onboarding_seen') === 'true'
-        );
-        if (notice) setNewStairwayNotice(notice);
-        localStorage.setItem(
-          KNOWN_STAIRWAY_IDS_KEY,
-          serializeKnownStairwayIds(allRows)
-        );
+        const storageKey = knownStairwayIdsKey(user?.id);
+        if (storageKey) {
+          const notice = findNewStairwayNotice(
+            allRows,
+            localStorage.getItem(storageKey)
+          );
+
+          if (notice) {
+            let stairwaysWithPhotos = notice.stairways;
+
+            if (notice.addedCount > 1) {
+              const { data: photoRows } = await supabase
+                .from('stairways')
+                .select('id,direct_photo_url')
+                .in('id', notice.stairways.map((stairway) => stairway.id));
+              const photosById = new Map(
+                (photoRows ?? []).map((row) => [row.id, row.direct_photo_url])
+              );
+              stairwaysWithPhotos = notice.stairways.map((stairway) => ({
+                ...stairway,
+                direct_photo_url: photosById.get(stairway.id) || null,
+              }));
+            }
+
+            setNewStairwayNotice({
+              ...notice,
+              stairway: stairwaysWithPhotos[0],
+              stairways: stairwaysWithPhotos,
+            });
+          }
+
+          localStorage.setItem(storageKey, serializeKnownStairwayIds(allRows));
+        }
       } catch {
         // Private browsing/storage restrictions should never block the map.
       }
@@ -942,7 +965,7 @@ export default function StairwayMap({
       isMounted = false;
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
-  }, []);
+  }, [user?.id]);
 
   const allNeighborhoods = useMemo(
     () =>
@@ -1226,7 +1249,7 @@ export default function StairwayMap({
                         >
                           {verifyStatus === 'verifying'
                             ? 'Verifying…'
-                            : '📷 Photo verify'}
+                            : 'Verify with a photo'}
                         </button>
                       ) : (
                         <p className="verify-desktop-hint">

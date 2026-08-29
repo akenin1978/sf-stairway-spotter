@@ -1,6 +1,6 @@
 import appIconUrl from '../../ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png';
 import badgesImageUrl from '../assets/landing/badges.jpg';
-import checkInImageUrl from '../assets/landing/check-in.jpg';
+import checkInImageUrl from '../assets/landing/check-in-live-preview.png';
 import mapImageUrl from '../assets/landing/map.jpg';
 import { LAUNCH_LINKS } from '../launchLinks';
 
@@ -18,7 +18,7 @@ const features = [
   {
     image: checkInImageUrl,
     imageAlt: 'Nearby stairways displayed in the SF Stairway Spotter check-in screen',
-    imagePosition: 'center 23%',
+    imagePosition: 'center',
     title: 'Track every climb',
     body: 'Check in as you explore, build streaks, and watch your personal stairway count grow.',
   },
