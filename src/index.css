@@ -975,6 +975,157 @@ html, body, #root {
   text-decoration: underline;
 }
 
+/* --- Verified repeat visits and stairway mayorships --- */
+.verified-visits-loading {
+  margin: 8px 0;
+  color: #777;
+  font-size: 12px;
+}
+
+.verified-visits-panel {
+  margin: 10px 0;
+  padding: 10px 11px;
+  border: 1px solid #dedbf8;
+  border-radius: 10px;
+  background: #f8f7ff;
+  color: #333;
+  font-size: 12px;
+}
+
+.verified-visits-panel h4 {
+  margin: 0 0 5px;
+  color: #2e237c;
+  font-size: 13px;
+}
+
+.verified-visits-panel p {
+  margin: 4px 0;
+  line-height: 1.35;
+}
+
+.mayorship-current-user,
+.mayorship-incumbent {
+  color: #2e237c;
+}
+
+.mayorship-progress {
+  font-weight: 650;
+}
+
+.verified-today-note {
+  color: #47703f;
+}
+
+.verified-visit-history {
+  margin-top: 7px;
+  border-top: 1px solid #dedbf8;
+  padding-top: 7px;
+}
+
+.verified-visit-history summary {
+  color: #4b3ce0;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.verified-visit-history ol {
+  max-height: 128px;
+  margin: 7px 0 0;
+  padding-left: 22px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.verified-visit-history li {
+  margin: 3px 0;
+}
+
+.verification-card-flip-stage {
+  perspective: 900px;
+}
+
+.verification-card-lower {
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.verification-card-lower--out {
+  animation: verification-card-flip-out 220ms ease-in forwards;
+  pointer-events: none;
+}
+
+.verification-card-lower--in {
+  animation: verification-card-flip-in 320ms cubic-bezier(0.2, 0.78, 0.3, 1)
+    forwards;
+  pointer-events: none;
+}
+
+.verification-flip-result {
+  min-height: 96px;
+}
+
+.checkin-toggle-status {
+  cursor: default;
+  user-select: none;
+}
+
+.checkin-toggle-status:hover {
+  background: #2e7d32;
+}
+
+.verified-already-counted {
+  color: #47703f;
+  font-weight: 650;
+  text-align: center;
+}
+
+.mayorship-new-crown {
+  animation: mayorship-crown-arrival 420ms ease-out 160ms both;
+}
+
+@keyframes verification-card-flip-out {
+  from {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: rotateX(-88deg);
+  }
+}
+
+@keyframes verification-card-flip-in {
+  from {
+    opacity: 0;
+    transform: rotateX(88deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+
+@keyframes mayorship-crown-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verification-card-lower--out,
+  .verification-card-lower--in,
+  .mayorship-new-crown {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}
+
 .user-safety-menu {
   position: relative;
   flex-shrink: 0;

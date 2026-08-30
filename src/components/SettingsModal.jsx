@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns, storagePathFromPublicUrl } from '../CheckInsContext';
 import { LAUNCH_LINKS } from '../launchLinks';
+import { confirmLeaderboardSettingChange } from '../leaderboardSettings';
 
 const profanityFilter = new Filter();
 
@@ -67,6 +68,16 @@ export default function SettingsModal({ onClose }) {
       return;
     }
     onClose();
+  }
+
+  function handleLeaderboardOptInChange(nextOptedIn) {
+    const accepted = confirmLeaderboardSettingChange({
+      currentlyOptedIn: leaderboardOptIn,
+      nextOptedIn,
+      confirmOptOut: (message) => window.confirm(message),
+    });
+
+    if (accepted) setLeaderboardOptIn(nextOptedIn);
   }
 
   async function handleSave(e) {
@@ -227,7 +238,9 @@ export default function SettingsModal({ onClose }) {
                 <input
                   type="checkbox"
                   checked={leaderboardOptIn}
-                  onChange={(e) => setLeaderboardOptIn(e.target.checked)}
+                  onChange={(e) =>
+                    handleLeaderboardOptInChange(e.target.checked)
+                  }
                 />
                 <span className="settings-toggle-track" />
               </span>

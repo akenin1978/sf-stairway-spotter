@@ -16,6 +16,10 @@ import {
   supportsDeviceGeolocation,
 } from './nativeDevice';
 import { fetchAllCheckIns, storagePathFromPublicUrl } from './checkInData';
+import {
+  firstRpcRow,
+  isMissingVerifiedVisitsRpc,
+} from './verifiedVisits';
 
 export { storagePathFromPublicUrl } from './checkInData';
 
@@ -174,6 +178,39 @@ export function CheckInsProvider({ children }) {
     [user, checkedInIds, checkedInPhotoUrls]
   );
 
+  const fetchVerifiedVisitDetails = useCallback(
+    async (stairwayId) => {
+      if (!user) return { data: null, error: 'not-signed-in' };
+
+      const [summaryResult, historyResult] = await Promise.all([
+        supabase.rpc('get_stairway_visit_summary', {
+          p_stairway_id: stairwayId,
+        }),
+        supabase.rpc('get_my_verified_visit_history', {
+          p_stairway_id: stairwayId,
+        }),
+      ]);
+
+      const rpcError = summaryResult.error || historyResult.error;
+      if (rpcError) {
+        if (isMissingVerifiedVisitsRpc(rpcError)) {
+          return { data: null, error: null, unavailable: true };
+        }
+        return { data: null, error: rpcError, unavailable: false };
+      }
+
+      return {
+        data: {
+          summary: firstRpcRow(summaryResult.data),
+          history: historyResult.data || [],
+        },
+        error: null,
+        unavailable: false,
+      };
+    },
+    [user]
+  );
+
   const verifyWithPhoto = useCallback(
     async (stairway) => {
       if (!user) return { error: 'not-signed-in' };
@@ -223,18 +260,37 @@ export function CheckInsProvider({ children }) {
 
       const nowIso = new Date().toISOString();
 
-      const { error: upsertError } = await supabase.from('check_ins').upsert(
-        {
-          user_id: user.id,
-          stairway_id: stairway.id,
-          verification_method: 'photo-verified',
-          verified_at: nowIso,
-        },
-        { onConflict: 'user_id,stairway_id' }
-      );
+      // The new RPC upgrades the lifetime Spotted record and records today's
+      // private repeat visit in one transaction. Until its migration is
+      // installed, retain the old verification write so a web deployment can
+      // never break the already-working verification feature.
+      const visitResult = await supabase.rpc('record_verified_visit', {
+        p_stairway_id: stairway.id,
+      });
+      let visit = null;
+      let visitFeatureAvailable = true;
 
-      if (upsertError) {
-        return { error: 'save-failed' };
+      if (visitResult.error) {
+        if (!isMissingVerifiedVisitsRpc(visitResult.error)) {
+          return { error: 'save-failed' };
+        }
+
+        visitFeatureAvailable = false;
+        const { error: fallbackError } = await supabase.from('check_ins').upsert(
+          {
+            user_id: user.id,
+            stairway_id: stairway.id,
+            verification_method: 'photo-verified',
+            verified_at: nowIso,
+          },
+          { onConflict: 'user_id,stairway_id' }
+        );
+
+        if (fallbackError) {
+          return { error: 'save-failed' };
+        }
+      } else {
+        visit = firstRpcRow(visitResult.data);
       }
 
       setCheckedInIds((prev) => new Set(prev).add(stairway.id));
@@ -246,7 +302,7 @@ export function CheckInsProvider({ children }) {
         new Map(prev).set(stairway.id, 'photo-verified')
       );
 
-      return { error: null };
+      return { error: null, visit, visitFeatureAvailable };
     },
     [user]
   );
@@ -263,6 +319,7 @@ export function CheckInsProvider({ children }) {
     loading,
     toggleCheckIn,
     verifyWithPhoto,
+    fetchVerifiedVisitDetails,
     count: checkedInIds.size,
     verifiedCount,
   };

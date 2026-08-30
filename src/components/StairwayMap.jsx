@@ -16,6 +16,7 @@ import BadgeEarnedModal from './BadgeEarnedModal';
 import ConfirmDialog from './ConfirmDialog';
 import AlertDialog from './AlertDialog';
 import NewStairwayModal from './NewStairwayModal';
+import VerifiedVisitPanel from './VerifiedVisitPanel';
 import {
   GPS_THRESHOLD_METERS,
   distanceToStairwayMeters,
@@ -34,6 +35,11 @@ import {
   serializeKnownStairwayIds,
 } from '../newStairwayNotice';
 import { getStairwayMapBounds, isWithinBounds } from '../mapBounds';
+import {
+  didBecomeMayor,
+  verificationButtonLabel,
+} from '../verifiedVisits';
+import { addNearbyThumbnailPhotos } from '../nearbyStairways';
 
 // Slightly south of the city's geographic midpoint so the dense stairway
 // area sits visually centered above the bottom map controls on a phone.
@@ -355,8 +361,14 @@ export default function StairwayMap({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
-  const { checkedInIds, checkedInDates, checkedInMethods, toggleCheckIn, verifyWithPhoto } =
-    useCheckIns();
+  const {
+    checkedInIds,
+    checkedInDates,
+    checkedInMethods,
+    toggleCheckIn,
+    verifyWithPhoto,
+    fetchVerifiedVisitDetails,
+  } = useCheckIns();
   const { checkAndAwardBadges } = useBadges();
 
   // A stairway selected before signing in or out should never carry over
@@ -438,6 +450,12 @@ export default function StairwayMap({
   // --- Photo verification state ---
   const [verifyStatus, setVerifyStatus] = useState('idle'); // idle | verifying | error
   const [verifyErrorMsg, setVerifyErrorMsg] = useState('');
+  const [verifiedVisitState, setVerifiedVisitState] = useState({
+    stairwayId: null,
+    status: 'idle', // idle | loading | available | unavailable | error
+    details: null,
+  });
+  const [verificationReveal, setVerificationReveal] = useState(null);
   const [showVerificationPrivacyHint, setShowVerificationPrivacyHint] =
     useState(() => {
       try {
@@ -459,20 +477,149 @@ export default function StairwayMap({
     }
   };
   const verifyFileInputRef = useRef(null);
+  const verifiedVisitRequestIdRef = useRef(0);
+  const verificationRevealTimersRef = useRef([]);
+
+  const clearVerificationRevealTimers = useCallback(() => {
+    verificationRevealTimersRef.current.forEach((timer) =>
+      window.clearTimeout(timer)
+    );
+    verificationRevealTimersRef.current = [];
+  }, []);
+
+  const showVerificationReveal = useCallback(
+    ({
+      stairwayId,
+      beforeDetails,
+      beforeSpotted,
+      beforeMethod,
+      afterDetails,
+      newVisitRecorded,
+    }) => {
+      clearVerificationRevealTimers();
+      const justBecameMayor = didBecomeMayor(
+        beforeDetails?.summary,
+        afterDetails?.summary
+      );
+      const reveal = {
+        stairwayId,
+        phase: 'out',
+        beforeDetails,
+        beforeSpotted,
+        beforeMethod,
+        afterDetails,
+        newVisitRecorded,
+        justBecameMayor,
+      };
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        setVerificationReveal({ ...reveal, phase: 'settled' });
+        return;
+      }
+
+      setVerificationReveal(reveal);
+
+      verificationRevealTimersRef.current = [
+        window.setTimeout(() => {
+          setVerificationReveal((current) =>
+            current?.stairwayId === stairwayId
+              ? { ...current, phase: 'in' }
+              : current
+          );
+        }, 220),
+        window.setTimeout(() => {
+          setVerificationReveal((current) =>
+            current?.stairwayId === stairwayId
+              ? { ...current, phase: 'settled' }
+              : current
+          );
+        }, 540),
+      ];
+    },
+    [clearVerificationRevealTimers]
+  );
+
+  useEffect(
+    () => () => clearVerificationRevealTimers(),
+    [clearVerificationRevealTimers]
+  );
+
+  const refreshVerifiedVisitDetails = useCallback(
+    async (stairwayId) => {
+      const requestId = verifiedVisitRequestIdRef.current + 1;
+      verifiedVisitRequestIdRef.current = requestId;
+      setVerifiedVisitState({
+        stairwayId,
+        status: 'loading',
+        details: null,
+      });
+
+      const result = await fetchVerifiedVisitDetails(stairwayId);
+      if (verifiedVisitRequestIdRef.current !== requestId) return null;
+      if (result.unavailable) {
+        setVerifiedVisitState({
+          stairwayId,
+          status: 'unavailable',
+          details: null,
+        });
+        return null;
+      }
+      if (result.error) {
+        console.error('Verified visit history failed to load', result.error);
+        setVerifiedVisitState({
+          stairwayId,
+          status: 'error',
+          details: null,
+        });
+        return null;
+      }
+
+      setVerifiedVisitState({
+        stairwayId,
+        status: 'available',
+        details: result.data,
+      });
+      return result.data;
+    },
+    [fetchVerifiedVisitDetails]
+  );
+
+  useEffect(() => {
+    if (!selected?.id || !user) {
+      verifiedVisitRequestIdRef.current += 1;
+      setVerifiedVisitState({
+        stairwayId: null,
+        status: 'idle',
+        details: null,
+      });
+      return;
+    }
+    refreshVerifiedVisitDetails(selected.id);
+  }, [selected?.id, user?.id, refreshVerifiedVisitDetails]);
 
   useEffect(() => {
     setVerifyStatus('idle');
     setVerifyErrorMsg('');
     setCompletionMessage('');
-  }, [selected]);
+    clearVerificationRevealTimers();
+    setVerificationReveal(null);
+  }, [selected?.id, clearVerificationRevealTimers]);
 
   async function completePhotoVerification(stairway) {
+    const beforeDetails =
+      verifiedVisitState.stairwayId === stairway.id
+        ? verifiedVisitState.details
+        : null;
+    const beforeSpotted = checkedInIds.has(stairway.id);
+    const beforeMethod = checkedInMethods.get(stairway.id);
     setVerifyStatus('verifying');
     setVerifyErrorMsg('');
+    setCompletionMessage('');
 
     // The snapshot confirms that the camera flow completed, but it never
     // leaves the device. Only the successful GPS-verified check-in is saved.
-    const { error, distance } = await verifyWithPhoto(stairway);
+    const { error, distance, visit, visitFeatureAvailable } =
+      await verifyWithPhoto(stairway);
 
     if (error) {
       setVerifyStatus('error');
@@ -503,7 +650,31 @@ export default function StairwayMap({
           if (newBadges && newBadges.length > 0) setBadgeQueue(newBadges);
         })
         .catch((err) => console.error('Badge check failed', err));
-      await closeSelectedAfterSuccess(stairway.id, 'Verified! ★');
+
+      if (!visitFeatureAvailable) {
+        // Safe compatibility state if the frontend reaches production before
+        // the repeat-visit migration. Verification still succeeds and the
+        // existing card remains open rather than disappearing unexpectedly.
+        setCompletionMessage('Verified! ✓');
+        return;
+      }
+
+      const refreshedDetails = await refreshVerifiedVisitDetails(stairway.id);
+      const afterDetails =
+        refreshedDetails || (visit ? { summary: visit, history: [] } : null);
+
+      if (afterDetails?.summary) {
+        showVerificationReveal({
+          stairwayId: stairway.id,
+          beforeDetails,
+          beforeSpotted,
+          beforeMethod,
+          afterDetails,
+          newVisitRecorded: visit?.new_visit_recorded !== false,
+        });
+      } else {
+        setCompletionMessage('Verified! ✓');
+      }
     }
   }
 
@@ -731,14 +902,24 @@ export default function StairwayMap({
     try {
       let location = myLocation;
       if (!location) {
-        const pos = await getCurrentDevicePosition({
-          enableHighAccuracy: true,
-          timeout: 10000,
-        });
-        location = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
+        try {
+          const pos = await getCurrentDevicePosition({
+            enableHighAccuracy: true,
+            timeout: 15000,
+          });
+          location = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          };
+        } catch (locationFailure) {
+          console.error('Nearby check-in location failed', locationFailure);
+          setNearbyStairways([]);
+          setNearbyError(
+            "Couldn't get your location. Check your device's location permissions and try again."
+          );
+          setNearbyOpen(true);
+          return;
+        }
       }
       if (!isWithinBounds(location)) {
         setNearbyOpen(false);
@@ -768,22 +949,23 @@ export default function StairwayMap({
         // Photo fields are intentionally omitted from the 1,200+ row map
         // startup query. Load them only for this short nearby list so its
         // thumbnails remain useful without giving up the faster map load.
-        const { data: photoRows } = await supabase
-          .from('stairways')
-          .select('id,direct_photo_url')
-          .in('id', nearbyResults.map(({ stairway }) => stairway.id));
-        const photosById = new Map(
-          (photoRows ?? []).map((row) => [row.id, row.direct_photo_url])
-        );
-
+        let photoRows = [];
+        try {
+          const photoResult = await supabase
+            .from('stairways')
+            .select('id,direct_photo_url')
+            .in('id', nearbyResults.map(({ stairway }) => stairway.id));
+          if (photoResult.error) {
+            console.warn('Nearby thumbnails unavailable', photoResult.error);
+          } else {
+            photoRows = photoResult.data || [];
+          }
+        } catch (photoError) {
+          // Thumbnails are an enhancement, never a reason to block Check In.
+          console.warn('Nearby thumbnails unavailable', photoError);
+        }
         setNearbyStairways(
-          nearbyResults.map(({ stairway, distanceMeters }) => ({
-            distanceMeters,
-            stairway: {
-              ...stairway,
-              direct_photo_url: photosById.get(stairway.id) || null,
-            },
-          }))
+          addNearbyThumbnailPhotos(nearbyResults, photoRows)
         );
         setNearbyMessage(
           withinCheckInRange.length > 1
@@ -792,10 +974,11 @@ export default function StairwayMap({
         );
         setNearbyOpen(true);
       }
-    } catch {
+    } catch (nearbyFailure) {
+      console.error('Nearby stairways failed to load', nearbyFailure);
       setNearbyStairways([]);
       setNearbyError(
-        "Couldn't get your location. Check your device's location permissions and try again."
+        "Couldn't load nearby stairways. Please try again."
       );
       setNearbyOpen(true);
     } finally {
@@ -1063,6 +1246,36 @@ export default function StairwayMap({
     () => getStairwayMapBounds(stairways),
     [stairways]
   );
+  const selectedVisitState =
+    verifiedVisitState.stairwayId === selected?.id
+      ? verifiedVisitState
+      : { status: 'idle', details: null };
+  const selectedVerificationReveal =
+    verificationReveal?.stairwayId === selected?.id
+      ? verificationReveal
+      : null;
+  const showVerificationRevealResult =
+    selectedVerificationReveal && selectedVerificationReveal.phase !== 'out';
+  const normalVisitDetails =
+    selectedVerificationReveal?.phase === 'out'
+      ? selectedVerificationReveal.beforeDetails
+      : selectedVisitState.details;
+  const selectedVisitSummary = normalVisitDetails?.summary || null;
+  const verifiedVisitsAvailable = selectedVisitState.status === 'available';
+  const selectedDisplaySpotted =
+    selectedVerificationReveal?.phase === 'out'
+      ? selectedVerificationReveal.beforeSpotted
+      : checkedInIds.has(selected?.id);
+  const selectedDisplayMethod =
+    selectedVerificationReveal?.phase === 'out'
+      ? selectedVerificationReveal.beforeMethod
+      : checkedInMethods.get(selected?.id);
+  const selectedAlreadyVerified =
+    selectedDisplayMethod === 'photo-verified';
+  const selectedHasVisitHistory =
+    Number(selectedVisitSummary?.total_visits || 0) > 0;
+  const showVerificationAction =
+    !selectedAlreadyVerified || verifiedVisitsAvailable;
 
   if (!apiKey) {
     return (
@@ -1237,79 +1450,155 @@ export default function StairwayMap({
                   </div>
                 ) : user ? (
                   <>
-                    <button
-                      className={
-                        'checkin-toggle' +
-                        (checkedInIds.has(selected.id) ? ' checked' : '')
-                      }
-                      onClick={async () => {
-                        // A plain self-reported check-in un-toggles freely --
-                        // that's cheap to redo. But un-checking a
-                        // photo-verified one deletes the whole check-in row,
-                        // photo reference included, with no way back through
-                        // the app. One confirmation catches an accidental
-                        // second tap without slowing down anyone who
-                        // genuinely wants to undo a real mistake.
-                        const isVerified =
-                          checkedInMethods.get(selected.id) === 'photo-verified';
-                        if (isVerified) {
-                          setConfirmAction({
-                            message:
-                              "This will remove your verification for this stairway too -- there's no way to undo it. Continue?",
-                            onConfirm: () => performCheckInToggle(selected),
-                          });
-                          return;
+                    <div className="verification-card-flip-stage">
+                      <div
+                        className={
+                          'verification-card-lower' +
+                          (selectedVerificationReveal
+                            ? ` verification-card-lower--${selectedVerificationReveal.phase}`
+                            : '')
                         }
-
-                        await performCheckInToggle(selected);
-                      }}
-                    >
-                      {checkedInMethods.get(selected.id) === 'photo-verified'
-                        ? '✓ Verified'
-                        : checkedInIds.has(selected.id)
-                        ? '✓ Spotted'
-                        : 'Mark as spotted'}
-                    </button>
-
-                    {checkedInMethods.get(selected.id) !== 'photo-verified' &&
-                      (isMobileOrTablet() ? (
-                        <button
-                          className="verify-photo-button"
-                          onClick={() =>
-                            isNativeApp()
-                              ? handleNativePhotoVerification()
-                              : verifyFileInputRef.current?.click()
-                          }
-                          disabled={verifyStatus === 'verifying'}
-                        >
-                          {verifyStatus === 'verifying'
-                            ? 'Verifying…'
-                            : 'Verify with a photo'}
-                        </button>
-                      ) : (
-                        <p className="verify-desktop-hint">
-                          Open this app on mobile for photo verification.
-                        </p>
-                      ))}
-
-                    {checkedInMethods.get(selected.id) !== 'photo-verified' &&
-                      isMobileOrTablet() &&
-                      showVerificationPrivacyHint && (
-                        <div className="verify-privacy-hint">
-                          <span>
-                            Uses your location and a temporary camera photo. The
-                            photo is not saved or uploaded.
-                          </span>
-                          <button
-                            type="button"
-                            className="verify-privacy-hint-dismiss"
-                            onClick={dismissVerificationPrivacyHint}
-                            aria-label="Dismiss photo verification information"
+                      >
+                        {showVerificationRevealResult ? (
+                          <div
+                            className="verification-flip-result"
+                            role="status"
+                            aria-live="polite"
                           >
-                            ×
-                          </button>
-                        </div>
-                      )}
+                            <div className="checkin-toggle checked checkin-toggle-status">
+                              ✓ Spotted
+                            </div>
+                            {selectedVerificationReveal.newVisitRecorded ===
+                              false && (
+                              <p className="verified-already-counted">
+                                ✓ Today’s verified visit was already counted.
+                              </p>
+                            )}
+                            <VerifiedVisitPanel
+                              details={selectedVerificationReveal.afterDetails}
+                              loading={false}
+                              justVerified={
+                                selectedVerificationReveal.newVisitRecorded
+                              }
+                              justBecameMayor={
+                                selectedVerificationReveal.justBecameMayor
+                              }
+                            />
+                            {isMobileOrTablet() && (
+                              <button
+                                className="verify-photo-button"
+                                type="button"
+                                disabled
+                              >
+                                ✓ Today’s visit verified
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <>
+                            {selectedVisitState.status !== 'unavailable' && (
+                              <VerifiedVisitPanel
+                                details={normalVisitDetails}
+                                loading={
+                                  !selectedVerificationReveal &&
+                                  selectedVisitState.status === 'loading'
+                                }
+                              />
+                            )}
+
+                            {selectedHasVisitHistory ? (
+                              <div className="checkin-toggle checked checkin-toggle-status">
+                                ✓ Spotted
+                              </div>
+                            ) : (
+                              <button
+                                className={
+                                  'checkin-toggle' +
+                                  (selectedDisplaySpotted ? ' checked' : '')
+                                }
+                                onClick={async () => {
+                                  // A plain self-reported check-in un-toggles
+                                  // freely. A legacy photo verification needs
+                                  // confirmation because deleting it cannot be
+                                  // undone. Once private visit history exists,
+                                  // this becomes a durable Spotted status.
+                                  const isVerified =
+                                    checkedInMethods.get(selected.id) ===
+                                    'photo-verified';
+                                  if (isVerified) {
+                                    setConfirmAction({
+                                      message:
+                                        "This will remove your verification for this stairway too -- there's no way to undo it. Continue?",
+                                      onConfirm: () =>
+                                        performCheckInToggle(selected),
+                                    });
+                                    return;
+                                  }
+
+                                  await performCheckInToggle(selected);
+                                }}
+                              >
+                                {selectedDisplayMethod === 'photo-verified'
+                                  ? '✓ Verified'
+                                  : selectedDisplaySpotted
+                                  ? '✓ Spotted'
+                                  : 'Mark as spotted'}
+                              </button>
+                            )}
+
+                            {showVerificationAction &&
+                              (isMobileOrTablet() ? (
+                                <button
+                                  className="verify-photo-button"
+                                  onClick={() =>
+                                    isNativeApp()
+                                      ? handleNativePhotoVerification()
+                                      : verifyFileInputRef.current?.click()
+                                  }
+                                  disabled={
+                                    verifyStatus === 'verifying' ||
+                                    selectedVisitSummary?.visited_today
+                                  }
+                                >
+                                  {verifyStatus === 'verifying'
+                                    ? 'Verifying…'
+                                    : verificationButtonLabel(
+                                        selectedVisitSummary,
+                                        selectedAlreadyVerified
+                                      )}
+                                </button>
+                              ) : (
+                                <p className="verify-desktop-hint">
+                                  Open this app on mobile for photo verification.
+                                </p>
+                              ))}
+
+                            {showVerificationAction &&
+                              isMobileOrTablet() &&
+                              showVerificationPrivacyHint && (
+                                <div className="verify-privacy-hint">
+                                  <span>
+                                    Uses your location and a temporary camera
+                                    photo. The photo is not saved or uploaded.
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="verify-privacy-hint-dismiss"
+                                    onClick={dismissVerificationPrivacyHint}
+                                    aria-label="Dismiss photo verification information"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              )}
+
+                            {verifyStatus === 'error' && (
+                              <p className="verify-error">{verifyErrorMsg}</p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
 
                     <input
                       ref={verifyFileInputRef}
@@ -1319,10 +1608,6 @@ export default function StairwayMap({
                       style={{ display: 'none' }}
                       onChange={handlePhotoSelected}
                     />
-
-                    {verifyStatus === 'error' && (
-                      <p className="verify-error">{verifyErrorMsg}</p>
-                    )}
                   </>
                 ) : (
                   <button

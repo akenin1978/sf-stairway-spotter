@@ -1,6 +1,6 @@
 import { LAUNCH_LINKS } from '../launchLinks';
 
-const EFFECTIVE_DATE = 'August 24, 2026';
+const EFFECTIVE_DATE = 'August 30, 2026';
 const SUPPORT_EMAIL = 'info@urbanhikersf.com';
 
 const PAGE_TITLES = {
@@ -55,14 +55,16 @@ function PrivacyPage() {
           sign-in provider, and any optional display name you choose.
         </li>
         <li>
-          <strong>Activity information:</strong> stairway check-ins, verification
-          method, dates, badges, streaks, leaderboard preferences, friends,
-          blocked-user choices, and safety reports.
+          <strong>Activity information:</strong> stairway check-ins, private
+          verified-visit history, verification method, dates, badges, streaks,
+          leaderboard preferences, friends, blocked-user choices, and safety
+          reports.
         </li>
         <li>
           <strong>Location:</strong> precise location is accessed only when you
           choose a nearby-stairway or verification feature. It is used to provide
-          that feature and is not used for advertising.
+          that feature, is not retained with your visit record, and is not used
+          for advertising.
         </li>
         <li>
           <strong>Camera:</strong> when you choose photo verification, the app
@@ -97,8 +99,10 @@ function PrivacyPage() {
       <p>
         We do not sell personal information. At launch, the app does not contain
         third-party advertising or behavioral advertising trackers. An optional
-        display name and verified total appear publicly only if you choose
-        to join the leaderboard.
+        display name, verified total, stairway mayorship, and aggregate 30-day
+        mayorship count appear publicly only if you choose to join the
+        leaderboard. Your individual visit dates and verification photos are
+        never shown publicly.
       </p>
 
       <h2>Retention</h2>
@@ -204,6 +208,16 @@ function TermsPage() {
         We may change, suspend, or discontinue features and may restrict accounts
         that violate these terms or threaten the service or other users. You may
         delete your account at any time from Settings.
+      </p>
+
+      <h2>Leaderboards and mayorships</h2>
+      <p>
+        Mayorships are optional, recreational rankings based on qualifying
+        verified visits during a rolling 30-day period. Only one visit per
+        stairway per San Francisco calendar day counts. Standings can change as
+        visits are added or leave the active window, and an existing mayor keeps
+        the title when eligible totals are tied. We may remove fraudulent or
+        abusive activity and correct inaccurate standings.
       </p>
 
       <h2>Disclaimer and limitation of liability</h2>
