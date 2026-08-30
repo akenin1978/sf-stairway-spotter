@@ -174,7 +174,7 @@ Git commit:
 ## In-progress release record
 
 ```text
-Version/build: Build 11 candidate (number not yet assigned)
+Version/build: Version 1.0, Build 11
 Date: August 30, 2026
 Changes: Repeat verified visits, private per-stairway visit history, rolling
   30-day opt-in mayorships with a two-visit minimum, one qualifying visit per
@@ -184,17 +184,17 @@ Changes: Repeat verified visits, private per-stairway visit history, rolling
   services, temporary-unavailability, and unknown errors now show distinct messages.
 Automated tests: PASS — 61 tests
 Production build: PASS
-iOS/Android build: iOS simulator compile PASS; Android debug compile PASS;
-  current web bundle has not been synced into either native project and no
-  signed archive/release build has been created.
+iOS/Android build: iOS Build 11 production bundle sync PASS and unsigned
+  Release compile for a physical iPhone target PASS; Android debug compile
+  PASS from the release audit. No signed archive/release upload has been created.
 Core regression result: Automated checks, 390px card-layout preview, live
   domain/link checks, phone-size neighborhood scrolling, and GPS error-message
   regressions pass. Full manual regression remains pending.
 Real-device result: Pending
-Known issues: Supabase migration must be applied before enabling repeat visits;
-  the migration and full live database policy set have not yet been validated
-  against the live database. Real GPS/camera, sign-in, persistence, badges,
-  and cross-day behavior require a device check. The deployed marketing-site
+Known issues: The repeat-visit/mayorship migration is applied and its two tables
+  and two public app functions are verified. The full live database policy set
+  has not yet been audited. Real GPS/camera, sign-in, persistence, badges, and
+  cross-day behavior require a device check. The deployed marketing-site
   privacy/terms text is still the August 24 version until these changes deploy.
   The production build also retains its non-failing 598 kB JavaScript chunk
   size warning.
@@ -211,18 +211,20 @@ Git commit: cf15bbe (local only; main is one commit ahead of origin/main)
 - Required iOS camera/location descriptions, Apple Sign In entitlement,
   non-exempt-encryption declaration, Google callback URL scheme, and Android
   camera/location permissions are present.
-- The iOS and Android native shells compile, but this is not Build 11 yet:
-  iOS still reports build 10, Android still reports version code 1, and the
-  latest web bundle has not been synced into the native projects.
+- iOS is assigned Build 11, contains the latest production web bundle, and
+  compiles successfully in Release configuration for a physical iPhone target.
+  It has not been signed, archived, or uploaded. Android still reports version
+  code 1; its native shell passed the earlier debug compile.
 - Local `/privacy`, `/terms`, `/support`, `/delete-account`, and `/welcome`
   pages render. Live `.app` loads the map without redirecting, and the live
   `.com` marketing/legal/support URLs open. `.app/welcome` returns 404, but it
   is not the configured marketing URL; the configured `.com` home page works.
 - The live Google Map reports only the existing legacy Marker deprecation
   warning. It does not prevent the map from loading.
-- Live Supabase policy verification and the new repeat-visit migration remain
-  pending. Static migration tests pass, but they are not a substitute for
-  running and validating the migration in Supabase.
+- The repeat-visit/mayorship migration ran successfully in live Supabase. A
+  read-only verification confirmed `verified_visits`, `stairway_mayors`,
+  `record_verified_visit(uuid)`, and `get_my_verified_visit_history(uuid)`.
+  A broader live policy audit remains pending.
 - Map-boundary, thumbnail, mayorship, privacy, and Reduced Motion code paths
   have automated or code-level coverage, but their end-to-end boxes remain
   unchecked until they are exercised against the migrated database and the
