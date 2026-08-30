@@ -7,21 +7,21 @@ or recorded as a known issue that Alexandra has explicitly accepted.
 ## 1. Define the build
 
 - [ ] Record the version and build number.
-- [ ] List every user-visible change in this build.
-- [ ] Identify every existing feature touched directly or indirectly by those changes.
-- [ ] Review the complete code difference from the last tester build.
-- [ ] Confirm no unrelated or accidental files are included.
+- [x] List every user-visible change in this build.
+- [x] Identify every existing feature touched directly or indirectly by those changes.
+- [x] Review the complete code difference from the last tester build.
+- [x] Confirm no unrelated or accidental files are included.
 
 ## 2. Automated checks — Codex
 
-- [ ] Run the complete automated test suite; all tests pass.
-- [ ] Run the production web build; it completes successfully.
+- [x] Run the complete automated test suite; all tests pass.
+- [x] Run the production web build; it completes successfully.
 - [ ] Run the iOS build/archive check when preparing an iOS build.
-- [ ] Run the Android build check when preparing an Android build.
-- [ ] Confirm required iOS and Android permissions and configuration are still present.
+- [x] Run the Android build check when preparing an Android build.
+- [x] Confirm required iOS and Android permissions and configuration are still present.
 - [ ] Confirm the live database policies needed for sign-in, check-ins, verification,
       badges, friendships, reports, and account deletion are present.
-- [ ] Add a regression test for every bug fixed in this build whenever it can be automated.
+- [x] Add a regression test for every bug fixed in this build whenever it can be automated.
 
 ## 3. Core regression checks — Codex
 
@@ -29,7 +29,7 @@ or recorded as a known issue that Alexandra has explicitly accepted.
 
 - [ ] The app launches without freezing or showing a System UI error.
 - [ ] The map and all stairways load.
-- [ ] A new account does not receive an old “new stairways” notice.
+- [x] A new account does not receive an old “new stairways” notice.
 - [ ] A returning account receives the correct new-stairway notice and all new
       stairway thumbnails appear.
 - [ ] Apple sign-in works on iPhone and is hidden on Android.
@@ -57,8 +57,10 @@ or recorded as a known issue that Alexandra has explicitly accepted.
 - [ ] With no cached location, **Check In** obtains a fresh location within a
       reasonable timeout.
 - [ ] With location denied, the app shows an accurate, useful permission message.
-- [ ] With location temporarily unavailable or timed out, the app shows an accurate
-      retry message rather than a misleading permissions message.
+- [x] With location temporarily unavailable or timed out, the app shows an accurate
+      retry message rather than a misleading permissions message. Automated
+      browser and native error-classification regressions pass; confirm once on
+      the candidate build during the real-device smoke test.
 - [ ] Inside San Francisco, **Check In** opens the correct nearby-stairway choice.
 - [ ] Outside San Francisco, the boundary message appears and the map remains in bounds.
 - [ ] **Mark as spotted** turns green, updates the count, and remains saved after relaunch.
@@ -72,7 +74,7 @@ or recorded as a known issue that Alexandra has explicitly accepted.
 - [ ] Verification works after the stairway was already marked spotted.
 - [ ] Successful verification updates the verified count, leaderboard, and badges.
 - [ ] Too-far, location, camera-permission, and save failures show the correct message.
-- [ ] The temporary photo is not uploaded or retained.
+- [x] The temporary photo is not uploaded or retained.
 - [ ] The privacy explanation can be dismissed and stays dismissed.
 
 ### Progress and community
@@ -97,22 +99,22 @@ or recorded as a known issue that Alexandra has explicitly accepted.
       stairway card.
 - [ ] Visits made while leaderboard participation is off never become
       mayorship-eligible retroactively.
-- [ ] Turning off leaderboard participation shows the opt-out warning and
+- [x] Turning off leaderboard participation shows the opt-out warning and
       Cancel leaves the setting enabled.
 - [ ] Confirming opt-out removes the user's public leaderboard presence and
       mayorships without deleting private visit history or lifetime totals.
 - [ ] Rejoining restores the user's regular leaderboard total and current rank,
       but previously eligible visits do not automatically restore a mayorship.
 - [ ] A blocked user's display name is hidden from stairway mayorship details.
-- [ ] Successful verification partially flips only the lower card, leaves the
+- [x] Successful verification partially flips only the lower card, leaves the
       stairway name and reference photo in place, and keeps the card open.
 - [ ] Reduced Motion skips the verification flip without delaying the result.
 
 ### Website and links
 
-- [ ] `sfstairwayspotter.app` loads the app and does not redirect to a Vercel address.
+- [x] `sfstairwayspotter.app` loads the app and does not redirect to a Vercel address.
 - [ ] OAuth returns to `sfstairwayspotter.app` without an expired-state error.
-- [ ] Support, privacy, terms, marketing, and account-deletion links open correctly.
+- [x] Support, privacy, terms, marketing, and account-deletion links open correctly.
 
 ## 4. Real-device smoke test — Alexandra
 
@@ -178,17 +180,54 @@ Changes: Repeat verified visits, private per-stairway visit history, rolling
   30-day opt-in mayorships with a two-visit minimum, one qualifying visit per
   SF day, partial-flip verification results, dynamic mayorship gap, blocked-name
   privacy, confirmed mayorship forfeiture on leaderboard opt-out, and nearby
-  Check In error isolation/thumbnail fallback.
-Automated tests: PASS — 54 tests
+  Check In error isolation/thumbnail fallback. GPS permission, timeout, disabled
+  services, temporary-unavailability, and unknown errors now show distinct messages.
+Automated tests: PASS — 61 tests
 Production build: PASS
-iOS/Android build: Not created
-Core regression result: Automated checks and 390px card-layout preview pass;
-  full manual regression pending
+iOS/Android build: iOS simulator compile PASS; Android debug compile PASS;
+  current web bundle has not been synced into either native project and no
+  signed archive/release build has been created.
+Core regression result: Automated checks, 390px card-layout preview, live
+  domain/link checks, phone-size neighborhood scrolling, and GPS error-message
+  regressions pass. Full manual regression remains pending.
 Real-device result: Pending
 Known issues: Supabase migration must be applied before enabling repeat visits;
-  the migration has not yet been validated against the live database, and real
-  GPS/camera plus cross-day behavior require a device check.
+  the migration and full live database policy set have not yet been validated
+  against the live database. Real GPS/camera, sign-in, persistence, badges,
+  and cross-day behavior require a device check. The deployed marketing-site
+  privacy/terms text is still the August 24 version until these changes deploy.
+  The production build also retains its non-failing 598 kB JavaScript chunk
+  size warning.
 Upload approved by Alexandra: No
 External tester release approved by Alexandra: No
-Git commit: Not committed
+Git commit: cf15bbe (local only; main is one commit ahead of origin/main)
 ```
+
+## August 30 audit notes
+
+- The complete change from tester Build 10 was reviewed. The local commit does
+  not include `.idea/`, `android/.idea/`, or the unrelated untracked
+  `src/assets/landing/badges-v2.jpg` file.
+- Required iOS camera/location descriptions, Apple Sign In entitlement,
+  non-exempt-encryption declaration, Google callback URL scheme, and Android
+  camera/location permissions are present.
+- The iOS and Android native shells compile, but this is not Build 11 yet:
+  iOS still reports build 10, Android still reports version code 1, and the
+  latest web bundle has not been synced into the native projects.
+- Local `/privacy`, `/terms`, `/support`, `/delete-account`, and `/welcome`
+  pages render. Live `.app` loads the map without redirecting, and the live
+  `.com` marketing/legal/support URLs open. `.app/welcome` returns 404, but it
+  is not the configured marketing URL; the configured `.com` home page works.
+- The live Google Map reports only the existing legacy Marker deprecation
+  warning. It does not prevent the map from loading.
+- Live Supabase policy verification and the new repeat-visit migration remain
+  pending. Static migration tests pass, but they are not a substitute for
+  running and validating the migration in Supabase.
+- Map-boundary, thumbnail, mayorship, privacy, and Reduced Motion code paths
+  have automated or code-level coverage, but their end-to-end boxes remain
+  unchecked until they are exercised against the migrated database and the
+  actual candidate build.
+- GPS errors are now classified centrally across map location, nearby Check In,
+  photo verification, and stairway submission. Browser/native permission denial,
+  timeout, disabled Location Services, and temporary unavailability have passing
+  regression tests. One real-phone confirmation remains in the smoke test.

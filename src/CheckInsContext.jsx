@@ -20,6 +20,7 @@ import {
   firstRpcRow,
   isMissingVerifiedVisitsRpc,
 } from './verifiedVisits';
+import { getLocationErrorKind } from './locationErrors';
 
 export { storagePathFromPublicUrl } from './checkInData';
 
@@ -225,8 +226,11 @@ export function CheckInsProvider({ children }) {
           enableHighAccuracy: true,
           timeout: 15000,
         });
-      } catch {
-        return { error: 'location-failed' };
+      } catch (locationFailure) {
+        return {
+          error: 'location-failed',
+          locationErrorKind: getLocationErrorKind(locationFailure),
+        };
       }
 
       // Three ways a stairway can be checked, in order of precedence:

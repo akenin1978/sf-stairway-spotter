@@ -40,6 +40,7 @@ import {
   verificationButtonLabel,
 } from '../verifiedVisits';
 import { addNearbyThumbnailPhotos } from '../nearbyStairways';
+import { getLocationErrorMessage } from '../locationErrors';
 
 // Slightly south of the city's geographic midpoint so the dense stairway
 // area sits visually centered above the bottom map controls on a phone.
@@ -618,7 +619,13 @@ export default function StairwayMap({
 
     // The snapshot confirms that the camera flow completed, but it never
     // leaves the device. Only the successful GPS-verified check-in is saved.
-    const { error, distance, visit, visitFeatureAvailable } =
+    const {
+      error,
+      distance,
+      visit,
+      visitFeatureAvailable,
+      locationErrorKind,
+    } =
       await verifyWithPhoto(stairway);
 
     if (error) {
@@ -634,9 +641,7 @@ export default function StairwayMap({
             : `You're about ${distance}ft away -- get within ${applicableThreshold}ft of the stairway to verify.`
         );
       } else if (error === 'location-failed') {
-        setVerifyErrorMsg(
-          "Couldn't get your location -- check that location access is allowed for this site."
-        );
+        setVerifyErrorMsg(getLocationErrorMessage(locationErrorKind));
       } else if (error === 'no-geolocation') {
         setVerifyErrorMsg('Location services are not available in this browser.');
       } else {
@@ -848,41 +853,37 @@ export default function StairwayMap({
 
     try {
       locationWatchIdRef.current = await startDeviceLocationWatch(
-      { enableHighAccuracy: true, timeout: 10000 },
-      (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        if (!isWithinBounds(loc)) {
-          setMyLocation(null);
-          setMyHeading(null);
-          setLocating(false);
-          showOutsideSanFranciscoMessage();
-          if (locationWatchIdRef.current != null) {
-            clearDeviceLocationWatch(locationWatchIdRef.current);
-            locationWatchIdRef.current = null;
+        { enableHighAccuracy: true, timeout: 10000 },
+        (pos) => {
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          if (!isWithinBounds(loc)) {
+            setMyLocation(null);
+            setMyHeading(null);
+            setLocating(false);
+            showOutsideSanFranciscoMessage();
+            if (locationWatchIdRef.current != null) {
+              clearDeviceLocationWatch(locationWatchIdRef.current);
+              locationWatchIdRef.current = null;
+            }
+            return;
           }
-          return;
+          setMyLocation(loc);
+          if (!hasCenteredRef.current) {
+            setPanTarget(loc);
+            hasCenteredRef.current = true;
+          }
+          if (pos.coords.heading != null && !Number.isNaN(pos.coords.heading)) {
+            setMyHeading(pos.coords.heading);
+          }
+          setLocating(false);
+        },
+        (locationFailure) => {
+          setLocationError(getLocationErrorMessage(locationFailure));
+          setLocating(false);
         }
-        setMyLocation(loc);
-        if (!hasCenteredRef.current) {
-          setPanTarget(loc);
-          hasCenteredRef.current = true;
-        }
-        if (pos.coords.heading != null && !Number.isNaN(pos.coords.heading)) {
-          setMyHeading(pos.coords.heading);
-        }
-        setLocating(false);
-      },
-      () => {
-        setLocationError(
-          "Couldn't get your location -- check your device's location permissions."
-        );
-        setLocating(false);
-      }
       );
-    } catch {
-      setLocationError(
-        "Couldn't get your location -- check your device's location permissions."
-      );
+    } catch (locationFailure) {
+      setLocationError(getLocationErrorMessage(locationFailure));
       setLocating(false);
     }
   }
@@ -914,9 +915,7 @@ export default function StairwayMap({
         } catch (locationFailure) {
           console.error('Nearby check-in location failed', locationFailure);
           setNearbyStairways([]);
-          setNearbyError(
-            "Couldn't get your location. Check your device's location permissions and try again."
-          );
+          setNearbyError(getLocationErrorMessage(locationFailure));
           setNearbyOpen(true);
           return;
         }
@@ -1019,8 +1018,10 @@ export default function StairwayMap({
         }
         setSpotLocation({ ...location, source: 'gps' });
       })
-      .catch(() => {
-        setSpotErrorMsg("Couldn't get your location -- try tapping the map instead.");
+      .catch((locationFailure) => {
+        setSpotErrorMsg(
+          `${getLocationErrorMessage(locationFailure)} You can also tap the map instead.`
+        );
       });
   }
 
