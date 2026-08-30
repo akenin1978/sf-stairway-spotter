@@ -6,7 +6,7 @@ or recorded as a known issue that Alexandra has explicitly accepted.
 
 ## 1. Define the build
 
-- [ ] Record the version and build number.
+- [x] Record the version and build number.
 - [x] List every user-visible change in this build.
 - [x] Identify every existing feature touched directly or indirectly by those changes.
 - [x] Review the complete code difference from the last tester build.
@@ -16,7 +16,7 @@ or recorded as a known issue that Alexandra has explicitly accepted.
 
 - [x] Run the complete automated test suite; all tests pass.
 - [x] Run the production web build; it completes successfully.
-- [ ] Run the iOS build/archive check when preparing an iOS build.
+- [x] Run the iOS build/archive check when preparing an iOS build.
 - [x] Run the Android build check when preparing an Android build.
 - [x] Confirm required iOS and Android permissions and configuration are still present.
 - [ ] Confirm the live database policies needed for sign-in, check-ins, verification,
@@ -184,9 +184,9 @@ Changes: Repeat verified visits, private per-stairway visit history, rolling
   services, temporary-unavailability, and unknown errors now show distinct messages.
 Automated tests: PASS — 61 tests
 Production build: PASS
-iOS/Android build: iOS Build 11 production bundle sync PASS and unsigned
-  Release compile for a physical iPhone target PASS; Android debug compile
-  PASS from the release audit. No signed archive/release upload has been created.
+iOS/Android build: iOS Build 11 production bundle sync, physical-iPhone Release
+  compile, signed archive, and App Store Connect upload PASS; Apple processing
+  is pending. Android debug compile PASS from the release audit.
 Core regression result: Automated checks, 390px card-layout preview, live
   domain/link checks, phone-size neighborhood scrolling, and GPS error-message
   regressions pass. Full manual regression remains pending.
@@ -198,9 +198,9 @@ Known issues: The repeat-visit/mayorship migration is applied and its two tables
   privacy/terms text is still the August 24 version until these changes deploy.
   The production build also retains its non-failing 598 kB JavaScript chunk
   size warning.
-Upload approved by Alexandra: No
+Upload approved by Alexandra: Yes — approved August 30 before archive/upload
 External tester release approved by Alexandra: No
-Git commit: cf15bbe (local only; main is one commit ahead of origin/main)
+Git commit: d700815 (Build 11 source and build number)
 ```
 
 ## August 30 audit notes
@@ -211,10 +211,11 @@ Git commit: cf15bbe (local only; main is one commit ahead of origin/main)
 - Required iOS camera/location descriptions, Apple Sign In entitlement,
   non-exempt-encryption declaration, Google callback URL scheme, and Android
   camera/location permissions are present.
-- iOS is assigned Build 11, contains the latest production web bundle, and
-  compiles successfully in Release configuration for a physical iPhone target.
-  It has not been signed, archived, or uploaded. Android still reports version
-  code 1; its native shell passed the earlier debug compile.
+- iOS Build 11 contains the latest production web bundle, compiled successfully
+  in Release configuration for a physical iPhone target, archived with signing,
+  and was accepted by App Store Connect for processing. It has not been released
+  to external testers. Android still reports version code 1; its native shell
+  passed the earlier debug compile.
 - Local `/privacy`, `/terms`, `/support`, `/delete-account`, and `/welcome`
   pages render. Live `.app` loads the map without redirecting, and the live
   `.com` marketing/legal/support URLs open. `.app/welcome` returns 404, but it
