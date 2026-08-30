@@ -26,7 +26,7 @@ export function formatVisitDate(value, options = {}) {
 }
 
 export function verificationButtonLabel(summary, alreadyVerified) {
-  if (summary?.visited_today) return "✓ Today's visit verified";
+  if (summary?.visited_today) return '✓ Verified today';
   if (summary || alreadyVerified) return "Verify today's visit";
   return 'Verify with a photo';
 }

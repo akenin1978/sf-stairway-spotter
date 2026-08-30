@@ -31,7 +31,7 @@ describe('verified visit helpers', () => {
       "Verify today's visit"
     );
     expect(verificationButtonLabel({ visited_today: true }, true)).toBe(
-      "✓ Today's visit verified"
+      '✓ Verified today'
     );
   });
 
