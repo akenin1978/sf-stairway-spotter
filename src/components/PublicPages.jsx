@@ -65,7 +65,7 @@ function PrivacyPage() {
           that feature and is not used for advertising.
         </li>
         <li>
-          <strong>Camera:</strong> when you choose on-site verification, the app
+          <strong>Camera:</strong> when you choose photo verification, the app
           captures a temporary camera photo and checks your location. The photo
           is not saved or uploaded.
         </li>
@@ -97,7 +97,7 @@ function PrivacyPage() {
       <p>
         We do not sell personal information. At launch, the app does not contain
         third-party advertising or behavioral advertising trackers. An optional
-        display name and on-site verified total appear publicly only if you choose
+        display name and verified total appear publicly only if you choose
         to join the leaderboard.
       </p>
 

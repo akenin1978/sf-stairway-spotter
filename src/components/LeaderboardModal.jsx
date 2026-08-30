@@ -10,14 +10,37 @@ function LeaderboardRow({ rank, entry, isMe, isFriend, onReport, onBlock }) {
     <div className={'leaderboard-row' + (isMe ? ' leaderboard-row-me' : '')}>
       <span className="leaderboard-rank">#{rank}</span>
       <span className="leaderboard-name">
-        {isFriend && !isMe && <span className="leaderboard-friend-icon">★</span>}
-        {entry.display_name}
-        {isMe && <span className="leaderboard-you-tag"> (you)</span>}
+        {isMe ? (
+          <span className="leaderboard-name-text">
+            {entry.display_name}
+            <span className="leaderboard-you-tag"> (you)</span>
+          </span>
+        ) : (
+          <UserSafetyMenu
+            person={entry}
+            onReport={onReport}
+            onBlock={onBlock}
+            triggerClassName="leaderboard-name-button"
+            triggerContent={
+              <>
+                {isFriend && <span className="leaderboard-friend-icon">★</span>}
+                {entry.display_name}
+              </>
+            }
+          />
+        )}
       </span>
       <span className="leaderboard-count">{entry.verified_count}</span>
-      {!isMe && (
-        <UserSafetyMenu person={entry} onReport={onReport} onBlock={onBlock} />
-      )}
+    </div>
+  );
+}
+
+function LeaderboardHeader() {
+  return (
+    <div className="leaderboard-header" aria-hidden="true">
+      <span>Rank</span>
+      <span>Spotter</span>
+      <span className="leaderboard-header-verified">Verified</span>
     </div>
   );
 }
@@ -101,7 +124,7 @@ export default function LeaderboardModal({ onClose }) {
 
         <h2>Leaderboard</h2>
         <p className="modal-context">
-          Ranked by on-site verified check-ins. <span className="leaderboard-friend-icon">★</span> marks a friend.
+          Ranked by verified stairways. <span className="leaderboard-friend-icon">★</span> marks a friend.
         </p>
 
         {loading && <p className="modal-context">Loading…</p>}
@@ -117,6 +140,7 @@ export default function LeaderboardModal({ onClose }) {
         {!loading && !error && entries.length > 0 && (
           <>
             <h3 className="leaderboard-section-heading">Top 10</h3>
+            <LeaderboardHeader />
             <div className="leaderboard-list">
               {topTen.map((entry, i) => (
                 <LeaderboardRow
@@ -134,8 +158,9 @@ export default function LeaderboardModal({ onClose }) {
             {neighborStart !== null && (
               <>
                 <h3 className="leaderboard-section-heading">
-                  Your neighbors
+                  Around you · #{neighborStart + 1}–#{neighborStart + neighbors.length}
                 </h3>
+                <LeaderboardHeader />
                 <div className="leaderboard-list">
                   {neighbors.map((entry, i) => (
                     <LeaderboardRow

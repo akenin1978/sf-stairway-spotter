@@ -14,6 +14,7 @@ import MapControlsPanel from './MapControlsPanel';
 import { getRatingStyle } from '../ratingColors';
 import BadgeEarnedModal from './BadgeEarnedModal';
 import ConfirmDialog from './ConfirmDialog';
+import AlertDialog from './AlertDialog';
 import NewStairwayModal from './NewStairwayModal';
 import {
   GPS_THRESHOLD_METERS,
@@ -32,28 +33,11 @@ import {
   knownStairwayIdsKey,
   serializeKnownStairwayIds,
 } from '../newStairwayNotice';
+import { getStairwayMapBounds, isWithinBounds } from '../mapBounds';
 
 // Slightly south of the city's geographic midpoint so the dense stairway
 // area sits visually centered above the bottom map controls on a phone.
 const SF_CENTER = { lat: 37.74, lng: -122.4194 };
-
-// Keeps the map locked to San Francisco proper -- including Treasure Island
-// and Alcatraz -- so it can't be panned out across the country, while
-// giving Google's own info-window auto-pan (never disabled) enough room
-// to shift the map and reveal a full card, even at the map's minimum zoom
-// (11) where each on-screen pixel covers the most ground and a card needs
-// the most degrees of "pan budget" to fully come into view. Worked out
-// from the actual pixel-to-degree math at zoom 11 for SF's latitude
-// (~60m/pixel), sized for a generously tall card (~500px): about 0.3
-// degrees of latitude and 0.35 degrees of longitude beyond the city's
-// true edges. Still just Bay Area (Marin/Peninsula/East Bay suburbs, or
-// open ocean to the west) -- nowhere near "the rest of the country."
-const SF_BOUNDS = {
-  north: 38.135,
-  south: 37.403,
-  west: -122.865,
-  east: -122.0,
-};
 
 // The set of rating "buckets" that can be toggled on/off: 5 down to 1, plus
 // a special 'unrated' bucket for anything with no rating value.
@@ -413,6 +397,13 @@ export default function StairwayMap({
   // shows the raw site URL -- not ideal before we have a custom domain) ---
   const [confirmAction, setConfirmAction] = useState(null); // { message, onConfirm } | null
   const [completionMessage, setCompletionMessage] = useState('');
+  const [locationBoundaryMessage, setLocationBoundaryMessage] = useState('');
+
+  const showOutsideSanFranciscoMessage = () => {
+    setLocationBoundaryMessage(
+      "This app works best when you're in San Francisco. The map will stay centered on the city."
+    );
+  };
 
   async function closeSelectedAfterSuccess(stairwayId, message) {
     setCompletionMessage(message);
@@ -512,7 +503,7 @@ export default function StairwayMap({
           if (newBadges && newBadges.length > 0) setBadgeQueue(newBadges);
         })
         .catch((err) => console.error('Badge check failed', err));
-      await closeSelectedAfterSuccess(stairway.id, 'On-site verified! ★');
+      await closeSelectedAfterSuccess(stairway.id, 'Verified! ★');
     }
   }
 
@@ -528,7 +519,7 @@ export default function StairwayMap({
       setVerifyStatus('error');
       setVerifyErrorMsg(
         error?.message === 'camera-permission-denied'
-          ? 'Camera access is needed for on-site verification. You can enable it in your device settings.'
+          ? 'Camera access is needed for photo verification. You can enable it in your device settings.'
           : 'No photo was captured. Try again when you are ready.'
       );
     } finally {
@@ -689,6 +680,17 @@ export default function StairwayMap({
       { enableHighAccuracy: true, timeout: 10000 },
       (pos) => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        if (!isWithinBounds(loc)) {
+          setMyLocation(null);
+          setMyHeading(null);
+          setLocating(false);
+          showOutsideSanFranciscoMessage();
+          if (locationWatchIdRef.current != null) {
+            clearDeviceLocationWatch(locationWatchIdRef.current);
+            locationWatchIdRef.current = null;
+          }
+          return;
+        }
         setMyLocation(loc);
         if (!hasCenteredRef.current) {
           setPanTarget(loc);
@@ -737,8 +739,13 @@ export default function StairwayMap({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         };
-        setMyLocation(location);
       }
+      if (!isWithinBounds(location)) {
+        setNearbyOpen(false);
+        showOutsideSanFranciscoMessage();
+        return;
+      }
+      setMyLocation(location);
       setPanTarget(location);
 
       const sorted = stairways
@@ -755,8 +762,28 @@ export default function StairwayMap({
         setSelected(withinCheckInRange[0].stairway);
         setNearbyOpen(false);
       } else {
+        const nearbyResults =
+          withinCheckInRange.length > 1 ? withinCheckInRange : sorted.slice(0, 5);
+
+        // Photo fields are intentionally omitted from the 1,200+ row map
+        // startup query. Load them only for this short nearby list so its
+        // thumbnails remain useful without giving up the faster map load.
+        const { data: photoRows } = await supabase
+          .from('stairways')
+          .select('id,direct_photo_url')
+          .in('id', nearbyResults.map(({ stairway }) => stairway.id));
+        const photosById = new Map(
+          (photoRows ?? []).map((row) => [row.id, row.direct_photo_url])
+        );
+
         setNearbyStairways(
-          withinCheckInRange.length > 1 ? withinCheckInRange : sorted.slice(0, 5)
+          nearbyResults.map(({ stairway, distanceMeters }) => ({
+            distanceMeters,
+            stairway: {
+              ...stairway,
+              direct_photo_url: photosById.get(stairway.id) || null,
+            },
+          }))
         );
         setNearbyMessage(
           withinCheckInRange.length > 1
@@ -799,11 +826,15 @@ export default function StairwayMap({
     setSpotErrorMsg('');
     getCurrentDevicePosition({ enableHighAccuracy: true, timeout: 10000 })
       .then((pos) => {
-        setSpotLocation({
+        const location = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
-          source: 'gps',
-        });
+        };
+        if (!isWithinBounds(location)) {
+          showOutsideSanFranciscoMessage();
+          return;
+        }
+        setSpotLocation({ ...location, source: 'gps' });
       })
       .catch(() => {
         setSpotErrorMsg("Couldn't get your location -- try tapping the map instead.");
@@ -1028,6 +1059,10 @@ export default function StairwayMap({
   }, [visibleStairways, mapBounds]);
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const mapRestrictionBounds = useMemo(
+    () => getStairwayMapBounds(stairways),
+    [stairways]
+  );
 
   if (!apiKey) {
     return (
@@ -1072,7 +1107,7 @@ export default function StairwayMap({
             setSelected(null);
           }}
           restriction={{
-            latLngBounds: SF_BOUNDS,
+            latLngBounds: mapRestrictionBounds,
             strictBounds: true,
           }}
         >
@@ -1220,7 +1255,7 @@ export default function StairwayMap({
                         if (isVerified) {
                           setConfirmAction({
                             message:
-                              "This will remove your on-site verification for this stairway too -- there's no way to undo it. Continue?",
+                              "This will remove your verification for this stairway too -- there's no way to undo it. Continue?",
                             onConfirm: () => performCheckInToggle(selected),
                           });
                           return;
@@ -1253,7 +1288,7 @@ export default function StairwayMap({
                         </button>
                       ) : (
                         <p className="verify-desktop-hint">
-                          Open this app on mobile for on-site verification.
+                          Open this app on mobile for photo verification.
                         </p>
                       ))}
 
@@ -1337,6 +1372,13 @@ export default function StairwayMap({
           >
             {locationError}
           </div>
+        )}
+
+        {locationBoundaryMessage && (
+          <AlertDialog
+            message={locationBoundaryMessage}
+            onClose={() => setLocationBoundaryMessage('')}
+          />
         )}
 
         <MapControlsPanel
@@ -1500,7 +1542,7 @@ export default function StairwayMap({
                       {s.description || 'Stairway'}
                       {checkedInMethods.get(s.id) === 'photo-verified' && (
                         <span className="spotted-list-item-verified">
-                          ★ On-site verified
+                          ★ Verified
                         </span>
                       )}
                     </span>

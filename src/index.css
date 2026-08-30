@@ -889,10 +889,30 @@ html, body, #root {
   gap: 2px;
 }
 
+.leaderboard-header,
 .leaderboard-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 64px;
   align-items: center;
-  gap: 10px;
+  column-gap: 8px;
+}
+
+.leaderboard-header {
+  padding: 0 8px 5px;
+  color: #777;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.leaderboard-header-verified {
+  color: #4b3ce0;
+  text-align: left;
+}
+
+.leaderboard-row {
   padding: 6px 8px;
   border-radius: 6px;
   font-size: 14px;
@@ -904,14 +924,16 @@ html, body, #root {
 }
 
 .leaderboard-rank {
-  width: 32px;
-  flex-shrink: 0;
   color: #888;
   font-size: 13px;
 }
 
 .leaderboard-name {
-  flex: 1;
+  min-width: 0;
+}
+
+.leaderboard-name-text {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -923,9 +945,34 @@ html, body, #root {
 }
 
 .leaderboard-count {
-  flex-shrink: 0;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   color: #4b3ce0;
+  text-align: left;
+}
+
+.leaderboard-name-button {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.leaderboard-name > .user-safety-menu {
+  display: block;
+  min-width: 0;
+}
+
+.leaderboard-name-button:hover {
+  background: transparent;
+  text-decoration: underline;
 }
 
 .user-safety-menu {
@@ -1426,7 +1473,7 @@ html, body, #root {
   /* Safety net: no matter how tall a card gets (long description + full
      photo) or how short the screen is, this guarantees the whole thing is
      always reachable by scrolling within the card itself -- on top of the
-     generous map bounds (see SF_BOUNDS in StairwayMap.jsx) that should
+     padded map bounds (see mapBounds.js) that should
      make this rarely necessary in the first place. */
   max-height: 70vh;
   max-height: 70dvh;

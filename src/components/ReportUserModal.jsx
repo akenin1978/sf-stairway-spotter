@@ -88,19 +88,25 @@ export default function ReportUserModal({ userToReport, context, onClose }) {
   );
 }
 
-export function UserSafetyMenu({ person, onReport, onBlock }) {
+export function UserSafetyMenu({
+  person,
+  onReport,
+  onBlock,
+  triggerContent = '•••',
+  triggerClassName = '',
+}) {
   const [open, setOpen] = useState(false);
 
   return (
     <span className="user-safety-menu">
       <button
         type="button"
-        className="user-safety-menu-button"
+        className={`user-safety-menu-button ${triggerClassName}`.trim()}
         aria-label={`Safety options for ${person.display_name || 'this user'}`}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
-        •••
+        {triggerContent}
       </button>
       {open && (
         <span className="user-safety-menu-popover">
