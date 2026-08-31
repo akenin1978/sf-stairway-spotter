@@ -410,6 +410,7 @@ export default function StairwayMap({
   // shows the raw site URL -- not ideal before we have a custom domain) ---
   const [confirmAction, setConfirmAction] = useState(null); // { message, onConfirm } | null
   const [completionMessage, setCompletionMessage] = useState('');
+  const completionMessageRequestIdRef = useRef(0);
   const [locationBoundaryMessage, setLocationBoundaryMessage] = useState('');
 
   const showOutsideSanFranciscoMessage = () => {
@@ -418,10 +419,15 @@ export default function StairwayMap({
     );
   };
 
-  async function closeSelectedAfterSuccess(stairwayId, message) {
+  function showCompletionMessage(message) {
+    const requestId = completionMessageRequestIdRef.current + 1;
+    completionMessageRequestIdRef.current = requestId;
     setCompletionMessage(message);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setSelected((current) => (current?.id === stairwayId ? null : current));
+    window.setTimeout(() => {
+      if (completionMessageRequestIdRef.current === requestId) {
+        setCompletionMessage('');
+      }
+    }, 1500);
   }
 
   // Shared logic for adding a check-in + checking for newly-earned badges.
@@ -441,8 +447,7 @@ export default function StairwayMap({
     }
 
     if (!result.error) {
-      await closeSelectedAfterSuccess(
-        stairway.id,
+      showCompletionMessage(
         wasAdding ? 'Spotted! ✓' : 'Removed from spotted.'
       );
     }
@@ -601,6 +606,7 @@ export default function StairwayMap({
   useEffect(() => {
     setVerifyStatus('idle');
     setVerifyErrorMsg('');
+    completionMessageRequestIdRef.current += 1;
     setCompletionMessage('');
     clearVerificationRevealTimers();
     setVerificationReveal(null);
@@ -660,7 +666,7 @@ export default function StairwayMap({
         // Safe compatibility state if the frontend reaches production before
         // the repeat-visit migration. Verification still succeeds and the
         // existing card remains open rather than disappearing unexpectedly.
-        setCompletionMessage('Verified! ✓');
+        showCompletionMessage('Verified! ✓');
         return;
       }
 
@@ -678,7 +684,7 @@ export default function StairwayMap({
           newVisitRecorded: visit?.new_visit_recorded !== false,
         });
       } else {
-        setCompletionMessage('Verified! ✓');
+        showCompletionMessage('Verified! ✓');
       }
     }
   }
@@ -1445,11 +1451,13 @@ export default function StairwayMap({
                   </p>
                 ) : null}
 
-                {completionMessage ? (
+                {completionMessage && (
                   <div className="checkin-success" role="status">
                     {completionMessage}
                   </div>
-                ) : user ? (
+                )}
+
+                {user ? (
                   <>
                     <div className="verification-card-flip-stage">
                       <div
