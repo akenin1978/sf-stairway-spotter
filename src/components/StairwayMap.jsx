@@ -126,18 +126,22 @@ function StairwayRouteLine({ stairway }) {
   useEffect(() => {
     if (!map || !geometry) return undefined;
 
-    const line = new window.google.maps.Polyline({
-      path: geometry.path,
-      geodesic: true,
-      strokeColor: color,
-      strokeOpacity: 0.95,
-      strokeWeight: 5,
-      clickable: false,
-      map,
-      zIndex: 5,
-    });
+    const paths = geometry.paths || [geometry.path];
+    const lines = paths.map(
+      (path) =>
+        new window.google.maps.Polyline({
+          path,
+          geodesic: true,
+          strokeColor: color,
+          strokeOpacity: 0.95,
+          strokeWeight: 5,
+          clickable: false,
+          map,
+          zIndex: 5,
+        })
+    );
 
-    return () => line.setMap(null);
+    return () => lines.forEach((line) => line.setMap(null));
   }, [color, geometry, map]);
 
   return null;
@@ -159,7 +163,7 @@ function PanToUserLocation({ target }) {
   useEffect(() => {
     if (!map || !target) return;
     map.panTo({ lat: target.lat, lng: target.lng });
-    map.setZoom(16);
+    map.setZoom(17);
   }, [map, target]);
 
   return null;
