@@ -41,6 +41,11 @@ import {
 } from '../verifiedVisits';
 import { addNearbyThumbnailPhotos } from '../nearbyStairways';
 import { getLocationErrorMessage } from '../locationErrors';
+import {
+  getStairwayMapGeometry,
+  getStairwayMarkerPosition,
+  getStairwayRouteColor,
+} from '../stairwayMapGeometry';
 
 // Slightly south of the city's geographic midpoint so the dense stairway
 // area sits visually centered above the bottom map controls on a phone.
@@ -93,7 +98,7 @@ function MapRecenter({ target }) {
 
   useEffect(() => {
     if (!map || !target) return;
-    map.panTo({ lat: target.latitude, lng: target.longitude });
+    map.panTo(getStairwayMarkerPosition(target));
     // Dead-centering the marker only leaves half the screen's height
     // above it -- often not enough room for a tall card (title +
     // description + rating/steps line + full photo + two action
@@ -111,6 +116,39 @@ function MapRecenter({ target }) {
   }, [map, target]);
 
   return null;
+}
+
+function StairwayRouteLine({ stairway }) {
+  const map = useMap();
+  const geometry = getStairwayMapGeometry(stairway.id);
+  const color = getStairwayRouteColor(stairway);
+
+  useEffect(() => {
+    if (!map || !geometry) return undefined;
+
+    const line = new window.google.maps.Polyline({
+      path: geometry.path,
+      geodesic: true,
+      strokeColor: color,
+      strokeOpacity: 0.95,
+      strokeWeight: 5,
+      clickable: false,
+      map,
+      zIndex: 5,
+    });
+
+    return () => line.setMap(null);
+  }, [color, geometry, map]);
+
+  return null;
+}
+
+function StairwayRouteLines({ stairways }) {
+  return stairways.map((stairway) =>
+    getStairwayMapGeometry(stairway.id) ? (
+      <StairwayRouteLine key={stairway.id} stairway={stairway} />
+    ) : null
+  );
 }
 
 // Pans (and zooms in on) the map whenever a new "my location" result comes
@@ -169,7 +207,7 @@ function StairwayMarkers({
     return (
       <Marker
         key={stairway.id}
-        position={{ lat: stairway.latitude, lng: stairway.longitude }}
+        position={getStairwayMarkerPosition(stairway)}
         onClick={() => {
           if (!spotMode) onSelect(stairway);
         }}
@@ -1392,6 +1430,7 @@ export default function StairwayMap({
               />
             </>
           )}
+          <StairwayRouteLines stairways={culledStairways} />
           <StairwayMarkers
             stairways={culledStairways}
             checkedInIds={checkedInIds}
@@ -1416,7 +1455,7 @@ export default function StairwayMap({
 
           {selected && !spotMode && (
             <InfoWindow
-              position={{ lat: selected.latitude, lng: selected.longitude }}
+              position={getStairwayMarkerPosition(selected)}
               zIndex={30}
               onCloseClick={() => setSelected(null)}
             >

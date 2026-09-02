@@ -67,12 +67,13 @@ export const NEIGHBORHOOD_BADGES = [
   { id: 'neighborhood-nob-hill', neighborhood: 'Nob Hill', name: 'Nob Hill Navigator' },
   { id: 'neighborhood-noe-valley', neighborhood: 'Noe Valley', name: 'Noe Valley Native' },
   { id: 'neighborhood-north-beach', neighborhood: 'North Beach', name: 'North Beach Nomad' },
-  { id: 'neighborhood-north-waterfront', neighborhood: 'North Waterfront', name: 'North Waterfront Wayfinder' },
+  { id: 'neighborhood-north-waterfront', neighborhood: 'Northern Waterfront', name: 'Northern Waterfront Wayfinder' },
   { id: 'neighborhood-oceanview', neighborhood: 'Oceanview', name: 'Oceanview Overachiever' },
   { id: 'neighborhood-pacific-heights', neighborhood: 'Pacific Heights', name: 'Pac Heights Heavy Hitter' },
   { id: 'neighborhood-parkmerced', neighborhood: 'Parkmerced', name: 'Parkmerced on Point' },
   { id: 'neighborhood-parkside', neighborhood: 'Parkside', name: 'Parkside Pathfinder' },
   { id: 'neighborhood-parnassus-heights', neighborhood: 'Parnassus Heights', name: 'Parnassus Heights Pacer' },
+  { id: 'neighborhood-peralta-heights', neighborhood: 'Peralta Heights', name: 'Peralta Peakbagger' },
   { id: 'neighborhood-portola', neighborhood: 'Portola', name: 'Portola Prowler' },
   { id: 'neighborhood-potrero-hill', neighborhood: 'Potrero Hill', name: 'Potrero Powerhouse' },
   { id: 'neighborhood-presidio', neighborhood: 'Presidio', name: 'Presidio Pioneer' },
@@ -95,6 +96,7 @@ export const NEIGHBORHOOD_BADGES = [
   { id: 'neighborhood-university-mound', neighborhood: 'University Mound', name: 'University Mound Scholar' },
   { id: 'neighborhood-upper-market', neighborhood: 'Upper Market', name: 'Upper Market Maven' },
   { id: 'neighborhood-visitacion-valley', neighborhood: 'Visitacion Valley', name: 'Vis Valley Victor' },
+  { id: 'neighborhood-west-portal', neighborhood: 'West Portal', name: 'West Portal Walker' },
   { id: 'neighborhood-western-addition', neighborhood: 'Western Addition', name: 'Western Addition Wayfarer' },
   { id: 'neighborhood-westwood-park', neighborhood: 'Westwood Park', name: 'Westwood Park Winner' },
   { id: 'neighborhood-union-square', neighborhood: 'Union Square', name: 'Union Square Shopper' },
@@ -104,7 +106,7 @@ export const NEIGHBORHOOD_BADGES = [
   // just don't correspond to a normal geographic area.
   { id: 'neighborhood-alcatraz-island', neighborhood: 'Alcatraz Island', name: 'Escape from Alcatraz' },
   { id: 'neighborhood-yerba-buena-island', neighborhood: 'Yerba Buena Island', name: 'Yerba Buena Voyager' },
-  { id: 'neighborhood-bart-and-muni-stations', neighborhood: 'BART and MUNI Stations', name: 'Transit Nerd' },
+  { id: 'neighborhood-bart-and-muni-stations', neighborhood: 'BART and Muni Stations', name: 'Transit Nerd' },
   { id: 'neighborhood-angel-island', neighborhood: 'Angel Island', name: 'Island Angel' },
 ];
 
