@@ -13,7 +13,7 @@ describe('Buena Vista Park stairway map geometry', () => {
         ],
         [
           { lat: 37.76904, lng: -122.43971 },
-          { lat: 37.76899, lng: -122.43987 },
+          { lat: 37.76895, lng: -122.43981 },
         ],
         [
           { lat: 37.76904, lng: -122.43971 },
@@ -77,6 +77,30 @@ describe('Buena Vista Park stairway map geometry', () => {
         { lat: 37.76883, lng: -122.4403 },
       ],
       markerPosition: { lat: 37.769055, lng: -122.440175 },
+    });
+  });
+
+  it('maps the Park Hill Drive stairway from its existing pin to its surveyed top', () => {
+    expect(
+      getStairwayMapGeometry('1ada6624-33fe-438d-9512-5c91dd798b71')
+    ).toEqual({
+      path: [
+        { lat: 37.7685422, lng: -122.4388154 },
+        { lat: 37.7687, lng: -122.4391 },
+      ],
+      markerPosition: { lat: 37.7685422, lng: -122.4388154 },
+    });
+  });
+
+  it('maps the new Buena Vista stairway between its surveyed endpoints', () => {
+    expect(
+      getStairwayMapGeometry('91d57480-6e1e-49d6-afaa-062a7752e068')
+    ).toEqual({
+      path: [
+        { lat: 37.76868, lng: -122.43928 },
+        { lat: 37.7686, lng: -122.4397 },
+      ],
+      markerPosition: { lat: 37.76864, lng: -122.43949 },
     });
   });
 });
