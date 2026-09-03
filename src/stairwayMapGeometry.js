@@ -260,6 +260,16 @@ const STAIRWAY_MAP_GEOMETRY = new Map([
       markerPosition: { lat: 37.76864, lng: -122.43949 },
     },
   ],
+  [
+    '73bc96ec-f410-4a91-8ea1-0bd852c2cfaf',
+    {
+      path: [
+        { lat: 37.7692, lng: -122.4402 },
+        { lat: 37.7693, lng: -122.4408 },
+      ],
+      markerPosition: { lat: 37.76925, lng: -122.4405 },
+    },
+  ],
 ]);
 
 export function getStairwayMapGeometry(stairwayId) {
