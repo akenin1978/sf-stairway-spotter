@@ -189,4 +189,17 @@ describe('Buena Vista Park stairway map geometry', () => {
       markerPosition: { lat: 37.768385, lng: -122.441249 },
     });
   });
+
+  it('maps Stairway 8 through its right-hand bend after the initial flights', () => {
+    expect(
+      getStairwayMapGeometry('4e855dcb-d2cd-4158-9e83-f5398ac3822f')
+    ).toEqual({
+      path: [
+        { lat: 37.76877, lng: -122.44123 },
+        { lat: 37.76845, lng: -122.44135 },
+        { lat: 37.76835, lng: -122.44164 },
+      ],
+      markerPosition: { lat: 37.76849, lng: -122.441335 },
+    });
+  });
 });
