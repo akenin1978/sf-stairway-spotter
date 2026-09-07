@@ -1,6 +1,6 @@
 import { LAUNCH_LINKS } from '../launchLinks';
 
-const EFFECTIVE_DATE = 'August 30, 2026';
+const EFFECTIVE_DATE = 'September 7, 2026';
 const SUPPORT_EMAIL = 'info@urbanhikersf.com';
 
 const PAGE_TITLES = {
@@ -62,9 +62,13 @@ function PrivacyPage() {
         </li>
         <li>
           <strong>Location:</strong> precise location is accessed only when you
-          choose a nearby-stairway or verification feature. It is used to provide
-          that feature, is not retained with your visit record, and is not used
-          for advertising.
+          choose a location-based feature, such as finding nearby stairways,
+          verifying a visit, or using your current location to suggest a
+          stairway. For nearby searches and visit verification, your precise
+          location is used to provide the requested feature and is not retained
+          with your visit record. If you choose to submit a stairway using your
+          current location, those coordinates are retained as part of the
+          submission. Location is not used for advertising.
         </li>
         <li>
           <strong>Camera:</strong> when you choose photo verification, the app
@@ -101,8 +105,8 @@ function PrivacyPage() {
         third-party advertising or behavioral advertising trackers. An optional
         display name, verified total, stairway mayorship, and aggregate 30-day
         mayorship count appear publicly only if you choose to join the
-        leaderboard. Your individual visit dates and verification photos are
-        never shown publicly.
+        leaderboard. Your individual visit dates are never shown publicly.
+        Temporary verification photos are not saved, uploaded, or displayed.
       </p>
 
       <h2>Retention</h2>
