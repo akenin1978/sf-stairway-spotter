@@ -174,6 +174,34 @@ Git commit:
 ## In-progress release record
 
 ```text
+Version/build: Version 1.0, Build 12
+Date: September 7, 2026
+Changes: Approved stairway route geometry for Bernal Heights, Glen Canyon, and
+  Buena Vista Park; independently rated crossing stairways; updated badge
+  definitions; clearer repeat-verification wording; and stairway cards remain
+  open after being marked spotted.
+Automated tests: PASS — 83 tests across 16 files
+Production build: PASS
+iOS/Android build: Build 12 web bundle sync PASS; unsigned physical-iPhone
+  Release compile PASS; Android debug compile PASS. Signed archive and App
+  Store Connect processing pending.
+Core regression result: Complete Build 11-to-12 diff reviewed; route and rating
+  regressions pass; live app, marketing, support, privacy, terms, and account
+  deletion pages respond; live public stairway reads work; private visit/block
+  tables reject anonymous reads; protected visit functions require sign-in.
+Real-device result: Pending
+Known issues: Real GPS, camera, sign-in, persistence, and authenticated visit
+  flows require the Build 12 device smoke test. The production build retains
+  its non-failing 607 kB JavaScript chunk-size warning. Uncommitted GPS lifecycle
+  and verification-retry work is intentionally excluded from this candidate.
+Upload approved by Alexandra: Yes — approved September 7, 2026
+External tester release approved by Alexandra: No — pending device smoke test
+Git commit: Pending
+```
+
+## Previous Build 11 record
+
+```text
 Version/build: Version 1.0, Build 11
 Date: August 30, 2026
 Changes: Repeat verified visits, private per-stairway visit history, rolling
