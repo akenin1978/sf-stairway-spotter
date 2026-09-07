@@ -150,23 +150,29 @@ describe('Buena Vista Park stairway map geometry', () => {
     });
   });
 
-  it('maps Stairway 6 as a cross with its two extended arms', () => {
+  it('maps the north-south half of the crossing as its own stairway', () => {
     expect(
       getStairwayMapGeometry('66619a8d-abe0-4134-8b1e-5beda699308b')
     ).toEqual({
-      paths: [
-        [
-          { lat: 37.76961, lng: -122.44096 },
-          { lat: 37.76935, lng: -122.44116 },
-          { lat: 37.769175, lng: -122.440965 },
-        ],
-        [
-          { lat: 37.76936, lng: -122.441221 },
-          { lat: 37.76935, lng: -122.44116 },
-          { lat: 37.7693, lng: -122.44085 },
-        ],
+      path: [
+        { lat: 37.76961, lng: -122.44096 },
+        { lat: 37.76935, lng: -122.44116 },
+        { lat: 37.769175, lng: -122.440965 },
       ],
-      markerPosition: { lat: 37.769374, lng: -122.441142 },
+      markerPosition: { lat: 37.769433, lng: -122.441096 },
+    });
+  });
+
+  it('maps the east-west half of the crossing as its own stairway', () => {
+    expect(
+      getStairwayMapGeometry('10feab30-696e-4695-9e17-241bba4d15ab')
+    ).toEqual({
+      path: [
+        { lat: 37.76936, lng: -122.441221 },
+        { lat: 37.76935, lng: -122.44116 },
+        { lat: 37.7693, lng: -122.44085 },
+      ],
+      markerPosition: { lat: 37.76933, lng: -122.441036 },
     });
   });
 
