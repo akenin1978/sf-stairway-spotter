@@ -271,9 +271,11 @@ const STAIRWAY_MAP_GEOMETRY = new Map([
     {
       path: [
         { lat: 37.76812, lng: -122.4422 },
+        { lat: 37.76822, lng: -122.442294 },
+        { lat: 37.76831, lng: -122.442342 },
         { lat: 37.76838, lng: -122.44234 },
       ],
-      markerPosition: { lat: 37.76825, lng: -122.44227 },
+      markerPosition: { lat: 37.76825, lng: -122.442315 },
     },
   ],
   [

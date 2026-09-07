@@ -112,15 +112,17 @@ describe('Buena Vista Park stairway map geometry', () => {
     });
   });
 
-  it('maps the southwest Buena Vista stairway as a straight segment', () => {
+  it('maps the southwest Buena Vista stairway along its field-traced curve', () => {
     expect(
       getStairwayMapGeometry('b4eecd90-b379-420e-84d9-71b3623f33b6')
     ).toEqual({
       path: [
         { lat: 37.76812, lng: -122.4422 },
+        { lat: 37.76822, lng: -122.442294 },
+        { lat: 37.76831, lng: -122.442342 },
         { lat: 37.76838, lng: -122.44234 },
       ],
-      markerPosition: { lat: 37.76825, lng: -122.44227 },
+      markerPosition: { lat: 37.76825, lng: -122.442315 },
     });
   });
 
