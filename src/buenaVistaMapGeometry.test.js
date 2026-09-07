@@ -63,7 +63,7 @@ describe('Buena Vista Park stairway map geometry', () => {
       path: [
         { lat: 37.76895, lng: -122.43984 },
         { lat: 37.76892, lng: -122.44024 },
-        { lat: 37.76883, lng: -122.4403 },
+        { lat: 37.768858, lng: -122.440451 },
       ],
       markerPosition: { lat: 37.768935, lng: -122.44004 },
     });
@@ -74,7 +74,7 @@ describe('Buena Vista Park stairway map geometry', () => {
       path: [
         { lat: 37.76919, lng: -122.44011 },
         { lat: 37.76892, lng: -122.44024 },
-        { lat: 37.76883, lng: -122.4403 },
+        { lat: 37.768858, lng: -122.440451 },
       ],
       markerPosition: { lat: 37.769055, lng: -122.440175 },
     });
