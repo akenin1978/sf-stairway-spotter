@@ -41,6 +41,7 @@ import {
 } from '../verifiedVisits';
 import { addNearbyThumbnailPhotos } from '../nearbyStairways';
 import { getLocationErrorMessage } from '../locationErrors';
+import { isLocationFresh } from '../locationLifecycle';
 import {
   getStairwayMapGeometry,
   getStairwayMarkerPosition,
@@ -455,11 +456,11 @@ export default function StairwayMap({
   const completionMessageRequestIdRef = useRef(0);
   const [locationBoundaryMessage, setLocationBoundaryMessage] = useState('');
 
-  const showOutsideSanFranciscoMessage = () => {
+  const showOutsideSanFranciscoMessage = useCallback(() => {
     setLocationBoundaryMessage(
       "This app works best when you're in San Francisco. The map will stay centered on the city."
     );
-  };
+  }, []);
 
   function showCompletionMessage(message) {
     const requestId = completionMessageRequestIdRef.current + 1;
@@ -525,6 +526,9 @@ export default function StairwayMap({
     }
   };
   const verifyFileInputRef = useRef(null);
+  const retainedVerificationCaptureRef = useRef(null);
+  const [verificationCaptureStairwayId, setVerificationCaptureStairwayId] =
+    useState(null);
   const verifiedVisitRequestIdRef = useRef(0);
   const verificationRevealTimersRef = useRef([]);
 
@@ -654,6 +658,32 @@ export default function StairwayMap({
     setVerificationReveal(null);
   }, [selected?.id, clearVerificationRevealTimers]);
 
+  const clearRetainedVerificationCapture = useCallback(async () => {
+    const retainedCapture = retainedVerificationCaptureRef.current;
+    retainedVerificationCaptureRef.current = null;
+    setVerificationCaptureStairwayId(null);
+    await retainedCapture?.temporaryPhoto?.discard();
+  }, []);
+
+  useEffect(() => {
+    const retainedCapture = retainedVerificationCaptureRef.current;
+    if (
+      retainedCapture &&
+      retainedCapture.stairwayId !== selected?.id
+    ) {
+      void clearRetainedVerificationCapture();
+    }
+  }, [selected?.id, clearRetainedVerificationCapture]);
+
+  useEffect(
+    () => () => {
+      const retainedCapture = retainedVerificationCaptureRef.current;
+      retainedVerificationCaptureRef.current = null;
+      void retainedCapture?.temporaryPhoto?.discard();
+    },
+    []
+  );
+
   async function completePhotoVerification(stairway) {
     const beforeDetails =
       verifiedVisitState.stairwayId === stairway.id
@@ -695,6 +725,7 @@ export default function StairwayMap({
       } else {
         setVerifyErrorMsg('Something went wrong saving your verification. Try again?');
       }
+      return false;
     } else {
       setVerifyStatus('idle');
       const updatedIds = new Set(checkedInIds).add(stairway.id);
@@ -709,7 +740,7 @@ export default function StairwayMap({
         // the repeat-visit migration. Verification still succeeds and the
         // existing card remains open rather than disappearing unexpectedly.
         showCompletionMessage('Verified! ✓');
-        return;
+        return true;
       }
 
       const refreshedDetails = await refreshVerifiedVisitDetails(stairway.id);
@@ -728,6 +759,7 @@ export default function StairwayMap({
       } else {
         showCompletionMessage('Verified! ✓');
       }
+      return true;
     }
   }
 
@@ -738,7 +770,13 @@ export default function StairwayMap({
     try {
       temporaryPhoto = await captureTemporaryVerificationPhoto();
       if (!temporaryPhoto) return;
-      await completePhotoVerification(stairway);
+      retainedVerificationCaptureRef.current = {
+        stairwayId: stairway.id,
+        temporaryPhoto,
+      };
+      setVerificationCaptureStairwayId(stairway.id);
+      const succeeded = await completePhotoVerification(stairway);
+      if (succeeded) await clearRetainedVerificationCapture();
     } catch (error) {
       setVerifyStatus('error');
       setVerifyErrorMsg(
@@ -746,8 +784,13 @@ export default function StairwayMap({
           ? 'Camera access is needed for photo verification. You can enable it in your device settings.'
           : 'No photo was captured. Try again when you are ready.'
       );
-    } finally {
-      await temporaryPhoto?.discard();
+      if (
+        temporaryPhoto &&
+        retainedVerificationCaptureRef.current?.temporaryPhoto !==
+          temporaryPhoto
+      ) {
+        await temporaryPhoto.discard();
+      }
     }
   }
 
@@ -764,7 +807,33 @@ export default function StairwayMap({
       return;
     }
 
-    await completePhotoVerification(selected);
+    const stairway = selected;
+    retainedVerificationCaptureRef.current = {
+      stairwayId: stairway.id,
+      temporaryPhoto: null,
+    };
+    setVerificationCaptureStairwayId(stairway.id);
+    const succeeded = await completePhotoVerification(stairway);
+    if (succeeded) await clearRetainedVerificationCapture();
+  }
+
+  async function retryPhotoVerification() {
+    if (!selected || verificationCaptureStairwayId !== selected.id) return;
+    const succeeded = await completePhotoVerification(selected);
+    if (succeeded) await clearRetainedVerificationCapture();
+  }
+
+  function handlePhotoVerificationAction() {
+    if (selected && verificationCaptureStairwayId === selected.id) {
+      retryPhotoVerification();
+      return;
+    }
+
+    if (isNativeApp()) {
+      handleNativePhotoVerification();
+    } else {
+      verifyFileInputRef.current?.click();
+    }
   }
 
   // --- "My Spotted Stairways" list state ---
@@ -878,6 +947,9 @@ export default function StairwayMap({
   const [nearbyError, setNearbyError] = useState('');
   const [locatingNearby, setLocatingNearby] = useState(false);
   const locationWatchIdRef = useRef(null);
+  const locationWatchGenerationRef = useRef(0);
+  const locationTrackingRequestedRef = useRef(false);
+  const myLocationUpdatedAtRef = useRef(0);
   const hasCenteredRef = useRef(false);
 
   // "Locate me" now tracks continuously (watchPosition) instead of taking
@@ -886,36 +958,46 @@ export default function StairwayMap({
   // the browser while actually moving, so it's null when stationary;
   // that's why the flare only appears once you're walking, not the
   // instant you tap the button.
-  async function handleLocateMe() {
-    if (!supportsDeviceGeolocation()) {
-      setLocationError('Location services are not available in this browser.');
-      return;
+  const stopLocationWatch = useCallback(async () => {
+    locationWatchGenerationRef.current += 1;
+    const activeWatch = locationWatchIdRef.current;
+    locationWatchIdRef.current = null;
+    if (activeWatch != null) {
+      try {
+        await clearDeviceLocationWatch(activeWatch);
+      } catch (clearFailure) {
+        console.warn('Location watch cleanup failed', clearFailure);
+      }
     }
-    setLocating(true);
-    setLocationError('');
+  }, []);
 
-    if (locationWatchIdRef.current != null) {
-      await clearDeviceLocationWatch(locationWatchIdRef.current);
-    }
-    hasCenteredRef.current = false;
+  const startLocationWatch = useCallback(async ({ centerOnFirstFix }) => {
+    await stopLocationWatch();
+    if (document.visibilityState === 'hidden') return;
+
+    const generation = locationWatchGenerationRef.current + 1;
+    locationWatchGenerationRef.current = generation;
+    hasCenteredRef.current = !centerOnFirstFix;
 
     try {
-      locationWatchIdRef.current = await startDeviceLocationWatch(
+      const watchHandle = await startDeviceLocationWatch(
         { enableHighAccuracy: true, timeout: 10000 },
         (pos) => {
+          if (locationWatchGenerationRef.current !== generation) return;
           const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           if (!isWithinBounds(loc)) {
             setMyLocation(null);
+            myLocationUpdatedAtRef.current = 0;
             setMyHeading(null);
             setLocating(false);
+            locationTrackingRequestedRef.current = false;
             showOutsideSanFranciscoMessage();
-            if (locationWatchIdRef.current != null) {
-              clearDeviceLocationWatch(locationWatchIdRef.current);
-              locationWatchIdRef.current = null;
-            }
+            stopLocationWatch();
             return;
           }
           setMyLocation(loc);
+          myLocationUpdatedAtRef.current = Date.now();
+          setLocationError('');
           if (!hasCenteredRef.current) {
             setPanTarget(loc);
             hasCenteredRef.current = true;
@@ -926,14 +1008,41 @@ export default function StairwayMap({
           setLocating(false);
         },
         (locationFailure) => {
+          if (
+            locationWatchGenerationRef.current !== generation ||
+            document.visibilityState === 'hidden'
+          ) {
+            return;
+          }
           setLocationError(getLocationErrorMessage(locationFailure));
           setLocating(false);
         }
       );
+
+      if (
+        locationWatchGenerationRef.current !== generation ||
+        document.visibilityState === 'hidden'
+      ) {
+        await clearDeviceLocationWatch(watchHandle);
+        return;
+      }
+      locationWatchIdRef.current = watchHandle;
     } catch (locationFailure) {
+      if (locationWatchGenerationRef.current !== generation) return;
       setLocationError(getLocationErrorMessage(locationFailure));
       setLocating(false);
     }
+  }, [showOutsideSanFranciscoMessage, stopLocationWatch]);
+
+  async function handleLocateMe() {
+    if (!supportsDeviceGeolocation()) {
+      setLocationError('Location services are not available in this browser.');
+      return;
+    }
+    locationTrackingRequestedRef.current = true;
+    setLocating(true);
+    setLocationError('');
+    await startLocationWatch({ centerOnFirstFix: true });
   }
 
   async function handleCheckInNearby() {
@@ -949,7 +1058,12 @@ export default function StairwayMap({
 
     setLocatingNearby(true);
     try {
-      let location = myLocation;
+      let location = isLocationFresh(
+        myLocation,
+        myLocationUpdatedAtRef.current
+      )
+        ? myLocation
+        : null;
       if (!location) {
         try {
           const pos = await getCurrentDevicePosition({
@@ -960,6 +1074,7 @@ export default function StairwayMap({
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
           };
+          myLocationUpdatedAtRef.current = Date.now();
         } catch (locationFailure) {
           console.error('Nearby check-in location failed', locationFailure);
           setNearbyStairways([]);
@@ -1038,15 +1153,31 @@ export default function StairwayMap({
     setSelected(stairway);
   }
 
-  // Stop watching when the map unmounts -- otherwise this would keep
-  // requesting location updates (and draining battery) indefinitely.
+  // iOS suspends ordinary foreground location work while the app is in the
+  // background. Stop the watcher before suspension, then create a fresh one
+  // on return if the person had turned live location on. This prevents a
+  // transient resume-time native error from becoming a persistent banner.
   useEffect(() => {
-    return () => {
-      if (locationWatchIdRef.current != null) {
-        clearDeviceLocationWatch(locationWatchIdRef.current);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        setLocating(false);
+        setMyHeading(null);
+        // A fix captured before suspension must not be treated as fresh when
+        // Check In is used after returning, even if the app was away briefly.
+        myLocationUpdatedAtRef.current = 0;
+        stopLocationWatch();
+      } else if (locationTrackingRequestedRef.current) {
+        startLocationWatch({ centerOnFirstFix: false });
       }
     };
-  }, []);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      locationTrackingRequestedRef.current = false;
+      stopLocationWatch();
+    };
+  }, [startLocationWatch, stopLocationWatch]);
 
   function handleUseMyLocation() {
     if (!supportsDeviceGeolocation()) {
@@ -1602,11 +1733,7 @@ export default function StairwayMap({
                               (isMobileOrTablet() ? (
                                 <button
                                   className="verify-photo-button"
-                                  onClick={() =>
-                                    isNativeApp()
-                                      ? handleNativePhotoVerification()
-                                      : verifyFileInputRef.current?.click()
-                                  }
+                                  onClick={handlePhotoVerificationAction}
                                   disabled={
                                     verifyStatus === 'verifying' ||
                                     selectedVisitSummary?.visited_today
@@ -1614,6 +1741,9 @@ export default function StairwayMap({
                                 >
                                   {verifyStatus === 'verifying'
                                     ? 'Verifying…'
+                                    : verificationCaptureStairwayId ===
+                                      selected.id
+                                    ? 'Retry verification'
                                     : verificationButtonLabel(
                                         selectedVisitSummary,
                                         selectedAlreadyVerified

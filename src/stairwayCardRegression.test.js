@@ -23,4 +23,18 @@ describe('stairway card regressions', () => {
     expect(source).toContain('{completionMessage && (');
     expect(source).not.toContain('{completionMessage ? (');
   });
+
+  it('retries GPS and saving without forcing another photo', () => {
+    expect(source).toContain('retainedVerificationCaptureRef');
+    expect(source).toContain('Retry verification');
+    expect(source).toContain('retryPhotoVerification');
+    expect(source).not.toContain('finally {\n      await temporaryPhoto?.discard();');
+  });
+
+  it('keeps verified results open for reading', () => {
+    expect(source).toContain("showCompletionMessage('Verified! ✓');");
+    expect(source).not.toContain(
+      "showCompletionMessage('Verified! ✓', stairway.id);"
+    );
+  });
 });

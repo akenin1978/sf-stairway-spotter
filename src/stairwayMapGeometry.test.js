@@ -53,6 +53,110 @@ const BERNAL_ROUTES = [
 ];
 
 describe('stairway map geometry', () => {
+  it('maps the second and connecting Buena Vista viewpoint stairways through their shared section', () => {
+    expect(
+      getStairwayMapGeometry('b3576a29-c240-4725-b71a-827a7fb9e75e')
+    ).toEqual({
+      path: [
+        { lat: 37.76895, lng: -122.43984 },
+        { lat: 37.76892, lng: -122.44024 },
+        { lat: 37.768858, lng: -122.440451 },
+      ],
+      markerPosition: { lat: 37.768935, lng: -122.44004 },
+    });
+
+    expect(
+      getStairwayMapGeometry('31bd7072-aa47-4888-a625-2efb2b3c1db3')
+    ).toEqual({
+      path: [
+        { lat: 37.76919, lng: -122.44011 },
+        { lat: 37.76892, lng: -122.44024 },
+        { lat: 37.768858, lng: -122.440451 },
+      ],
+      markerPosition: { lat: 37.769055, lng: -122.440175 },
+    });
+  });
+
+  it('maps the first Buena Vista viewpoint stairway through its approved pin', () => {
+    const geometry = getStairwayMapGeometry(
+      'de6e33e6-e733-4bb5-9bc0-58903f561e99'
+    );
+
+    expect(geometry).toEqual({
+      path: [
+        { lat: 37.76874, lng: -122.44035 },
+        { lat: 37.76877, lng: -122.43997 },
+        { lat: 37.76877, lng: -122.43969 },
+      ],
+      markerPosition: { lat: 37.76877, lng: -122.43997 },
+    });
+  });
+
+  it('maps the Buena Vista viewpoint stairway with a 15-foot side branch', () => {
+    const geometry = getStairwayMapGeometry(
+      'b89f9129-0093-4e6e-9416-6dba2faf4afc'
+    );
+
+    expect(geometry).toEqual({
+      path: [
+        { lat: 37.769224, lng: -122.441634 },
+        { lat: 37.769165, lng: -122.441027 },
+        { lat: 37.768893, lng: -122.440545 },
+      ],
+      markerPosition: { lat: 37.769166, lng: -122.441037 },
+    });
+  });
+
+  it('maps the Buena Vista Park stairway as a long run with two upper branches', () => {
+    const geometry = getStairwayMapGeometry(
+      '7c7ff48e-a793-4d05-8d59-1353dba4010c'
+    );
+
+    expect(geometry).toEqual({
+      paths: [
+        [
+          { lat: 37.7694, lng: -122.4394 },
+          { lat: 37.76904, lng: -122.43971 },
+        ],
+        [
+          { lat: 37.76904, lng: -122.43971 },
+          { lat: 37.76895, lng: -122.43981 },
+        ],
+        [
+          { lat: 37.76904, lng: -122.43971 },
+          { lat: 37.76908, lng: -122.43988 },
+        ],
+      ],
+      markerPosition: { lat: 37.76917, lng: -122.4396 },
+    });
+  });
+
+  it('supports three paths meeting at one marker for a Y-shaped stairway', () => {
+    const geometry = getStairwayMapGeometry(
+      '526fcc02-33b6-4c6b-a98e-b1fafc23ddc9'
+    );
+
+    expect(geometry.paths).toHaveLength(3);
+    expect(geometry.paths.map((path) => path[0])).toEqual([
+      geometry.markerPosition,
+      geometry.markerPosition,
+      geometry.markerPosition,
+    ]);
+  });
+
+  it('joins all three Crags Court branches at its marker', () => {
+    const geometry = getStairwayMapGeometry(
+      'b51ba561-0649-4d22-8398-25558c10cf55'
+    );
+
+    expect(geometry.paths).toHaveLength(3);
+    expect(geometry.paths.map((path) => path[0])).toEqual([
+      geometry.markerPosition,
+      geometry.markerPosition,
+      geometry.markerPosition,
+    ]);
+  });
+
   it('uses the approved paths and marker positions for selected long stairways', () => {
     for (const route of BERNAL_ROUTES) {
       expect(getStairwayMapGeometry(route.id)).toEqual({
