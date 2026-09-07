@@ -90,11 +90,11 @@ export default function SettingsModal({ onClose }) {
     const trimmedName = displayName.trim();
     const nameChanged = trimmedName !== savedDisplayName;
 
-    // A name only needs to pass these checks if it's actually going to be
-    // shown (leaderboard on) AND it's actually being changed -- no reason
-    // to re-validate a name that's already saved and untouched.
+    // Usernames are used by Friends even when leaderboard participation is
+    // off, so validate any changed non-empty name independently of that
+    // privacy setting.
     let nameError = null;
-    if (leaderboardOptIn && trimmedName && nameChanged) {
+    if (trimmedName && nameChanged) {
       if (trimmedName.length < 3) {
         nameError = 'Display name needs to be at least 3 characters.';
       } else if (profanityFilter.isProfane(trimmedName)) {
@@ -246,26 +246,25 @@ export default function SettingsModal({ onClose }) {
               </span>
             </label>
 
-            {leaderboardOptIn && (
-              <div className="settings-field">
-                <label htmlFor="display-name">
-                  Display name
-                  <span className="settings-toggle-hint">
-                    {' '}
-                    -- shown on the leaderboard instead of your email.
-                  </span>
-                </label>
-                <input
-                  id="display-name"
-                  type="text"
-                  placeholder="e.g. StairMaster_Ali"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  minLength={3}
-                  maxLength={40}
-                />
-              </div>
-            )}
+            <div className="settings-field">
+              <label htmlFor="display-name">
+                Username
+                <span className="settings-toggle-hint">
+                  {' '}
+                  -- required to add friends. It is shown publicly only if you
+                  join the leaderboard.
+                </span>
+              </label>
+              <input
+                id="display-name"
+                type="text"
+                placeholder="e.g. StairMaster_Ali"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                minLength={3}
+                maxLength={40}
+              />
+            </div>
 
             {status === 'error' && (
               <p className="modal-error">{errorMsg}</p>

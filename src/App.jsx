@@ -13,6 +13,11 @@ import { useAuth } from './AuthContext';
 import { useCheckIns } from './CheckInsContext';
 import { supabase } from './supabaseClient';
 import { LAUNCH_LINKS } from './launchLinks';
+import {
+  friendRequestNotice,
+  seenFriendRequestStorageKey,
+  unseenFriendRequests,
+} from './friendRequests';
 
 export default function App() {
   const [showLaunchAnimation, setShowLaunchAnimation] = useState(true);
@@ -32,6 +37,7 @@ export default function App() {
   const { count: checkedInCount, verifiedCount } = useCheckIns();
   const [totalStairways, setTotalStairways] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [friendRequestAlert, setFriendRequestAlert] = useState(null);
 
   useEffect(() => {
     supabase
@@ -53,6 +59,47 @@ export default function App() {
       if (!seen) setShowOnboarding(true);
     }
   }, [loading]);
+
+  useEffect(() => {
+    if (!user) {
+      setFriendRequestAlert(null);
+      return;
+    }
+
+    let isMounted = true;
+    const storageKey = seenFriendRequestStorageKey(user.id);
+    let seenIds = [];
+    try {
+      seenIds = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    } catch {
+      seenIds = [];
+    }
+
+    supabase.rpc('get_my_friends').then(({ data, error }) => {
+      if (!isMounted || error) return;
+      const unseen = unseenFriendRequests(data || [], seenIds);
+      if (unseen.length > 0) {
+        setFriendRequestAlert({ requests: unseen, storageKey, seenIds });
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
+
+  function dismissFriendRequestAlert({ openFriends = false } = {}) {
+    if (!friendRequestAlert) return;
+    const requestIds = friendRequestAlert.requests.map(
+      (request) => request.friendship_id
+    );
+    localStorage.setItem(
+      friendRequestAlert.storageKey,
+      JSON.stringify([...new Set([...friendRequestAlert.seenIds, ...requestIds])])
+    );
+    setFriendRequestAlert(null);
+    if (openFriends) setFriendsOpen(true);
+  }
 
   function dismissOnboarding() {
     localStorage.setItem('sf_stairway_onboarding_seen', 'true');
@@ -278,7 +325,39 @@ export default function App() {
         <LeaderboardModal onClose={() => setLeaderboardOpen(false)} />
       )}
 
-      {friendsOpen && <FriendsModal onClose={() => setFriendsOpen(false)} />}
+      {friendsOpen && (
+        <FriendsModal
+          onClose={() => setFriendsOpen(false)}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
+      )}
+
+      {friendRequestAlert && !showOnboarding && !showLaunchAnimation && (
+        <div className="modal-backdrop">
+          <div className="modal-card friend-request-alert" role="dialog" aria-modal="true">
+            <h2>New friend request</h2>
+            <p>{friendRequestNotice(friendRequestAlert.requests)}</p>
+            {friendRequestAlert.requests.length > 1 && (
+              <ul>
+                {friendRequestAlert.requests.map((request) => (
+                  <li key={request.friendship_id}>
+                    {request.friend_display_name || 'A stairway spotter'}{' '}
+                    ({request.friend_email || 'email unavailable'})
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="friend-request-alert-actions">
+              <button onClick={() => dismissFriendRequestAlert()}>
+                Later
+              </button>
+              <button onClick={() => dismissFriendRequestAlert({ openFriends: true })}>
+                View request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

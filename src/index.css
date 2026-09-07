@@ -2447,6 +2447,34 @@ html, body, #root {
   -webkit-overflow-scrolling: touch;
 }
 
+.friends-username-required {
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #d8d3ff;
+  border-radius: 10px;
+  background: #f5f3ff;
+}
+
+.friends-username-required p {
+  margin: 0 0 10px;
+}
+
+.friend-request-alert {
+  max-width: 420px;
+}
+
+.friend-request-alert ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.friend-request-alert-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
 .friends-add-form {
   display: flex;
   gap: 8px;

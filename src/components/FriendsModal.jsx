@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import ReportUserModal, { UserSafetyMenu } from './ReportUserModal';
 
-export default function FriendsModal({ onClose }) {
+export default function FriendsModal({ onClose, onOpenSettings }) {
   const { user } = useAuth();
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,15 +12,24 @@ export default function FriendsModal({ onClose }) {
   const [sendError, setSendError] = useState('');
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [reportingUser, setReportingUser] = useState(null);
+  const [myUsername, setMyUsername] = useState('');
 
   async function refresh() {
     setLoading(true);
-    const [friendsResult, blockedResult] = await Promise.all([
+    const [friendsResult, blockedResult, settingsResult] = await Promise.all([
       supabase.rpc('get_my_friends'),
       supabase.rpc('get_my_blocked_users'),
+      supabase
+        .from('user_settings')
+        .select('display_name')
+        .eq('user_id', user.id)
+        .maybeSingle(),
     ]);
     if (!friendsResult.error) setFriends(friendsResult.data || []);
     if (!blockedResult.error) setBlockedUsers(blockedResult.data || []);
+    if (!settingsResult.error) {
+      setMyUsername(settingsResult.data?.display_name?.trim() || '');
+    }
     setLoading(false);
   }
 
@@ -37,6 +46,12 @@ export default function FriendsModal({ onClose }) {
     e.preventDefault();
     const trimmed = emailInput.trim();
     if (!trimmed) return;
+
+    if (!myUsername) {
+      setSendStatus('error');
+      setSendError('You need to add a username in Settings before adding friends.');
+      return;
+    }
 
     setSendStatus('sending');
     setSendError('');
@@ -131,6 +146,24 @@ export default function FriendsModal({ onClose }) {
 
         <h2>Friends</h2>
 
+        {!loading && !myUsername && (
+          <div className="friends-username-required">
+            <p>
+              Add a username before sending friend requests so friends know who
+              you are.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenSettings();
+              }}
+            >
+              Add username in Settings
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSendRequest} className="friends-add-form">
           <input
             type="email"
@@ -138,7 +171,10 @@ export default function FriendsModal({ onClose }) {
             value={emailInput}
             onChange={(e) => setEmailInput(e.target.value)}
           />
-          <button type="submit" disabled={sendStatus === 'sending'}>
+          <button
+            type="submit"
+            disabled={sendStatus === 'sending' || loading || !myUsername}
+          >
             {sendStatus === 'sending' ? 'Sending…' : 'Add'}
           </button>
         </form>
