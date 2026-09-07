@@ -24,22 +24,16 @@ describe('Buena Vista Park stairway map geometry', () => {
     });
   });
 
-  it('maps the dog-run-to-viewpoint stairway with its short side branch', () => {
+  it('maps the dog-run-to-viewpoint stairway along its screenshot-aligned arc', () => {
     expect(
       getStairwayMapGeometry('b89f9129-0093-4e6e-9416-6dba2faf4afc')
     ).toEqual({
-      paths: [
-        [
-          { lat: 37.7691, lng: -122.4417 },
-          { lat: 37.769, lng: -122.4409 },
-          { lat: 37.769056, lng: -122.440528 },
-        ],
-        [
-          { lat: 37.769, lng: -122.4409 },
-          { lat: 37.7690406, lng: -122.4408919 },
-        ],
+      path: [
+        { lat: 37.769224, lng: -122.441634 },
+        { lat: 37.769165, lng: -122.441027 },
+        { lat: 37.768893, lng: -122.440545 },
       ],
-      markerPosition: { lat: 37.769002, lng: -122.440918 },
+      markerPosition: { lat: 37.769166, lng: -122.441037 },
     });
   });
 
