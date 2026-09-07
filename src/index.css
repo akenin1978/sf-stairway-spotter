@@ -1321,6 +1321,11 @@ html, body, #root {
   font-size: 13px;
 }
 
+.modal-success {
+  color: #276b3a;
+  font-size: 13px;
+}
+
 .map-container {
   flex: 1;
   min-height: 0;

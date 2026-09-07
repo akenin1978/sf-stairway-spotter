@@ -10,6 +10,7 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
   const [emailInput, setEmailInput] = useState('');
   const [sendStatus, setSendStatus] = useState('idle'); // idle | sending | error
   const [sendError, setSendError] = useState('');
+  const [friendActionMessage, setFriendActionMessage] = useState('');
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [reportingUser, setReportingUser] = useState(null);
   const [myUsername, setMyUsername] = useState('');
@@ -95,15 +96,29 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
   }
 
   async function handleAccept(friendshipId) {
-    await supabase
+    setFriendActionMessage('');
+    const { error } = await supabase
       .from('friendships')
       .update({ status: 'accepted', responded_at: new Date().toISOString() })
       .eq('id', friendshipId);
+    if (error) {
+      setSendStatus('error');
+      setSendError("We couldn't accept this request. Please try again.");
+      return;
+    }
+    setFriendActionMessage('Friend request accepted.');
     refresh();
   }
 
-  async function handleRemove(friendshipId) {
-    await supabase.from('friendships').delete().eq('id', friendshipId);
+  async function handleRemove(friendshipId, message = '') {
+    setFriendActionMessage('');
+    const { error } = await supabase.from('friendships').delete().eq('id', friendshipId);
+    if (error) {
+      setSendStatus('error');
+      setSendError("We couldn't update this request. Please try again.");
+      return;
+    }
+    if (message) setFriendActionMessage(message);
     refresh();
   }
 
@@ -149,8 +164,8 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
         {!loading && !myUsername && (
           <div className="friends-username-required">
             <p>
-              Add a username before sending friend requests so friends know who
-              you are.
+              Add a username before sending requests so friends know who you
+              are.
             </p>
             <button
               type="button"
@@ -179,6 +194,9 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
           </button>
         </form>
         {sendStatus === 'error' && <p className="modal-error">{sendError}</p>}
+        {friendActionMessage && (
+          <p className="modal-success" role="status">{friendActionMessage}</p>
+        )}
 
         {loading ? (
           <p className="modal-context">Loading…</p>
@@ -206,7 +224,7 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
                       </button>
                       <button
                         className="friends-decline-button"
-                        onClick={() => handleRemove(f.friendship_id)}
+                        onClick={() => handleRemove(f.friendship_id, 'Friend request declined.')}
                       >
                         Decline
                       </button>
