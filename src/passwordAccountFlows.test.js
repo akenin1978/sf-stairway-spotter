@@ -37,4 +37,10 @@ describe('email password account flows', () => {
     expect(authModal).toContain('Resend confirmation email');
     expect(authModal).toContain('A new confirmation email has been sent.');
   });
+
+  it('uses friendly error messages instead of raw authentication responses', () => {
+    expect(authModal).toContain('friendlyAuthError(error');
+    expect(authModal).not.toContain('setErrorMsg(error.message)');
+    expect(authModal).toContain("authErrorCode === 'email_not_confirmed'");
+  });
 });

@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns } from '../CheckInsContext';
 import { LAUNCH_LINKS } from '../launchLinks';
+import { friendlyAuthError } from '../authErrors';
 import { isAndroidApp, isNativeApp } from '../nativeDevice';
 import {
   isNativeGoogleConfigured,
@@ -31,6 +32,7 @@ export default function AuthModal({
   const [showPassword, setShowPassword] = useState(false);
   const [resendStatus, setResendStatus] = useState('idle');
   const [resendError, setResendError] = useState('');
+  const [authErrorCode, setAuthErrorCode] = useState('');
 
   useEffect(() => {
     if (awaitingProgress && user && accountProgressReady) onClose();
@@ -44,6 +46,7 @@ export default function AuthModal({
     e.preventDefault();
     setStatus('submitting');
     setErrorMsg('');
+    setAuthErrorCode('');
 
     if (mode === 'sign-up' && password !== confirmPassword) {
       setStatus('error');
@@ -58,7 +61,10 @@ export default function AuthModal({
 
     if (error) {
       setStatus('error');
-      setErrorMsg(error.message);
+      setAuthErrorCode(error.code || '');
+      setErrorMsg(
+        friendlyAuthError(error, mode === 'sign-in' ? 'sign-in' : 'sign-up')
+      );
       return;
     }
 
@@ -81,7 +87,7 @@ export default function AuthModal({
     });
     if (error) {
       setStatus('error');
-      setErrorMsg(error.message);
+      setErrorMsg(friendlyAuthError(error, 'reset-email'));
       return;
     }
     setStatus('success');
@@ -99,7 +105,7 @@ export default function AuthModal({
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
       setStatus('error');
-      setErrorMsg(error.message);
+      setErrorMsg(friendlyAuthError(error, 'update-password'));
       return;
     }
     setResetComplete(true);
@@ -113,11 +119,7 @@ export default function AuthModal({
     const { error } = await supabase.auth.resend({ type: 'signup', email });
     if (error) {
       setResendStatus('error');
-      setResendError(
-        error.status === 429
-          ? 'Please wait a moment before requesting another email.'
-          : "We couldn't resend the email. Please try again."
-      );
+      setResendError(friendlyAuthError(error, 'confirmation-email'));
       return;
     }
     setResendStatus('sent');
@@ -138,7 +140,7 @@ export default function AuthModal({
         setStatus('error');
         setErrorMsg(
           error?.message === 'google-native-not-configured'
-            ? 'Google sign-in needs its iPhone client ID configured first.'
+            ? 'Google sign-in is temporarily unavailable. Please use another method or try again later.'
             : 'Google sign-in could not be completed. Please try again.'
         );
       }
@@ -154,7 +156,7 @@ export default function AuthModal({
     // request itself failed to even start.
     if (error) {
       setStatus('error');
-      setErrorMsg(error.message);
+      setErrorMsg(friendlyAuthError(error, 'google-sign-in'));
     }
   }
 
@@ -218,7 +220,9 @@ export default function AuthModal({
                 minLength={6}
                 required
               />
-              {status === 'error' && <p className="modal-error">{errorMsg}</p>}
+              {status === 'error' && (
+                <p className="modal-error" role="alert">{errorMsg}</p>
+              )}
               <button type="submit" disabled={status === 'submitting'}>
                 {status === 'submitting' ? 'Please wait…' : 'Update password'}
               </button>
@@ -246,7 +250,9 @@ export default function AuthModal({
                 autoComplete="email"
                 required
               />
-              {status === 'error' && <p className="modal-error">{errorMsg}</p>}
+              {status === 'error' && (
+                <p className="modal-error" role="alert">{errorMsg}</p>
+              )}
               <button type="submit" disabled={status === 'submitting'}>
                 {status === 'submitting' ? 'Please wait…' : 'Send reset link'}
               </button>
@@ -367,7 +373,7 @@ export default function AuthModal({
               )}
 
               {status === 'error' && (
-                <p className="modal-error">{errorMsg}</p>
+                <p className="modal-error" role="alert">{errorMsg}</p>
               )}
 
               <button type="submit" disabled={status === 'submitting'}>
@@ -378,6 +384,29 @@ export default function AuthModal({
                     : 'Create account'}
               </button>
             </form>
+
+            {mode === 'sign-in' && authErrorCode === 'email_not_confirmed' && (
+              <div className="auth-confirmation-help">
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendStatus === 'sending'}
+                >
+                  {resendStatus === 'sending'
+                    ? 'Sending…'
+                    : 'Resend confirmation email'}
+                </button>
+                {resendStatus === 'sent' && (
+                  <p className="modal-success" role="status">
+                    A new confirmation email has been sent.
+                  </p>
+                )}
+                {resendStatus === 'error' && (
+                  <p className="modal-error" role="alert">{resendError}</p>
+                )}
+              </div>
+            )}
 
             {mode === 'sign-in' && (
               <p className="auth-switch">
