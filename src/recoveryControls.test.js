@@ -21,7 +21,11 @@ describe('loading recovery and deletion security', () => {
   });
 
   it('requires fresh identity confirmation before account deletion', () => {
+    const app = read('./App.jsx');
     const settings = read('./components/SettingsModal.jsx');
+    expect(app).toContain('setSettingsStartWithDelete(true)');
+    expect(app).toContain('startWithDelete={settingsStartWithDelete}');
+    expect(settings).toContain('useState(startWithDelete)');
     expect(settings).toContain('Confirm your identity');
     expect(settings).toContain('signInWithPassword');
     expect(settings).toContain('signInWithNativeProvider(provider)');

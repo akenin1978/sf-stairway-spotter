@@ -27,6 +27,7 @@ export default function App() {
   const [feedbackStairway, setFeedbackStairway] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsStartWithDelete, setSettingsStartWithDelete] = useState(false);
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
@@ -230,6 +231,7 @@ export default function App() {
                         className="header-menu-item"
                         onClick={() => {
                           setMenuOpen(false);
+                          setSettingsStartWithDelete(false);
                           setSettingsOpen(true);
                         }}
                       >
@@ -293,15 +295,28 @@ export default function App() {
                 >
                   Terms of Use
                 </a>
-                <a
-                  className="header-menu-item"
-                  href={LAUNCH_LINKS.deleteAccount}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Delete Account
-                </a>
+                {user ? (
+                  <button
+                    className="header-menu-item"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setSettingsStartWithDelete(true);
+                      setSettingsOpen(true);
+                    }}
+                  >
+                    Delete my account
+                  </button>
+                ) : (
+                  <a
+                    className="header-menu-item"
+                    href={LAUNCH_LINKS.deleteAccount}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Account deletion information
+                  </a>
+                )}
               </div>
             </>
           )}
@@ -351,7 +366,13 @@ export default function App() {
       )}
 
       {settingsOpen && (
-        <SettingsModal onClose={() => setSettingsOpen(false)} />
+        <SettingsModal
+          startWithDelete={settingsStartWithDelete}
+          onClose={() => {
+            setSettingsOpen(false);
+            setSettingsStartWithDelete(false);
+          }}
+        />
       )}
 
       {badgesOpen && <BadgesModal onClose={() => setBadgesOpen(false)} />}

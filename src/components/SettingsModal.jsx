@@ -15,7 +15,7 @@ import {
 
 const profanityFilter = new Filter();
 
-export default function SettingsModal({ onClose }) {
+export default function SettingsModal({ onClose, startWithDelete = false }) {
   const dialogRef = useDialogFocus(onClose);
   const { user, signOut } = useAuth();
   const { checkedInPhotoUrls } = useCheckIns();
@@ -32,7 +32,7 @@ export default function SettingsModal({ onClose }) {
   const [status, setStatus] = useState('idle'); // idle | saving | saved | error
   const [errorMsg, setErrorMsg] = useState('');
   const [deleteStatus, setDeleteStatus] = useState('idle'); // idle | deleting | error
-  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(startWithDelete);
   const [settingsLoadError, setSettingsLoadError] = useState('');
   const [settingsLoadAttempt, setSettingsLoadAttempt] = useState(0);
 
