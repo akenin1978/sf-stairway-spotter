@@ -371,8 +371,21 @@ function CheckInNearbyButton({ onClick, locating, disabled }) {
       onClick={onClick}
       disabled={disabled || locating}
     >
-      <span className="check-in-nearby-icon" aria-hidden="true">✓</span>
-      {locating ? 'Finding you…' : 'Check In'}
+      <svg
+        className="check-in-nearby-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="3" fill="currentColor" />
+        <path
+          d="M12 2v4m0 12v4M2 12h4m12 0h4"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+      {locating ? 'Finding stairs…' : 'Nearby stairs'}
     </button>
   );
 }
@@ -719,6 +732,8 @@ export default function StairwayMap({
       visit,
       visitFeatureAvailable,
       locationErrorKind,
+      locationQuality,
+      accuracyMeters,
     } =
       await verifyWithPhoto(stairway);
 
@@ -736,6 +751,15 @@ export default function StairwayMap({
         );
       } else if (error === 'location-failed') {
         setVerifyErrorMsg(getLocationErrorMessage(locationErrorKind));
+      } else if (error === 'unreliable-location') {
+        const accuracyFeet = Number.isFinite(accuracyMeters)
+          ? Math.round(accuracyMeters / 0.3048)
+          : null;
+        setVerifyErrorMsg(
+          locationQuality === 'inaccurate' && accuracyFeet
+            ? `Your location is still updating (currently accurate to about ${accuracyFeet}ft). Stay in an open area for a moment, then try again.`
+            : 'Your location has not updated yet. Stay in an open area for a moment, then try again.'
+        );
       } else if (error === 'no-geolocation') {
         setVerifyErrorMsg('Location services are not available in this browser.');
       } else {
@@ -1765,6 +1789,12 @@ export default function StairwayMap({
                               </button>
                             )}
 
+                            <p className="visit-type-hint">
+                              <strong>Spotted</strong> is your private checklist.{' '}
+                              <strong>Verify a visit</strong> while you are at the
+                              stairway to earn badges and leaderboard progress.
+                            </p>
+
                             {showVerificationAction &&
                               (isMobileOrTablet() ? (
                                 <button
@@ -1777,9 +1807,11 @@ export default function StairwayMap({
                                 >
                                   {verifyStatus === 'verifying'
                                     ? 'Verifying…'
-                                    : verificationCaptureStairwayId ===
-                                      selected.id
-                                    ? 'Retry verification'
+                                    : verificationCaptureStairwayId === selected.id &&
+                                      verifyStatus === 'error'
+                                    ? 'Try location again'
+                                    : verificationCaptureStairwayId === selected.id
+                                    ? 'Try verification again'
                                     : verificationButtonLabel(
                                         selectedVisitSummary,
                                         selectedAlreadyVerified

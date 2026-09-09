@@ -35,7 +35,7 @@ describe('stairway card regressions', () => {
 
   it('retries GPS and saving without forcing another photo', () => {
     expect(source).toContain('retainedVerificationCaptureRef');
-    expect(source).toContain('Retry verification');
+    expect(source).toContain('Try location again');
     expect(source).toContain('retryPhotoVerification');
     expect(source).not.toContain('finally {\n      await temporaryPhoto?.discard();');
   });

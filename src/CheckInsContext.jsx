@@ -21,6 +21,7 @@ import {
   isMissingVerifiedVisitsRpc,
 } from './verifiedVisits';
 import { getLocationErrorKind } from './locationErrors';
+import { acquireVerificationPosition } from './verificationLocation';
 
 export { storagePathFromPublicUrl } from './checkInData';
 
@@ -230,10 +231,17 @@ export function CheckInsProvider({ children }) {
 
       let position;
       try {
-        position = await getCurrentDevicePosition({
-          enableHighAccuracy: true,
-          timeout: 15000,
-        });
+        const locationResult = await acquireVerificationPosition(
+          getCurrentDevicePosition
+        );
+        position = locationResult.position;
+        if (!position) {
+          return {
+            error: 'unreliable-location',
+            locationQuality: locationResult.assessment?.reason,
+            accuracyMeters: locationResult.assessment?.accuracy,
+          };
+        }
       } catch (locationFailure) {
         return {
           error: 'location-failed',
