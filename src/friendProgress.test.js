@@ -38,6 +38,9 @@ describe('friend verified progress', () => {
     expect(migration).toContain("friendships.status = 'accepted'");
     expect(migration).toContain("checkins.verification_method = 'photo-verified'");
     expect(migration).toContain('count(distinct checkins.stairway_id)');
+    expect(migration).toContain(
+      'revoke execute on function public.get_friend_verified_counts() from anon'
+    );
     expect(migration).toContain('security definer');
     expect(migration).not.toContain('visited_at');
     expect(migration).not.toContain('photo_url');
