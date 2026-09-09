@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import { LAUNCH_LINKS } from '../launchLinks';
 
 const EFFECTIVE_DATE = 'September 7, 2026';
@@ -12,8 +13,34 @@ const PAGE_TITLES = {
 };
 
 function PageShell({ title, children }) {
+  useLayoutEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo(0, 0);
+      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    // Mobile browsers can restore a previous same-origin scroll position after
+    // React has rendered a newly opened legal/support page. Reset once during
+    // layout and again after Safari/Chrome finishes its restoration pass.
+    const previousRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
+    resetScroll();
+    const animationFrame = window.requestAnimationFrame(resetScroll);
+    const delayedReset = window.setTimeout(resetScroll, 150);
+    window.addEventListener('pageshow', resetScroll);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.clearTimeout(delayedReset);
+      window.removeEventListener('pageshow', resetScroll);
+      window.history.scrollRestoration = previousRestoration;
+    };
+  }, []);
+
   return (
-    <main className="public-page">
+    <main id="top" className="public-page">
       <div className="public-page-card">
         <a className="public-page-brand" href="/">
           <span aria-hidden="true">▰</span> SF Stairway Spotter

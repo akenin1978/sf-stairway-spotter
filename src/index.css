@@ -658,6 +658,8 @@ html.public-page-document #root {
   height: auto;
   min-height: 100%;
   overflow: visible;
+  overflow-anchor: none;
+  scroll-behavior: auto;
 }
 
 .public-page {
