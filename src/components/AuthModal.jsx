@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../AuthContext';
+import { useCheckIns } from '../CheckInsContext';
 import { isAndroidApp, isNativeApp } from '../nativeDevice';
 import {
   isNativeGoogleConfigured,
@@ -9,11 +11,23 @@ import {
 export default function AuthModal({ onClose }) {
   const nativeApp = isNativeApp();
   const androidApp = isAndroidApp();
+  const { user } = useAuth();
+  const { ready: accountProgressReady } = useCheckIns();
   const [mode, setMode] = useState('sign-in'); // 'sign-in' | 'sign-up'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('idle'); // idle | submitting | success | error
+  // idle | submitting | loading-progress | success | error
+  const [status, setStatus] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const awaitingProgress = status === 'loading-progress';
+
+  useEffect(() => {
+    if (awaitingProgress && user && accountProgressReady) onClose();
+  }, [accountProgressReady, awaitingProgress, onClose, user]);
+
+  function waitForAccountProgress() {
+    setStatus('loading-progress');
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -37,7 +51,7 @@ export default function AuthModal({ onClose }) {
       // step either way rather than assuming.
       setStatus('success');
     } else {
-      onClose();
+      waitForAccountProgress();
     }
   }
 
@@ -47,7 +61,7 @@ export default function AuthModal({ onClose }) {
     if (nativeApp) {
       try {
         await signInWithNativeProvider('google');
-        onClose();
+        waitForAccountProgress();
       } catch (error) {
         if (error?.code === 'USER_CANCELLED') {
           setStatus('idle');
@@ -81,7 +95,7 @@ export default function AuthModal({ onClose }) {
     setErrorMsg('');
     try {
       await signInWithNativeProvider('apple');
-      onClose();
+      waitForAccountProgress();
     } catch (error) {
       if (error?.code === 'USER_CANCELLED') {
         setStatus('idle');
@@ -95,13 +109,23 @@ export default function AuthModal({ onClose }) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div
+      className="modal-backdrop"
+      onClick={awaitingProgress ? undefined : onClose}
+    >
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose} aria-label="Close">
-          ×
-        </button>
+        {!awaitingProgress && (
+          <button className="modal-close" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        )}
 
-        {status === 'success' && mode === 'sign-up' ? (
+        {awaitingProgress ? (
+          <div className="auth-progress-loading" role="status" aria-live="polite">
+            <h2>Loading your progress…</h2>
+            <p>Getting your spotted and verified stairways ready.</p>
+          </div>
+        ) : status === 'success' && mode === 'sign-up' ? (
           <div>
             <h2>Check your email</h2>
             <p>

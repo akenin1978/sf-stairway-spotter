@@ -170,10 +170,9 @@ function PanToUserLocation({ target }) {
   return null;
 }
 
-// Start signed-out visitors with the whole city framed cleanly, and return
-// to that same home view once when authentication changes. After this one
-// reset the map remains completely under the user's control.
-function MapHomeView({ sessionKey }) {
+// Start visitors with the whole city framed cleanly. Authentication changes
+// must not reset a map the person is already looking at.
+function MapHomeView() {
   const map = useMap();
 
   useEffect(() => {
@@ -191,7 +190,7 @@ function MapHomeView({ sessionKey }) {
       map.panBy(-40, 0);
     });
     return () => cancelAnimationFrame(frame);
-  }, [map, sessionKey]);
+  }, [map]);
 
   return null;
 }
@@ -1513,7 +1512,7 @@ export default function StairwayMap({
             strictBounds: true,
           }}
         >
-          <MapHomeView sessionKey={user?.id ?? 'signed-out'} />
+          <MapHomeView />
           <MapRecenter target={selected} />
           <PanToUserLocation target={panTarget} />
           <ViewportBoundsTracker

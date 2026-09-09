@@ -33,6 +33,7 @@ export function CheckInsProvider({ children }) {
   const [checkedInMethods, setCheckedInMethods] = useState(new Map());
   const [checkedInPhotoUrls, setCheckedInPhotoUrls] = useState(new Map());
   const [loading, setLoading] = useState(false);
+  const [loadedUserId, setLoadedUserId] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -40,11 +41,17 @@ export function CheckInsProvider({ children }) {
       setCheckedInDates(new Map());
       setCheckedInMethods(new Map());
       setCheckedInPhotoUrls(new Map());
+      setLoadedUserId(null);
+      setLoading(false);
       return;
     }
 
     let isMounted = true;
     setLoading(true);
+    setCheckedInIds(new Set());
+    setCheckedInDates(new Map());
+    setCheckedInMethods(new Map());
+    setCheckedInPhotoUrls(new Map());
 
     fetchAllCheckIns(supabase, user.id).then(({ data, error }) => {
       if (!isMounted) return;
@@ -69,6 +76,7 @@ export function CheckInsProvider({ children }) {
           )
         );
       }
+      setLoadedUserId(user.id);
       setLoading(false);
     });
 
@@ -321,6 +329,7 @@ export function CheckInsProvider({ children }) {
     checkedInMethods,
     checkedInPhotoUrls,
     loading,
+    ready: !user || loadedUserId === user.id,
     toggleCheckIn,
     verifyWithPhoto,
     fetchVerifiedVisitDetails,

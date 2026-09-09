@@ -34,7 +34,11 @@ export default function App() {
   const [spotMode, setSpotMode] = useState(false);
   const [spottedListOpen, setSpottedListOpen] = useState(false);
   const { user, loading, signOut } = useAuth();
-  const { count: checkedInCount, verifiedCount } = useCheckIns();
+  const {
+    count: checkedInCount,
+    verifiedCount,
+    ready: accountProgressReady,
+  } = useCheckIns();
   const [totalStairways, setTotalStairways] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [friendRequestAlert, setFriendRequestAlert] = useState(null);
@@ -287,9 +291,16 @@ export default function App() {
           <button
             className="header-progress"
             onClick={() => setSpottedListOpen(true)}
+            disabled={!accountProgressReady}
           >
-            {checkedInCount} / {totalStairways ?? '…'} spotted
-            {verifiedCount > 0 ? ` (${verifiedCount} verified)` : ''}
+            {accountProgressReady ? (
+              <>
+                {checkedInCount} / {totalStairways ?? '…'} spotted
+                {verifiedCount > 0 ? ` (${verifiedCount} verified)` : ''}
+              </>
+            ) : (
+              'Loading your progress…'
+            )}
           </button>
         )}
       </header>
