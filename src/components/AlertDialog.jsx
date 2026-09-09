@@ -1,17 +1,22 @@
+import useDialogFocus from './useDialogFocus';
+
 export default function AlertDialog({ message, onClose }) {
+  const dialogRef = useDialogFocus(onClose);
   return (
     <div className="alert-dialog-overlay" onClick={onClose} role="presentation">
       <div
+        ref={dialogRef}
         className="alert-dialog-card"
         onClick={(event) => event.stopPropagation()}
         role="alertdialog"
         aria-modal="true"
         aria-describedby="location-boundary-message"
+        tabIndex={-1}
       >
         <p id="location-boundary-message" className="alert-dialog-message">
           {message}
         </p>
-        <button type="button" className="alert-dialog-button" onClick={onClose} autoFocus>
+        <button type="button" className="alert-dialog-button" onClick={onClose} data-dialog-initial-focus>
           OK
         </button>
       </div>

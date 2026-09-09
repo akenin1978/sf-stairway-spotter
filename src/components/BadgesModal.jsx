@@ -30,6 +30,7 @@ const PAGE_SIZE = 500;
 // TIER_COLORS and milestoneTier now live in badgeDefinitions.js so this
 // gallery and the badge-earned alert always render a badge identically.
 import { TIER_COLORS, milestoneTier } from '../badgeDefinitions';
+import useDialogFocus from './useDialogFocus';
 
 function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificationCount }) {
   const colors = TIER_COLORS[tier] || TIER_COLORS.neighborhood;
@@ -64,6 +65,7 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
 }
 
 export default function BadgesModal({ onClose }) {
+  const dialogRef = useDialogFocus(onClose);
   const { earnedBadgeIds, verifiedIds, loading: badgesLoading } = useBadges();
   const [stairways, setStairways] = useState([]);
   const [loadingStairways, setLoadingStairways] = useState(true);
@@ -144,14 +146,19 @@ export default function BadgesModal({ onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
+        ref={dialogRef}
         className="modal-card badges-modal-card"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="badges-dialog-title"
+        tabIndex={-1}
       >
         <button className="modal-close" onClick={onClose} aria-label="Close">
           ×
         </button>
 
-        <h2>Badges</h2>
+        <h2 id="badges-dialog-title">Badges</h2>
         <p className="modal-context">Badges are earned through verified visits.</p>
 
         {loading ? (

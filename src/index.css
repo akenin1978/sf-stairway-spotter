@@ -1368,9 +1368,26 @@ html.public-page-document #root {
   font-family: inherit;
 }
 
-.password-field {
-  position: relative;
+.auth-field-label {
+  display: block;
   margin-bottom: 10px;
+  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-field-label > span:first-child {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.auth-field-label > input {
+  margin-bottom: 0;
+}
+
+.password-field {
+  display: block;
+  position: relative;
 }
 
 .modal-card .password-field input {

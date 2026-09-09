@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import ReportUserModal, { UserSafetyMenu } from './ReportUserModal';
+import useDialogFocus from './useDialogFocus';
 
 const NEIGHBOR_WINDOW = 10; // how many ranks above/below the user to show
 
@@ -46,6 +47,7 @@ function LeaderboardHeader() {
 }
 
 export default function LeaderboardModal({ onClose }) {
+  const dialogRef = useDialogFocus(onClose);
   const { user } = useAuth();
   const [entries, setEntries] = useState([]);
   const [friendIds, setFriendIds] = useState(new Set());
@@ -115,14 +117,19 @@ export default function LeaderboardModal({ onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
+        ref={dialogRef}
         className="modal-card leaderboard-modal-card"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="leaderboard-dialog-title"
+        tabIndex={-1}
       >
         <button className="modal-close" onClick={onClose} aria-label="Close">
           ×
         </button>
 
-        <h2>Leaderboard</h2>
+        <h2 id="leaderboard-dialog-title">Leaderboard</h2>
         <p className="modal-context">
           Ranked by unique verified stairways. Repeat visits count toward
           mayorships, but not leaderboard rank.{' '}

@@ -18,6 +18,7 @@ import {
   seenFriendRequestStorageKey,
   unseenFriendRequests,
 } from './friendRequests';
+import useDialogFocus from './components/useDialogFocus';
 
 export default function App() {
   const [showLaunchAnimation, setShowLaunchAnimation] = useState(true);
@@ -42,6 +43,10 @@ export default function App() {
   const [totalStairways, setTotalStairways] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [friendRequestAlert, setFriendRequestAlert] = useState(null);
+  const friendRequestDialogRef = useDialogFocus(
+    () => dismissFriendRequestAlert(),
+    { active: Boolean(friendRequestAlert && !showOnboarding && !showLaunchAnimation) }
+  );
 
   useEffect(() => {
     supabase
@@ -159,6 +164,8 @@ export default function App() {
           <button
             className="header-menu-button"
             onClick={() => setMenuOpen((open) => !open)}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
           >
             Menu
           </button>
@@ -364,8 +371,8 @@ export default function App() {
 
       {friendRequestAlert && !showOnboarding && !showLaunchAnimation && (
         <div className="modal-backdrop">
-          <div className="modal-card friend-request-alert" role="dialog" aria-modal="true">
-            <h2>New friend request</h2>
+          <div ref={friendRequestDialogRef} className="modal-card friend-request-alert" role="dialog" aria-modal="true" aria-labelledby="friend-request-title" tabIndex={-1}>
+            <h2 id="friend-request-title">New friend request</h2>
             <p>{friendRequestNotice(friendRequestAlert.requests)}</p>
             {friendRequestAlert.requests.length > 1 && (
               <ul>

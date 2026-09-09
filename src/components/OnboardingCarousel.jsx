@@ -162,6 +162,7 @@ export default function OnboardingCarousel({ totalStairways, onDismiss }) {
             key={i}
             className={'onboarding-dot' + (i === slide ? ' active' : '')}
             aria-label={`Go to slide ${i + 1}`}
+            aria-current={i === slide ? 'step' : undefined}
             onClick={() => goTo(i)}
           />
         ))}
@@ -249,20 +250,32 @@ export default function OnboardingCarousel({ totalStairways, onDismiss }) {
           position: absolute;
           bottom: 96px;
           display: flex;
-          gap: 8px;
+          gap: 0;
         }
 
         .onboarding-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #DDDDDD;
+          position: relative;
+          width: 44px;
+          height: 44px;
+          background: transparent;
           border: none;
           padding: 0;
           cursor: pointer;
         }
 
-        .onboarding-dot.active {
+        .onboarding-dot::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #DDDDDD;
+          transform: translate(-50%, -50%);
+        }
+
+        .onboarding-dot.active::after {
           background: #4F831A;
         }
 

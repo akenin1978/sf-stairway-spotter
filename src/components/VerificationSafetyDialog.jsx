@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { LAUNCH_LINKS } from '../launchLinks';
 import { supabase } from '../supabaseClient';
+import useDialogFocus from './useDialogFocus';
 
 export const VERIFICATION_SAFETY_TERMS_VERSION = '2026-09-09';
 
@@ -15,6 +16,7 @@ export function hasAcceptedVerificationSafety(user, acceptedVersion = null) {
 export default function VerificationSafetyDialog({ onCancel, onAccepted }) {
   const [confirmed, setConfirmed] = useState(false);
   const [status, setStatus] = useState('idle');
+  const dialogRef = useDialogFocus(onCancel);
 
   async function acceptAndContinue() {
     if (!confirmed || status === 'saving') return;
@@ -35,10 +37,12 @@ export default function VerificationSafetyDialog({ onCancel, onAccepted }) {
   return (
     <div className="modal-backdrop safety-modal-backdrop">
       <div
+        ref={dialogRef}
         className="modal-card verification-safety-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="verification-safety-title"
+        tabIndex={-1}
       >
         <h2 id="verification-safety-title">Explore safely</h2>
         <p>

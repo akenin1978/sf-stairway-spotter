@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useDialogFocus from './useDialogFocus';
 
 function thumbnailPhotoUrl(url) {
   if (!url) return url;
@@ -14,6 +15,7 @@ export default function NewStairwayModal({
 }) {
   const hasMultiple = addedCount > 1;
   const [showList, setShowList] = useState(false);
+  const dialogRef = useDialogFocus(onDismiss);
   const headline =
     addedCount === 1
       ? 'A new stairway joined the map!'
@@ -22,10 +24,12 @@ export default function NewStairwayModal({
   return (
     <div className="new-stairway-overlay" role="presentation" onClick={onDismiss}>
       <section
+        ref={dialogRef}
         className="new-stairway-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-stairway-title"
+        tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
       >
         <button

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import useDialogFocus from './useDialogFocus';
 
 const REPORT_REASONS = [
   ['inappropriate-name', 'Inappropriate display name'],
@@ -9,6 +10,7 @@ const REPORT_REASONS = [
 ];
 
 export default function ReportUserModal({ userToReport, context, onClose }) {
+  const dialogRef = useDialogFocus(onClose);
   const [reason, setReason] = useState('inappropriate-name');
   const [details, setDetails] = useState('');
   const [status, setStatus] = useState('idle');
@@ -43,14 +45,14 @@ export default function ReportUserModal({ userToReport, context, onClose }) {
         onClose();
       }}
     >
-      <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+      <div ref={dialogRef} className="modal-card" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="report-user-dialog-title" tabIndex={-1}>
         <button className="modal-close" onClick={onClose} aria-label="Close">
           ×
         </button>
 
         {status === 'success' ? (
           <>
-            <h2>Report received</h2>
+            <h2 id="report-user-dialog-title">Report received</h2>
             <p>Thank you. We’ll review it and take appropriate action.</p>
             <button type="button" className="safety-done-button" onClick={onClose}>
               Done
@@ -58,7 +60,7 @@ export default function ReportUserModal({ userToReport, context, onClose }) {
           </>
         ) : (
           <form onSubmit={handleSubmit}>
-            <h2>Report {userToReport.display_name || 'user'}</h2>
+            <h2 id="report-user-dialog-title">Report {userToReport.display_name || 'user'}</h2>
             <label className="safety-field">
               Reason
               <select value={reason} onChange={(event) => setReason(event.target.value)}>

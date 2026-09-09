@@ -1,4 +1,5 @@
 import React from 'react';
+import useDialogFocus from './useDialogFocus';
 
 /**
  * ConfirmDialog
@@ -28,13 +29,17 @@ export default function ConfirmDialog({
   confirmLabel = 'Continue',
   cancelLabel = 'Cancel',
 }) {
+  const dialogRef = useDialogFocus(onCancel);
   return (
     <div className="confirm-dialog-overlay" onClick={onCancel} role="presentation">
       <div
+        ref={dialogRef}
         className="confirm-dialog-card"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
+        aria-label="Confirmation"
+        tabIndex={-1}
       >
         <p className="confirm-dialog-message">{message}</p>
         <div className="confirm-dialog-actions">

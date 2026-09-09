@@ -7,6 +7,7 @@ import {
   statsNeighborhoodGroup,
   STATS_NEIGHBORHOOD_GROUP_LABELS,
 } from '../neighborhoodSort';
+import useDialogFocus from './useDialogFocus';
 
 // Display-only shortenings for a few long neighborhood names in this
 // list -- the underlying data (used for badges and the sheet sync)
@@ -22,6 +23,7 @@ const NEIGHBORHOOD_DISPLAY_OVERRIDES = {
 };
 
 export default function StatsModal({ onClose }) {
+  const dialogRef = useDialogFocus(onClose);
   const { user } = useAuth();
   const { checkedInIds } = useCheckIns();
   const [stairways, setStairways] = useState([]);
@@ -101,12 +103,12 @@ export default function StatsModal({ onClose }) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card stats-modal-card" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className="modal-card stats-modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="stats-dialog-title" tabIndex={-1}>
         <button className="modal-close" onClick={onClose} aria-label="Close">
           &times;
         </button>
 
-        <h2>My stats</h2>
+        <h2 id="stats-dialog-title">My stats</h2>
 
         {loading ? (
           <p className="modal-context">Loading&hellip;</p>

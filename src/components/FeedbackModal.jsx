@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import useDialogFocus from './useDialogFocus';
 
 export default function FeedbackModal({ stairway, onClose }) {
+  const dialogRef = useDialogFocus(onClose);
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
@@ -30,19 +32,19 @@ export default function FeedbackModal({ stairway, onClose }) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className="modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="feedback-dialog-title" tabIndex={-1}>
         <button className="modal-close" onClick={onClose} aria-label="Close">
           ×
         </button>
 
         {status === 'success' ? (
           <div>
-            <h2>Thanks!</h2>
+            <h2 id="feedback-dialog-title">Thanks!</h2>
             <p>Your message has been sent.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <h2>{stairway ? 'Report an issue' : 'Send feedback'}</h2>
+            <h2 id="feedback-dialog-title">{stairway ? 'Report an issue' : 'Send feedback'}</h2>
 
             {stairway && (
               <p className="modal-context">Re: {stairway.description}</p>

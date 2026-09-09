@@ -45,6 +45,7 @@ import {
 import { addNearbyThumbnailPhotos } from '../nearbyStairways';
 import { getLocationErrorMessage } from '../locationErrors';
 import { isLocationFresh } from '../locationLifecycle';
+import useDialogFocus from './useDialogFocus';
 import {
   getStairwayMapGeometry,
   getStairwayMarkerPosition,
@@ -963,6 +964,12 @@ export default function StairwayMap({
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [nearbyOpen, setNearbyOpen] = useState(false);
+  const spottedListDialogRef = useDialogFocus(onCloseSpottedList, {
+    active: spottedListOpen,
+  });
+  const nearbyDialogRef = useDialogFocus(() => setNearbyOpen(false), {
+    active: nearbyOpen,
+  });
   const [nearbyStairways, setNearbyStairways] = useState([]);
   const [nearbyMessage, setNearbyMessage] = useState('');
   const [nearbyError, setNearbyError] = useState('');
@@ -1966,8 +1973,13 @@ export default function StairwayMap({
       {spottedListOpen && (
         <div className="modal-backdrop" onClick={onCloseSpottedList}>
           <div
+            ref={spottedListDialogRef}
             className="modal-card spotted-list-card"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="spotted-list-title"
+            tabIndex={-1}
           >
             <button
               className="modal-close"
@@ -1977,7 +1989,7 @@ export default function StairwayMap({
               ×
             </button>
 
-            <h2>My Spotted Stairways</h2>
+            <h2 id="spotted-list-title">My Spotted Stairways</h2>
             <p className="modal-context">
               {checkedInIds.size} / {stairways.length || '…'} spotted
             </p>
@@ -2055,8 +2067,13 @@ export default function StairwayMap({
       {nearbyOpen && (
         <div className="modal-backdrop" onClick={() => setNearbyOpen(false)}>
           <div
+            ref={nearbyDialogRef}
             className="modal-card nearby-stairways-card"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="nearby-stairways-title"
+            tabIndex={-1}
           >
             <button
               className="modal-close"
@@ -2065,7 +2082,7 @@ export default function StairwayMap({
             >
               ×
             </button>
-            <h2>Stairways Near You</h2>
+            <h2 id="nearby-stairways-title">Stairways Near You</h2>
             {nearbyError ? (
               <p className="modal-error">{nearbyError}</p>
             ) : (

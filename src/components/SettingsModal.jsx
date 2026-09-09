@@ -5,10 +5,12 @@ import { useAuth } from '../AuthContext';
 import { useCheckIns, storagePathFromPublicUrl } from '../CheckInsContext';
 import { LAUNCH_LINKS } from '../launchLinks';
 import { confirmLeaderboardSettingChange } from '../leaderboardSettings';
+import useDialogFocus from './useDialogFocus';
 
 const profanityFilter = new Filter();
 
 export default function SettingsModal({ onClose }) {
+  const dialogRef = useDialogFocus(onClose);
   const { user, signOut } = useAuth();
   const { checkedInPhotoUrls } = useCheckIns();
   const [leaderboardOptIn, setLeaderboardOptIn] = useState(false);
@@ -210,7 +212,7 @@ export default function SettingsModal({ onClose }) {
 
   return (
     <div className="modal-backdrop" onClick={handleCloseAttempt}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className="modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title" tabIndex={-1}>
         <button
           className="modal-close"
           onClick={handleCloseAttempt}
@@ -219,7 +221,7 @@ export default function SettingsModal({ onClose }) {
           ×
         </button>
 
-        <h2>Settings</h2>
+        <h2 id="settings-dialog-title">Settings</h2>
 
         {loading ? (
           <p className="modal-context">Loading…</p>

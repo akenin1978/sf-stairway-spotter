@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getRandomBadgeMessage } from '../badgeMessages';
 import { TIER_COLORS } from '../badgeDefinitions';
+import useDialogFocus from './useDialogFocus';
 
 /**
  * BadgeEarnedModal
@@ -73,18 +74,6 @@ export default function BadgeEarnedModal({ badges, onClose }) {
     }
   }, [index, current]);
 
-  // Escape key closes (advances to next, or closes on last)
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (e.key === 'Escape') handleNext();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
-
-  if (!current) return null;
-
   const handleNext = () => {
     if (isLast) {
       onClose();
@@ -92,6 +81,9 @@ export default function BadgeEarnedModal({ badges, onClose }) {
       setIndex((i) => i + 1);
     }
   };
+  const dialogRef = useDialogFocus(handleNext);
+
+  if (!current) return null;
 
   const tierColors = TIER_COLORS[current.tier] || TIER_COLORS.neighborhood;
   const tierLabel = TIER_LABELS[current.tier] || TIER_LABELS.neighborhood;
@@ -99,11 +91,13 @@ export default function BadgeEarnedModal({ badges, onClose }) {
   return (
     <div className="badge-earned-overlay" onClick={handleNext} role="presentation">
       <div
+        ref={dialogRef}
         className={`badge-earned-card ${visible ? 'is-visible' : ''}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={`Badge earned: ${current.name}`}
+        tabIndex={-1}
       >
         {hasMultiple && (
           <div className="badge-earned-counter">

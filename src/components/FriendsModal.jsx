@@ -6,8 +6,10 @@ import {
   verifiedFriendLabel,
 } from '../friendProgress';
 import ReportUserModal, { UserSafetyMenu } from './ReportUserModal';
+import useDialogFocus from './useDialogFocus';
 
 export default function FriendsModal({ onClose, onOpenSettings }) {
+  const dialogRef = useDialogFocus(onClose);
   const { user } = useAuth();
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -166,14 +168,19 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
+        ref={dialogRef}
         className="modal-card friends-modal-card"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="friends-dialog-title"
+        tabIndex={-1}
       >
         <button className="modal-close" onClick={onClose} aria-label="Close">
           ×
         </button>
 
-        <h2>Friends</h2>
+        <h2 id="friends-dialog-title">Friends</h2>
 
         {!loading && !myUsername && (
           <div className="friends-username-required">

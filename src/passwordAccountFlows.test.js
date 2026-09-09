@@ -29,7 +29,8 @@ describe('email password account flows', () => {
 
   it('lets people show or hide every password field', () => {
     expect(authModal).toContain("type={visible ? 'text' : 'password'}");
-    expect(authModal).toContain("visible ? 'Hide password' : 'Show password'");
+    expect(authModal).toContain("visible ? `Hide ${label.toLowerCase()}`");
+    expect(authModal).toContain(": `Show ${label.toLowerCase()}`");
   });
 
   it('can resend an account confirmation email', () => {

@@ -9,6 +9,7 @@ import {
   isNativeGoogleConfigured,
   signInWithNativeProvider,
 } from '../nativeAuth';
+import useDialogFocus from './useDialogFocus';
 
 export default function AuthModal({
   onClose,
@@ -33,6 +34,10 @@ export default function AuthModal({
   const [resendStatus, setResendStatus] = useState('idle');
   const [resendError, setResendError] = useState('');
   const [authErrorCode, setAuthErrorCode] = useState('');
+  const dialogRef = useDialogFocus(onClose, {
+    closeOnEscape: !awaitingProgress,
+    returnFocusSelector: '.header-menu-button',
+  });
 
   useEffect(() => {
     if (awaitingProgress && user && accountProgressReady) onClose();
@@ -183,7 +188,15 @@ export default function AuthModal({
       className="modal-backdrop"
       onClick={awaitingProgress ? undefined : onClose}
     >
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={dialogRef}
+        className="modal-card"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-dialog-title"
+        tabIndex={-1}
+      >
         {!awaitingProgress && (
           <button className="modal-close" onClick={onClose} aria-label="Close">
             ×
@@ -193,14 +206,15 @@ export default function AuthModal({
         {passwordRecovery ? (
           resetComplete ? (
             <div>
-              <h2>Password updated</h2>
+              <h2 id="auth-dialog-title">Password updated</h2>
               <p>Your new password is ready to use.</p>
               <button type="button" onClick={onClose}>Done</button>
             </div>
           ) : (
             <form onSubmit={handlePasswordReset}>
-              <h2>Choose a new password</h2>
+              <h2 id="auth-dialog-title">Choose a new password</h2>
               <PasswordField
+                label="New password"
                 visible={showPassword}
                 onToggle={() => setShowPassword((visible) => !visible)}
                 placeholder="New password"
@@ -211,6 +225,7 @@ export default function AuthModal({
                 required
               />
               <PasswordField
+                label="Confirm new password"
                 visible={showPassword}
                 onToggle={() => setShowPassword((visible) => !visible)}
                 placeholder="Confirm new password"
@@ -231,7 +246,7 @@ export default function AuthModal({
         ) : forgotPassword ? (
           status === 'success' ? (
             <div>
-              <h2>Check your email</h2>
+              <h2 id="auth-dialog-title">Check your email</h2>
               <p>
                 If an account exists for <strong>{email}</strong>, we sent a
                 link to reset its password.
@@ -240,16 +255,19 @@ export default function AuthModal({
             </div>
           ) : (
             <form onSubmit={handleForgotPassword}>
-              <h2>Reset your password</h2>
+              <h2 id="auth-dialog-title">Reset your password</h2>
               <p>Enter your email address and we’ll send you a reset link.</p>
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-              />
+              <label className="auth-field-label">
+                <span>Email</span>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                />
+              </label>
               {status === 'error' && (
                 <p className="modal-error" role="alert">{errorMsg}</p>
               )}
@@ -273,12 +291,12 @@ export default function AuthModal({
           )
         ) : awaitingProgress ? (
           <div className="auth-progress-loading" role="status" aria-live="polite">
-            <h2>Loading your progress…</h2>
+            <h2 id="auth-dialog-title">Loading your progress…</h2>
             <p>Getting your spotted and verified stairways ready.</p>
           </div>
         ) : status === 'success' && mode === 'sign-up' ? (
           <div>
-            <h2>Check your email</h2>
+            <h2 id="auth-dialog-title">Check your email</h2>
             <p>
               We sent a confirmation link to <strong>{email}</strong>. Click
               it to finish creating your account, then come back and sign in.
@@ -303,7 +321,7 @@ export default function AuthModal({
           </div>
         ) : (
           <>
-            <h2>{mode === 'sign-in' ? 'Sign in' : 'Create an account'}</h2>
+            <h2 id="auth-dialog-title">{mode === 'sign-in' ? 'Sign in' : 'Create an account'}</h2>
 
             {nativeApp && !androidApp && (
               <button
@@ -337,16 +355,20 @@ export default function AuthModal({
             </div>
 
             <form onSubmit={handleSubmit}>
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-              />
+              <label className="auth-field-label">
+                <span>Email</span>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                />
+              </label>
 
               <PasswordField
+                label="Password"
                 visible={showPassword}
                 onToggle={() => setShowPassword((visible) => !visible)}
                 placeholder="Password"
@@ -361,6 +383,7 @@ export default function AuthModal({
 
               {mode === 'sign-up' && (
                 <PasswordField
+                  label="Confirm password"
                   visible={showPassword}
                   onToggle={() => setShowPassword((visible) => !visible)}
                   placeholder="Confirm password"
@@ -476,19 +499,26 @@ export default function AuthModal({
   );
 }
 
-function PasswordField({ visible, onToggle, ...inputProps }) {
+function PasswordField({ label, visible, onToggle, ...inputProps }) {
   return (
-    <div className="password-field">
-      <input type={visible ? 'text' : 'password'} {...inputProps} />
-      <button
-        type="button"
-        className="password-visibility-button"
-        onClick={onToggle}
-        aria-label={visible ? 'Hide password' : 'Show password'}
-        title={visible ? 'Hide password' : 'Show password'}
-      >
-        {visible ? <EyeOffIcon /> : <EyeIcon />}
-      </button>
+    <div className="auth-field-label">
+      <span>{label}</span>
+      <span className="password-field">
+        <input
+          type={visible ? 'text' : 'password'}
+          aria-label={label}
+          {...inputProps}
+        />
+        <button
+          type="button"
+          className="password-visibility-button"
+          onClick={onToggle}
+          aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          title={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+        >
+          {visible ? <EyeOffIcon /> : <EyeIcon />}
+        </button>
+      </span>
     </div>
   );
 }
