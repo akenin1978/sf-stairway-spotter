@@ -10,9 +10,13 @@ export async function fetchVerifiedStairwayIds(
 
   while (true) {
     const { data, error } = await supabase
-      .from('verified_visits')
+      // check_ins is the lifetime, one-row-per-stairway verification summary.
+      // verified_visits was added later for repeat visits and mayorships, so it
+      // does not contain every legacy verification and must not drive badges.
+      .from('check_ins')
       .select('stairway_id')
       .eq('user_id', userId)
+      .eq('verification_method', 'photo-verified')
       .order('stairway_id', { ascending: true })
       .range(from, from + pageSize - 1);
 
