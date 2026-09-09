@@ -40,7 +40,7 @@ function LeaderboardHeader() {
     <div className="leaderboard-header" aria-hidden="true">
       <span>Rank</span>
       <span>Spotter</span>
-      <span className="leaderboard-header-verified">Verified</span>
+      <span className="leaderboard-header-verified">Unique verified</span>
     </div>
   );
 }
@@ -124,7 +124,9 @@ export default function LeaderboardModal({ onClose }) {
 
         <h2>Leaderboard</h2>
         <p className="modal-context">
-          Ranked by verified stairways. <span className="leaderboard-friend-icon">★</span> marks a friend.
+          Ranked by unique verified stairways. Repeat visits count toward
+          mayorships, but not leaderboard rank.{' '}
+          <span className="leaderboard-friend-icon">★</span> marks a friend.
         </p>
 
         {loading && <p className="modal-context">Loading…</p>}
