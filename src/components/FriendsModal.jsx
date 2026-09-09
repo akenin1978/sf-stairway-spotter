@@ -13,6 +13,7 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
   const { user } = useAuth();
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [sendStatus, setSendStatus] = useState('idle'); // idle | sending | error
   const [sendError, setSendError] = useState('');
@@ -23,6 +24,7 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
 
   async function refresh() {
     setLoading(true);
+    setLoadError('');
     const [friendsResult, blockedResult, settingsResult, progressResult] = await Promise.all([
       supabase.rpc('get_my_friends'),
       supabase.rpc('get_my_blocked_users'),
@@ -46,6 +48,9 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
     if (!blockedResult.error) setBlockedUsers(blockedResult.data || []);
     if (!settingsResult.error) {
       setMyUsername(settingsResult.data?.display_name?.trim() || '');
+    }
+    if (friendsResult.error || blockedResult.error || settingsResult.error) {
+      setLoadError("We couldn't load your friends. Check your connection and try again.");
     }
     setLoading(false);
   }
@@ -221,6 +226,11 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
 
         {loading ? (
           <p className="modal-context">Loading…</p>
+        ) : loadError ? (
+          <div className="modal-error">
+            <p>{loadError}</p>
+            <button type="button" onClick={refresh}>Retry</button>
+          </div>
         ) : (
           <>
             {received.length > 0 && (

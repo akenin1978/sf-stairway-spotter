@@ -69,6 +69,8 @@ export default function BadgesModal({ onClose }) {
   const { earnedBadgeIds, verifiedIds, loading: badgesLoading } = useBadges();
   const [stairways, setStairways] = useState([]);
   const [loadingStairways, setLoadingStairways] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   // Lightweight fetch of just what's needed to compute progress --
   // separate from the main map's own fetch, since this modal can be
@@ -79,6 +81,7 @@ export default function BadgesModal({ onClose }) {
 
     async function fetchAll() {
       setLoadingStairways(true);
+      setLoadError('');
       let all = [];
       let from = 0;
       while (true) {
@@ -95,7 +98,11 @@ export default function BadgesModal({ onClose }) {
           .not('longitude', 'is', null)
           .order('id', { ascending: true })
           .range(from, from + PAGE_SIZE - 1);
-        if (error || !data || data.length === 0) break;
+        if (error) {
+          if (isMounted) setLoadError("We couldn't load badge progress. Check your connection and try again.");
+          break;
+        }
+        if (!data || data.length === 0) break;
         all = all.concat(data);
         if (data.length < PAGE_SIZE) break;
         from += PAGE_SIZE;
@@ -110,7 +117,7 @@ export default function BadgesModal({ onClose }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [loadAttempt]);
 
   const loading = badgesLoading || loadingStairways;
 
@@ -163,6 +170,11 @@ export default function BadgesModal({ onClose }) {
 
         {loading ? (
           <p className="modal-context">Loading…</p>
+        ) : loadError ? (
+          <div className="modal-error">
+            <p>{loadError}</p>
+            <button type="button" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>Retry</button>
+          </div>
         ) : (
           <>
             <h3 className="badges-section-heading">Neighborhoods</h3>

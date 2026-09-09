@@ -6,6 +6,8 @@ import { useCheckIns, storagePathFromPublicUrl } from '../CheckInsContext';
 import { LAUNCH_LINKS } from '../launchLinks';
 import { confirmLeaderboardSettingChange } from '../leaderboardSettings';
 import useDialogFocus from './useDialogFocus';
+import { isNativeApp } from '../nativeDevice';
+import { signInWithNativeProvider } from '../nativeAuth';
 
 const profanityFilter = new Filter();
 
@@ -26,6 +28,9 @@ export default function SettingsModal({ onClose }) {
   const [status, setStatus] = useState('idle'); // idle | saving | saved | error
   const [errorMsg, setErrorMsg] = useState('');
   const [deleteStatus, setDeleteStatus] = useState('idle'); // idle | deleting | error
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [settingsLoadError, setSettingsLoadError] = useState('');
+  const [settingsLoadAttempt, setSettingsLoadAttempt] = useState(0);
 
   // Load the user's current settings when the modal opens. If they've
   // never saved settings before, there's simply no row yet -- that's
@@ -35,6 +40,8 @@ export default function SettingsModal({ onClose }) {
     if (!user) return;
 
     let isMounted = true;
+    setLoading(true);
+    setSettingsLoadError('');
 
     supabase
       .from('user_settings')
@@ -49,13 +56,16 @@ export default function SettingsModal({ onClose }) {
           setSavedLeaderboardOptIn(data.leaderboard_opt_in);
           setSavedDisplayName(data.display_name || '');
         }
+        if (error) {
+          setSettingsLoadError("We couldn't load your settings. Check your connection and try again.");
+        }
         setLoading(false);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [settingsLoadAttempt, user]);
 
   const hasUnsavedChanges =
     !loading &&
@@ -168,16 +178,9 @@ export default function SettingsModal({ onClose }) {
     }
   }
 
-  async function handleDeleteAccount() {
+  async function performAccountDeletion() {
     if (!user) return;
-
-    const confirmed = window.confirm(
-      'Delete your account? This permanently removes your account, every ' +
-      'stairway you\'ve checked off, all your verifications, and any ' +
-      'badges or leaderboard standing tied to it. This cannot be undone.'
-    );
-    if (!confirmed) return;
-
+    setDeleteConfirmationOpen(false);
     setDeleteStatus('deleting');
 
     // Clean up photo files first -- once the account row is gone, we'd
@@ -225,6 +228,11 @@ export default function SettingsModal({ onClose }) {
 
         {loading ? (
           <p className="modal-context">Loading…</p>
+        ) : settingsLoadError ? (
+          <div className="modal-error">
+            <p>{settingsLoadError}</p>
+            <button type="button" onClick={() => setSettingsLoadAttempt((attempt) => attempt + 1)}>Retry</button>
+          </div>
         ) : (
           <form onSubmit={handleSave}>
             <label className="settings-toggle-row">
@@ -305,7 +313,7 @@ export default function SettingsModal({ onClose }) {
               <button
                 type="button"
                 className="settings-delete-account"
-                onClick={handleDeleteAccount}
+                onClick={() => setDeleteConfirmationOpen(true)}
                 disabled={deleteStatus === 'deleting'}
               >
                 {deleteStatus === 'deleting'
@@ -315,6 +323,101 @@ export default function SettingsModal({ onClose }) {
             </div>
           </form>
         )}
+        {deleteConfirmationOpen && (
+          <DeleteIdentityDialog
+            user={user}
+            onCancel={() => setDeleteConfirmationOpen(false)}
+            onConfirmed={performAccountDeletion}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DeleteIdentityDialog({ user, onCancel, onConfirmed }) {
+  const dialogRef = useDialogFocus(onCancel);
+  const [password, setPassword] = useState('');
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState('');
+  const provider = user?.app_metadata?.provider ||
+    user?.identities?.[0]?.provider || 'email';
+
+  async function confirmIdentity(event) {
+    event.preventDefault();
+    setStatus('checking');
+    setError('');
+
+    try {
+      if (provider === 'email') {
+        const result = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password,
+        });
+        if (result.error) throw result.error;
+      } else if (isNativeApp() && (provider === 'apple' || provider === 'google')) {
+        await signInWithNativeProvider(provider);
+      } else {
+        setStatus('error');
+        setError(
+          `Please confirm your identity in the iPhone app using ${provider === 'apple' ? 'Apple' : 'Google'} before deleting your account.`
+        );
+        return;
+      }
+      await onConfirmed();
+    } catch {
+      setStatus('error');
+      setError('We could not confirm your identity. Please try again.');
+    }
+  }
+
+  const providerLabel = provider === 'apple' ? 'Apple' : 'Google';
+
+  return (
+    <div className="modal-backdrop safety-modal-backdrop">
+      <div
+        ref={dialogRef}
+        className="modal-card delete-identity-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-identity-title"
+        tabIndex={-1}
+      >
+        <h2 id="delete-identity-title">Confirm your identity</h2>
+        <p>
+          Account deletion is permanent. Confirm that it’s really you before
+          deleting your account, visits, badges, friendships, and leaderboard data.
+        </p>
+        <form onSubmit={confirmIdentity}>
+          {provider === 'email' ? (
+            <label className="auth-field-label">
+              <span>Current password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                required
+                data-dialog-initial-focus
+              />
+            </label>
+          ) : (
+            <p>You’ll confirm using {providerLabel}, the way you signed in.</p>
+          )}
+          {error && <p className="modal-error" role="alert">{error}</p>}
+          <div className="verification-safety-actions">
+            <button type="button" className="button-secondary" onClick={onCancel}>
+              Cancel
+            </button>
+            <button type="submit" className="settings-delete-account" disabled={status === 'checking'}>
+              {status === 'checking'
+                ? 'Confirming…'
+                : provider === 'email'
+                  ? 'Confirm and delete'
+                  : `Continue with ${providerLabel}`}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

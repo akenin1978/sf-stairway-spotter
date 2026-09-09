@@ -407,6 +407,7 @@ export default function StairwayMap({
   const [newStairwayNotice, setNewStairwayNotice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const { user } = useAuth();
   const {
     checkedInIds,
@@ -1273,6 +1274,8 @@ export default function StairwayMap({
     async function loadStairways() {
       if (isLoadingStairways) return;
       isLoadingStairways = true;
+      setLoading(true);
+      setError(null);
       // A single unbounded request silently caps out at Supabase's
       // default max-rows-per-request limit (1,000) -- with 1,100+
       // stairways, that meant the last ~100 or so never actually loaded,
@@ -1312,7 +1315,7 @@ export default function StairwayMap({
 
         if (error) {
           if (isMounted) {
-            setError(error.message);
+            setError("We couldn't load the stairway map. Check your connection and try again.");
             setLoading(false);
           }
           isLoadingStairways = false;
@@ -1389,7 +1392,7 @@ export default function StairwayMap({
       isMounted = false;
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
-  }, [user?.id]);
+  }, [loadAttempt, user?.id]);
 
   const allNeighborhoods = useMemo(
     () =>
@@ -1501,7 +1504,10 @@ export default function StairwayMap({
       {loading && <div className="status-banner">Loading stairways…</div>}
       {error && (
         <div className="status-banner">
-          Couldn't load stairways: {error}
+          <span>{error}</span>{' '}
+          <button type="button" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>
+            Retry
+          </button>
         </div>
       )}
 
@@ -2084,7 +2090,10 @@ export default function StairwayMap({
             </button>
             <h2 id="nearby-stairways-title">Stairways Near You</h2>
             {nearbyError ? (
-              <p className="modal-error">{nearbyError}</p>
+              <div>
+                <p className="modal-error">{nearbyError}</p>
+                <button type="button" onClick={handleCheckInNearby}>Retry</button>
+              </div>
             ) : (
               <>
                 <p className="modal-context">{nearbyMessage}</p>

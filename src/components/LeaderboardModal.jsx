@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import ReportUserModal, { UserSafetyMenu } from './ReportUserModal';
@@ -55,37 +55,34 @@ export default function LeaderboardModal({ onClose }) {
   const [error, setError] = useState(null);
   const [reportingUser, setReportingUser] = useState(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    Promise.all([
+  const loadLeaderboard = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const [leaderboardRes, friendsRes, hiddenRes] = await Promise.all([
       supabase.rpc('get_leaderboard'),
       supabase.rpc('get_my_friends'),
       supabase.rpc('get_hidden_user_ids'),
-    ]).then(([leaderboardRes, friendsRes, hiddenRes]) => {
-      if (!isMounted) return;
-      if (leaderboardRes.error) {
-        setError(leaderboardRes.error.message);
-      } else {
-        const hiddenIds = new Set((hiddenRes.data || []).map((row) => row.user_id));
-        setEntries((leaderboardRes.data || []).filter((entry) => !hiddenIds.has(entry.user_id)));
-      }
-      if (!friendsRes.error && friendsRes.data) {
-        setFriendIds(
-          new Set(
-            friendsRes.data
-              .filter((f) => f.status === 'accepted')
-              .map((f) => f.friend_user_id)
-          )
-        );
-      }
+    ]);
+    if (leaderboardRes.error || friendsRes.error || hiddenRes.error) {
+      setError("We couldn't load the leaderboard. Check your connection and try again.");
       setLoading(false);
-    });
-
-    return () => {
-      isMounted = false;
-    };
+      return;
+    }
+    const hiddenIds = new Set((hiddenRes.data || []).map((row) => row.user_id));
+    setEntries((leaderboardRes.data || []).filter((entry) => !hiddenIds.has(entry.user_id)));
+    setFriendIds(
+      new Set(
+        (friendsRes.data || [])
+          .filter((f) => f.status === 'accepted')
+          .map((f) => f.friend_user_id)
+      )
+    );
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadLeaderboard();
+  }, [loadLeaderboard]);
 
   async function handleBlock(person) {
     if (!window.confirm(`Block ${person.display_name}? You won't see each other on the leaderboard or be able to send friend requests.`)) return;
@@ -137,7 +134,12 @@ export default function LeaderboardModal({ onClose }) {
         </p>
 
         {loading && <p className="modal-context">Loading…</p>}
-        {error && <p className="modal-error">{error}</p>}
+        {error && (
+          <div className="modal-error">
+            <p>{error}</p>
+            <button type="button" onClick={loadLeaderboard}>Retry</button>
+          </div>
+        )}
 
         {!loading && !error && entries.length === 0 && (
           <p className="modal-context">

@@ -29,6 +29,8 @@ export default function StatsModal({ onClose }) {
   const [stairways, setStairways] = useState([]);
   const [streak, setStreak] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +49,7 @@ export default function StatsModal({ onClose }) {
           .select('id, neighborhood')
           .eq('active', true)
           .range(from, from + pageSize - 1);
-        if (error || !data) break;
+        if (error || !data) throw error || new Error('Missing stairway data');
         all = all.concat(data);
         if (data.length < pageSize) break;
         from += pageSize;
@@ -57,16 +59,23 @@ export default function StatsModal({ onClose }) {
 
     async function load() {
       setLoading(true);
+      setLoadError('');
 
-      const [stairwayData, { data: streakData }] = await Promise.all([
-        fetchAllStairways(),
-        supabase.rpc('get_my_streak').maybeSingle(),
-      ]);
+      try {
+        const [stairwayData, streakResult] = await Promise.all([
+          fetchAllStairways(),
+          supabase.rpc('get_my_streak').maybeSingle(),
+        ]);
+        if (streakResult.error) throw streakResult.error;
 
-      if (!cancelled) {
-        setStairways(stairwayData || []);
-        setStreak(streakData || { current_streak: 0, longest_streak: 0 });
-        setLoading(false);
+        if (!cancelled) {
+          setStairways(stairwayData || []);
+          setStreak(streakResult.data || { current_streak: 0, longest_streak: 0 });
+        }
+      } catch {
+        if (!cancelled) setLoadError("We couldn't load your stats. Check your connection and try again.");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -74,7 +83,7 @@ export default function StatsModal({ onClose }) {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [loadAttempt, user]);
 
   const stats = useMemo(() => {
     const totalStairways = stairways.length;
@@ -112,6 +121,11 @@ export default function StatsModal({ onClose }) {
 
         {loading ? (
           <p className="modal-context">Loading&hellip;</p>
+        ) : loadError ? (
+          <div className="modal-error">
+            <p>{loadError}</p>
+            <button type="button" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>Retry</button>
+          </div>
         ) : (
           <>
             <div className="stats-streak-row">
