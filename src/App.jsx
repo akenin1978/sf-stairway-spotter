@@ -250,6 +250,15 @@ export default function App() {
                     </button>
                   ))}
                 <div className="header-menu-divider" />
+                <button
+                  className="header-menu-item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShowOnboarding(true);
+                  }}
+                >
+                  How it works
+                </button>
                 <a
                   className="header-menu-item"
                   href={LAUNCH_LINKS.support}

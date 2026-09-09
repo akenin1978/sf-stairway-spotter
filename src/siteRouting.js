@@ -3,12 +3,15 @@ const LANDING_HOSTS = new Set([
   'www.sfstairwayspotter.com',
 ]);
 
-export function shouldShowLandingPage(hostname, pathname) {
+export function shouldShowLandingPage(hostname, pathname, search = '') {
   const normalizedHost = hostname.toLowerCase();
   const normalizedPath = pathname.replace(/\/$/, '') || '/';
+  const isPasswordRecovery = new URLSearchParams(search).has('password-reset');
 
   return (
     normalizedPath === '/welcome' ||
-    (normalizedPath === '/' && LANDING_HOSTS.has(normalizedHost))
+    (normalizedPath === '/' &&
+      LANDING_HOSTS.has(normalizedHost) &&
+      !isPasswordRecovery)
   );
 }

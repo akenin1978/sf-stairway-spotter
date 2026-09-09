@@ -12,7 +12,8 @@ import './index.css';
 const PublicPage = getPublicPage(window.location.pathname);
 const showLandingPage = shouldShowLandingPage(
   window.location.hostname,
-  window.location.pathname
+  window.location.pathname,
+  window.location.search
 );
 
 // The map is intentionally a fixed-height app, but public information pages

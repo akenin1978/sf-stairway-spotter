@@ -18,4 +18,14 @@ describe('shouldShowLandingPage', () => {
   it('leaves legal routes available on the .com host', () => {
     expect(shouldShowLandingPage('sfstairwayspotter.com', '/privacy')).toBe(false);
   });
+
+  it('opens the app rather than the landing page for password recovery', () => {
+    expect(
+      shouldShowLandingPage(
+        'www.sfstairwayspotter.com',
+        '/',
+        '?password-reset=1'
+      )
+    ).toBe(false);
+  });
 });
