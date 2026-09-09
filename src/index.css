@@ -1184,6 +1184,10 @@ html.public-page-document #root {
   color: #b3261e;
 }
 
+.user-safety-menu-popover .user-safety-remove {
+  color: #6b3f00;
+}
+
 .safety-modal-backdrop {
   z-index: 120;
 }

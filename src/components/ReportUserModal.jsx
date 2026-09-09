@@ -94,6 +94,7 @@ export function UserSafetyMenu({
   person,
   onReport,
   onBlock,
+  onRemove,
   triggerContent = '•••',
   triggerClassName = '',
 }) {
@@ -112,6 +113,18 @@ export function UserSafetyMenu({
       </button>
       {open && (
         <span className="user-safety-menu-popover">
+          {onRemove && (
+            <button
+              type="button"
+              className="user-safety-remove"
+              onClick={() => {
+                setOpen(false);
+                onRemove(person);
+              }}
+            >
+              Remove friend
+            </button>
+          )}
           <button type="button" onClick={() => onReport(person)}>Report</button>
           <button type="button" className="user-safety-block" onClick={() => onBlock(person)}>
             Block

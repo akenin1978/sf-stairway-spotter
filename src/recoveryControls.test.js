@@ -28,6 +28,24 @@ describe('loading recovery and deletion security', () => {
     expect(settings).toContain('await onConfirmed()');
   });
 
+  it('defines a private self-service account deletion function', () => {
+    const migration = read(
+      '../supabase/migrations/20260909160000_add_account_deletion.sql'
+    );
+    expect(migration).toContain('security definer');
+    expect(migration).toContain('current_user_id uuid := auth.uid()');
+    expect(migration).toContain('delete from auth.users');
+    expect(migration).toContain('revoke execute on function public.delete_my_account() from anon');
+    expect(migration).toContain('grant execute on function public.delete_my_account() to authenticated');
+  });
+
+  it('keeps friend removal inside the overflow menu', () => {
+    const friends = read('./components/FriendsModal.jsx');
+    const safetyMenu = read('./components/ReportUserModal.jsx');
+    expect(friends).toContain('onRemove={() => confirmRemoveFriend(f)}');
+    expect(safetyMenu).toContain('Remove friend');
+  });
+
   it('stores and revokes Apple authorization credentials server-side', () => {
     const nativeAuth = read('./nativeAuth.js');
     const settings = read('./components/SettingsModal.jsx');

@@ -186,6 +186,7 @@ export default function SettingsModal({ onClose }) {
     if (!user) return;
     setDeleteConfirmationOpen(false);
     setDeleteStatus('deleting');
+    setErrorMsg('');
 
     // Clean up photo files first -- once the account row is gone, we'd
     // have no record of which files were even ours to remove.
@@ -220,11 +221,21 @@ export default function SettingsModal({ onClose }) {
 
     if (error) {
       setDeleteStatus('error');
-      setErrorMsg(`Couldn't delete your account: ${error.message}`);
+      setErrorMsg(
+        "We couldn't delete your account. Nothing was deleted. Check your connection and try again, or contact Support if this continues."
+      );
+      console.error('Account deletion failed', error);
       return;
     }
 
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      // Deleting auth.users invalidates the current session server-side. A
+      // local sign-out failure must not make a successful deletion look like
+      // it failed or keep the Settings dialog open.
+      console.warn('Local sign-out after account deletion failed', error);
+    }
     onClose();
   }
 
@@ -355,8 +366,14 @@ function DeleteIdentityDialog({ user, onCancel, onConfirmed }) {
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
-  const provider = user?.app_metadata?.provider ||
-    user?.identities?.[0]?.provider || 'email';
+  const identityProviders = (user?.identities || []).map(
+    (identity) => identity.provider
+  );
+  const provider = identityProviders.includes('apple')
+    ? 'apple'
+    : identityProviders.includes('google')
+      ? 'google'
+      : user?.app_metadata?.provider || identityProviders[0] || 'email';
 
   async function confirmIdentity(event) {
     event.preventDefault();

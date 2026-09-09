@@ -143,6 +143,12 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
     refresh();
   }
 
+  function confirmRemoveFriend(friend) {
+    const name = friend.friend_display_name || 'this friend';
+    if (!window.confirm(`Remove ${name} from your friends? You can send another request later.`)) return;
+    handleRemove(friend.friendship_id, `${name} was removed from your friends.`);
+  }
+
   function asSafetyPerson(friend) {
     return {
       user_id: friend.friend_user_id,
@@ -314,16 +320,11 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
                         </span>
                       )}
                     </span>
-                    <button
-                      className="friends-decline-button"
-                      onClick={() => handleRemove(f.friendship_id)}
-                    >
-                      Remove
-                    </button>
                     <UserSafetyMenu
                       person={asSafetyPerson(f)}
                       onReport={setReportingUser}
                       onBlock={handleBlock}
+                      onRemove={() => confirmRemoveFriend(f)}
                     />
                   </div>
                 ))}
