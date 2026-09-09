@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
+import {
+  addVerifiedCountsToFriends,
+  verifiedFriendLabel,
+} from '../friendProgress';
 import ReportUserModal, { UserSafetyMenu } from './ReportUserModal';
 
 export default function FriendsModal({ onClose, onOpenSettings }) {
@@ -17,7 +21,7 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
 
   async function refresh() {
     setLoading(true);
-    const [friendsResult, blockedResult, settingsResult] = await Promise.all([
+    const [friendsResult, blockedResult, settingsResult, progressResult] = await Promise.all([
       supabase.rpc('get_my_friends'),
       supabase.rpc('get_my_blocked_users'),
       supabase
@@ -25,8 +29,18 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
         .select('display_name')
         .eq('user_id', user.id)
         .maybeSingle(),
+      supabase.rpc('get_friend_verified_counts'),
     ]);
-    if (!friendsResult.error) setFriends(friendsResult.data || []);
+    if (!friendsResult.error) {
+      setFriends(
+        progressResult.error
+          ? friendsResult.data || []
+          : addVerifiedCountsToFriends(
+              friendsResult.data || [],
+              progressResult.data || []
+            )
+      );
+    }
     if (!blockedResult.error) setBlockedUsers(blockedResult.data || []);
     if (!settingsResult.error) {
       setMyUsername(settingsResult.data?.display_name?.trim() || '');
@@ -275,7 +289,14 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
               <div className="friends-list">
                 {accepted.map((f) => (
                   <div key={f.friendship_id} className="friends-row">
-                    <span className="friends-name">{f.friend_display_name}</span>
+                    <span className="friends-name friends-name-with-progress">
+                      <span>{f.friend_display_name}</span>
+                      {f.verified_count != null && (
+                        <span className="friends-verified-count">
+                          {verifiedFriendLabel(f.verified_count)}
+                        </span>
+                      )}
+                    </span>
                     <button
                       className="friends-decline-button"
                       onClick={() => handleRemove(f.friendship_id)}
