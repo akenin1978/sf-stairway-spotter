@@ -33,7 +33,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [spotMode, setSpotMode] = useState(false);
   const [spottedListOpen, setSpottedListOpen] = useState(false);
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, passwordRecovery, finishPasswordRecovery } = useAuth();
   const {
     count: checkedInCount,
     verifiedCount,
@@ -63,6 +63,10 @@ export default function App() {
       if (!seen) setShowOnboarding(true);
     }
   }, [loading]);
+
+  useEffect(() => {
+    if (passwordRecovery) setAuthOpen(true);
+  }, [passwordRecovery]);
 
   useEffect(() => {
     if (!user) {
@@ -322,7 +326,13 @@ export default function App() {
         />
       )}
 
-      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
+      {authOpen && (
+        <AuthModal
+          passwordRecovery={passwordRecovery}
+          onPasswordRecoveryFinished={finishPasswordRecovery}
+          onClose={() => setAuthOpen(false)}
+        />
+      )}
 
       {settingsOpen && (
         <SettingsModal onClose={() => setSettingsOpen(false)} />

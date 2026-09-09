@@ -3,4 +3,5 @@ export const LAUNCH_LINKS = {
   terms: 'https://www.sfstairwayspotter.com/terms',
   support: 'https://www.sfstairwayspotter.com/support',
   deleteAccount: 'https://www.sfstairwayspotter.com/delete-account',
+  passwordReset: 'https://www.sfstairwayspotter.com/?password-reset=1',
 };

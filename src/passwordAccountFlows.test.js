@@ -1,0 +1,29 @@
+import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+
+const authModal = fs.readFileSync(
+  new URL('./components/AuthModal.jsx', import.meta.url),
+  'utf8'
+);
+const authContext = fs.readFileSync(
+  new URL('./AuthContext.jsx', import.meta.url),
+  'utf8'
+);
+
+describe('email password account flows', () => {
+  it('requires matching passwords when creating an account', () => {
+    expect(authModal).toContain("mode === 'sign-up' && password !== confirmPassword");
+    expect(authModal).toContain('placeholder="Confirm password"');
+  });
+
+  it('sends password reset email without revealing whether an account exists', () => {
+    expect(authModal).toContain('resetPasswordForEmail');
+    expect(authModal).toContain('If an account exists for');
+  });
+
+  it('opens a new-password form for Supabase recovery links', () => {
+    expect(authContext).toContain("event === 'PASSWORD_RECOVERY'");
+    expect(authModal).toContain('supabase.auth.updateUser({ password })');
+    expect(authModal).toContain('Confirm new password');
+  });
+});

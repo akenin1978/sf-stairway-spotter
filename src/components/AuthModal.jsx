@@ -9,7 +9,11 @@ import {
   signInWithNativeProvider,
 } from '../nativeAuth';
 
-export default function AuthModal({ onClose }) {
+export default function AuthModal({
+  onClose,
+  passwordRecovery = false,
+  onPasswordRecoveryFinished = () => {},
+}) {
   const nativeApp = isNativeApp();
   const androidApp = isAndroidApp();
   const { user } = useAuth();
@@ -17,10 +21,13 @@ export default function AuthModal({ onClose }) {
   const [mode, setMode] = useState('sign-in'); // 'sign-in' | 'sign-up'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   // idle | submitting | loading-progress | success | error
   const [status, setStatus] = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const awaitingProgress = status === 'loading-progress';
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [resetComplete, setResetComplete] = useState(false);
 
   useEffect(() => {
     if (awaitingProgress && user && accountProgressReady) onClose();
@@ -34,6 +41,12 @@ export default function AuthModal({ onClose }) {
     e.preventDefault();
     setStatus('submitting');
     setErrorMsg('');
+
+    if (mode === 'sign-up' && password !== confirmPassword) {
+      setStatus('error');
+      setErrorMsg('Passwords do not match. Please try again.');
+      return;
+    }
 
     const { error } =
       mode === 'sign-in'
@@ -54,6 +67,41 @@ export default function AuthModal({ onClose }) {
     } else {
       waitForAccountProgress();
     }
+  }
+
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    setStatus('submitting');
+    setErrorMsg('');
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: LAUNCH_LINKS.passwordReset,
+    });
+    if (error) {
+      setStatus('error');
+      setErrorMsg(error.message);
+      return;
+    }
+    setStatus('success');
+  }
+
+  async function handlePasswordReset(e) {
+    e.preventDefault();
+    setStatus('submitting');
+    setErrorMsg('');
+    if (password !== confirmPassword) {
+      setStatus('error');
+      setErrorMsg('Passwords do not match. Please try again.');
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      setStatus('error');
+      setErrorMsg(error.message);
+      return;
+    }
+    setResetComplete(true);
+    setStatus('success');
+    onPasswordRecoveryFinished();
   }
 
   async function handleGoogleSignIn() {
@@ -121,7 +169,82 @@ export default function AuthModal({ onClose }) {
           </button>
         )}
 
-        {awaitingProgress ? (
+        {passwordRecovery ? (
+          resetComplete ? (
+            <div>
+              <h2>Password updated</h2>
+              <p>Your new password is ready to use.</p>
+              <button type="button" onClick={onClose}>Done</button>
+            </div>
+          ) : (
+            <form onSubmit={handlePasswordReset}>
+              <h2>Choose a new password</h2>
+              <input
+                type="password"
+                placeholder="New password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+              {status === 'error' && <p className="modal-error">{errorMsg}</p>}
+              <button type="submit" disabled={status === 'submitting'}>
+                {status === 'submitting' ? 'Please wait…' : 'Update password'}
+              </button>
+            </form>
+          )
+        ) : forgotPassword ? (
+          status === 'success' ? (
+            <div>
+              <h2>Check your email</h2>
+              <p>
+                If an account exists for <strong>{email}</strong>, we sent a
+                link to reset its password.
+              </p>
+              <button type="button" onClick={onClose}>Done</button>
+            </div>
+          ) : (
+            <form onSubmit={handleForgotPassword}>
+              <h2>Reset your password</h2>
+              <p>Enter your email address and we’ll send you a reset link.</p>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+              />
+              {status === 'error' && <p className="modal-error">{errorMsg}</p>}
+              <button type="submit" disabled={status === 'submitting'}>
+                {status === 'submitting' ? 'Please wait…' : 'Send reset link'}
+              </button>
+              <p className="auth-switch">
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => {
+                    setForgotPassword(false);
+                    setStatus('idle');
+                    setErrorMsg('');
+                  }}
+                >
+                  Back to sign in
+                </button>
+              </p>
+            </form>
+          )
+        ) : awaitingProgress ? (
           <div className="auth-progress-loading" role="status" aria-live="polite">
             <h2>Loading your progress…</h2>
             <p>Getting your spotted and verified stairways ready.</p>
@@ -178,6 +301,7 @@ export default function AuthModal({ onClose }) {
                 autoComplete="email"
                 required
               />
+
               <input
                 type="password"
                 placeholder="Password"
@@ -189,6 +313,18 @@ export default function AuthModal({ onClose }) {
                 minLength={6}
                 required
               />
+
+              {mode === 'sign-up' && (
+                <input
+                  type="password"
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  minLength={6}
+                  required
+                />
+              )}
 
               {status === 'error' && (
                 <p className="modal-error">{errorMsg}</p>
@@ -202,6 +338,22 @@ export default function AuthModal({ onClose }) {
                     : 'Create account'}
               </button>
             </form>
+
+            {mode === 'sign-in' && (
+              <p className="auth-switch">
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => {
+                    setForgotPassword(true);
+                    setStatus('idle');
+                    setErrorMsg('');
+                  }}
+                >
+                  Forgot your password?
+                </button>
+              </p>
+            )}
 
             <p className="auth-legal">
               By continuing, you agree to the{' '}

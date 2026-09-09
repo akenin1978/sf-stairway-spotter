@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   // is already stored (e.g. the user signed in on a previous visit) -- this
   // avoids a flash of "signed out" UI while that check is in flight.
   const [loading, setLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -20,8 +21,9 @@ export function AuthProvider({ children }) {
     // Keeps session state in sync for every future auth event: sign in,
     // sign out, token refresh, and completing an OAuth (Google) redirect.
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSession(session);
+        if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       }
     );
 
@@ -40,6 +42,8 @@ export function AuthProvider({ children }) {
     user: session?.user ?? null,
     loading,
     signOut,
+    passwordRecovery,
+    finishPasswordRecovery: () => setPasswordRecovery(false),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
