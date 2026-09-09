@@ -7,7 +7,13 @@ import {
 } from 'react';
 import { supabase } from './supabaseClient';
 import { useAuth } from './AuthContext';
-import { NEIGHBORHOOD_BADGES, MILESTONE_BADGES, SPECIAL_BADGES, milestoneTier } from './badgeDefinitions';
+import {
+  NEIGHBORHOOD_BADGES,
+  MILESTONE_BADGES,
+  SPECIAL_BADGES,
+  milestoneTier,
+  shouldCelebrateMilestone,
+} from './badgeDefinitions';
 import { fetchVerifiedStairwayIds } from './verifiedBadgeProgress';
 
 const BadgesContext = createContext(null);
@@ -149,11 +155,22 @@ export function BadgesProvider({ children }) {
           milestone.threshold === 'all' ? totalStairways : milestone.threshold;
         if (totalVerified >= threshold) {
           await awardBadge(milestone.id);
-          newlyAwarded.push({
-            id: milestone.id,
-            name: milestone.name,
-            tier: milestoneTier(milestone.threshold),
-          });
+          // Backfill newly introduced milestones silently for testers who have
+          // already passed them. The celebration is only useful at the moment
+          // the verified total actually reaches that milestone.
+          if (
+            shouldCelebrateMilestone(
+              totalVerified,
+              milestone.threshold,
+              totalStairways
+            )
+          ) {
+            newlyAwarded.push({
+              id: milestone.id,
+              name: milestone.name,
+              tier: milestoneTier(milestone.threshold),
+            });
+          }
         }
       }
 

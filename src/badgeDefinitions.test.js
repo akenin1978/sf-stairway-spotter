@@ -4,6 +4,7 @@ import {
   SPECIAL_BADGES,
   NEIGHBORHOOD_BADGES,
   milestoneTier,
+  shouldCelebrateMilestone,
 } from './badgeDefinitions.js';
 
 describe('milestoneTier', () => {
@@ -47,5 +48,19 @@ describe('badge definitions', () => {
 
   it('preserves the special Best of the Best badge id', () => {
     expect(SPECIAL_BADGES[0]?.id).toBe('special-best-of-the-best');
+  });
+});
+
+describe('shouldCelebrateMilestone', () => {
+  it('celebrates only when the current verification reaches the milestone', () => {
+    expect(shouldCelebrateMilestone(5, 5, 1200)).toBe(true);
+    expect(shouldCelebrateMilestone(10, 10, 1200)).toBe(true);
+    expect(shouldCelebrateMilestone(24, 5, 1200)).toBe(false);
+    expect(shouldCelebrateMilestone(24, 10, 1200)).toBe(false);
+  });
+
+  it('celebrates the all-stairways badge at the current map total', () => {
+    expect(shouldCelebrateMilestone(1200, 'all', 1200)).toBe(true);
+    expect(shouldCelebrateMilestone(1199, 'all', 1200)).toBe(false);
   });
 });

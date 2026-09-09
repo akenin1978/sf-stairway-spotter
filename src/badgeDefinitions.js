@@ -164,3 +164,8 @@ export function milestoneTier(threshold) {
   if (threshold >= 200) return 'silver';
   return 'bronze';
 }
+
+export function shouldCelebrateMilestone(totalVerified, threshold, totalStairways) {
+  const resolvedThreshold = threshold === 'all' ? totalStairways : threshold;
+  return totalVerified === resolvedThreshold;
+}
