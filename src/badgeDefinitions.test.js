@@ -39,6 +39,8 @@ describe('badge definitions', () => {
 
   it('preserves critical permanent milestone ids', () => {
     expect(MILESTONE_BADGES.find((b) => b.threshold === 1)?.id).toBe('milestone-1');
+    expect(MILESTONE_BADGES.find((b) => b.threshold === 5)?.name).toBe('High Five');
+    expect(MILESTONE_BADGES.find((b) => b.threshold === 10)?.name).toBe('Ten Pack');
     expect(MILESTONE_BADGES.find((b) => b.threshold === 1000)?.id).toBe('milestone-1000');
     expect(MILESTONE_BADGES.find((b) => b.threshold === 'all')?.id).toBe('milestone-all');
   });

@@ -415,6 +415,22 @@ export default function StairwayMap({
   } = useCheckIns();
   const { checkAndAwardBadges } = useBadges();
 
+  function acknowledgeNewStairwayNotice(stairwayToShow = null) {
+    if (newStairwayNotice?.storageKey && newStairwayNotice?.snapshotValue) {
+      try {
+        localStorage.setItem(
+          newStairwayNotice.storageKey,
+          newStairwayNotice.snapshotValue
+        );
+      } catch {
+        // If storage is unavailable, dismiss for this session. The notice may
+        // return later rather than being silently lost before acknowledgment.
+      }
+    }
+    if (stairwayToShow) setSelected(stairwayToShow);
+    setNewStairwayNotice(null);
+  }
+
   // A stairway selected before signing in or out should never carry over
   // into the new session's clean home view.
   useEffect(() => {
@@ -473,21 +489,13 @@ export default function StairwayMap({
     }, 1500);
   }
 
-  // Shared logic for adding a check-in + checking for newly-earned badges.
+  // Shared logic for adding or removing a self-reported Spotted entry.
+  // Spotted is an unlimited private checklist; only verified visits earn badges.
   // Pulled out of the button's onClick so both the direct-toggle path and
   // the "confirmed via dialog" path call the exact same code.
   async function performCheckInToggle(stairway) {
     const wasAdding = !checkedInIds.has(stairway.id);
     const result = await toggleCheckIn(stairway.id);
-
-    if (wasAdding && !result.error) {
-      const updatedIds = new Set(checkedInIds).add(stairway.id);
-      checkAndAwardBadges(stairways, updatedIds, stairway.id)
-        .then((newBadges) => {
-          if (newBadges && newBadges.length > 0) setBadgeQueue(newBadges);
-        })
-        .catch((err) => console.error('Badge check failed', err));
-    }
 
     if (!result.error) {
       showCompletionMessage(
@@ -728,8 +736,7 @@ export default function StairwayMap({
       return false;
     } else {
       setVerifyStatus('idle');
-      const updatedIds = new Set(checkedInIds).add(stairway.id);
-      checkAndAwardBadges(stairways, updatedIds, stairway.id)
+      checkAndAwardBadges(stairways, stairway.id)
         .then((newBadges) => {
           if (newBadges && newBadges.length > 0) setBadgeQueue(newBadges);
         })
@@ -1332,10 +1339,12 @@ export default function StairwayMap({
               ...notice,
               stairway: stairwaysWithPhotos[0],
               stairways: stairwaysWithPhotos,
+              storageKey,
+              snapshotValue: serializeKnownStairwayIds(allRows),
             });
+          } else {
+            localStorage.setItem(storageKey, serializeKnownStairwayIds(allRows));
           }
-
-          localStorage.setItem(storageKey, serializeKnownStairwayIds(allRows));
         }
       } catch {
         // Private browsing/storage restrictions should never block the map.
@@ -2101,11 +2110,8 @@ export default function StairwayMap({
           stairwayCount={newStairwayNotice.stairwayCount}
           stairways={newStairwayNotice.stairways}
           addedCount={newStairwayNotice.addedCount}
-          onDismiss={() => setNewStairwayNotice(null)}
-          onShow={(stairway) => {
-            setSelected(stairway);
-            setNewStairwayNotice(null);
-          }}
+          onDismiss={() => acknowledgeNewStairwayNotice()}
+          onShow={(stairway) => acknowledgeNewStairwayNotice(stairway)}
         />
       )}
 

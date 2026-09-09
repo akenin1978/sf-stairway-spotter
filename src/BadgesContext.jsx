@@ -8,6 +8,7 @@ import {
 import { supabase } from './supabaseClient';
 import { useAuth } from './AuthContext';
 import { NEIGHBORHOOD_BADGES, MILESTONE_BADGES, SPECIAL_BADGES, milestoneTier } from './badgeDefinitions';
+import { fetchVerifiedStairwayIds } from './verifiedBadgeProgress';
 
 const BadgesContext = createContext(null);
 
@@ -17,29 +18,36 @@ export function BadgesProvider({ children }) {
   const { user } = useAuth();
   const [earnedBadgeIds, setEarnedBadgeIds] = useState(new Set());
   const [earnedBadgeDates, setEarnedBadgeDates] = useState(new Map());
+  const [verifiedIds, setVerifiedIds] = useState(new Set());
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
       setEarnedBadgeIds(new Set());
       setEarnedBadgeDates(new Map());
+      setVerifiedIds(new Set());
       return;
     }
 
     let isMounted = true;
     setLoading(true);
 
-    supabase
-      .from('badges_earned')
-      .select('badge_id, earned_at')
-      .eq('user_id', user.id)
-      .then(({ data, error }) => {
+    Promise.all([
+      supabase
+        .from('badges_earned')
+        .select('badge_id, earned_at')
+        .eq('user_id', user.id),
+      fetchVerifiedStairwayIds(supabase, user.id),
+    ]).then(([badgeResult, verifiedResult]) => {
         if (!isMounted) return;
-        if (!error && data) {
-          setEarnedBadgeIds(new Set(data.map((row) => row.badge_id)));
+        if (!badgeResult.error && badgeResult.data) {
+          setEarnedBadgeIds(new Set(badgeResult.data.map((row) => row.badge_id)));
           setEarnedBadgeDates(
-            new Map(data.map((row) => [row.badge_id, row.earned_at]))
+            new Map(badgeResult.data.map((row) => [row.badge_id, row.earned_at]))
           );
+        }
+        if (!verifiedResult.error && verifiedResult.data) {
+          setVerifiedIds(verifiedResult.data);
         }
         setLoading(false);
       });
@@ -79,40 +87,49 @@ export function BadgesProvider({ children }) {
     [user]
   );
 
-  // The core awarding check. Runs right after a check-in succeeds
-  // (self-reported or photo-verified -- badges count both). Deliberately
-  // scoped to just what's relevant to the ONE stairway just spotted,
-  // rather than re-scanning all ~74 badges on every check-in:
+  // The core awarding check. Runs only after an in-person photo verification
+  // succeeds. Self-reported Spotted entries remain a private checklist and do
+  // not earn badges. Previously earned badge records are deliberately left
+  // untouched; this rule applies prospectively to new awards. Deliberately
+  // scoped to just what's relevant to the ONE stairway just verified,
+  // rather than re-scanning all badges on every verification:
   //   - that stairway's neighborhood (did this just complete it?)
   //   - the new running total (did this just cross a milestone?)
   //   - Best of the Best, only if the stairway just spotted was a 5
   //
   // `stairways` is the full list already loaded by the map (with
-  // neighborhood/rating on each), and `checkedInIds` is the user's
-  // current full set of spotted stairway ids, including the one just
-  // added.
+  // neighborhood/rating on each). The private verified_visits history is the
+  // source of truth, including visits that predate this prospective rule.
   const checkAndAwardBadges = useCallback(
-    async (stairways, checkedInIds, spottedStairwayId) => {
+    async (stairways, verifiedStairwayId) => {
       const newlyAwarded = [];
       if (!user || !stairways || stairways.length === 0) return newlyAwarded;
 
-      const spottedStairway = stairways.find(
-        (s) => s.id === spottedStairwayId
+      const verifiedResult = await fetchVerifiedStairwayIds(supabase, user.id);
+      if (verifiedResult.error) {
+        console.error('Failed to load verified badge progress', verifiedResult.error);
+        return newlyAwarded;
+      }
+      const verifiedIds = verifiedResult.data;
+      setVerifiedIds(new Set(verifiedIds));
+
+      const verifiedStairway = stairways.find(
+        (s) => s.id === verifiedStairwayId
       );
-      if (!spottedStairway) return newlyAwarded;
+      if (!verifiedStairway) return newlyAwarded;
 
       // --- Neighborhood completion ---
       const neighborhoodBadge = NEIGHBORHOOD_BADGES.find(
-        (b) => b.neighborhood === spottedStairway.neighborhood
+        (b) => b.neighborhood === verifiedStairway.neighborhood
       );
       if (neighborhoodBadge && !earnedBadgeIds.has(neighborhoodBadge.id)) {
         const stairwaysInNeighborhood = stairways.filter(
-          (s) => s.neighborhood === spottedStairway.neighborhood
+          (s) => s.neighborhood === verifiedStairway.neighborhood
         );
-        const allSpotted = stairwaysInNeighborhood.every((s) =>
-          checkedInIds.has(s.id)
+        const allVerified = stairwaysInNeighborhood.every((s) =>
+          verifiedIds.has(s.id)
         );
-        if (allSpotted) {
+        if (allVerified) {
           await awardBadge(neighborhoodBadge.id);
           newlyAwarded.push({
             id: neighborhoodBadge.id,
@@ -124,13 +141,13 @@ export function BadgesProvider({ children }) {
       }
 
       // --- Milestones ---
-      const totalSpotted = checkedInIds.size;
+      const totalVerified = verifiedIds.size;
       const totalStairways = stairways.length;
       for (const milestone of MILESTONE_BADGES) {
         if (earnedBadgeIds.has(milestone.id)) continue;
         const threshold =
           milestone.threshold === 'all' ? totalStairways : milestone.threshold;
-        if (totalSpotted >= threshold) {
+        if (totalVerified >= threshold) {
           await awardBadge(milestone.id);
           newlyAwarded.push({
             id: milestone.id,
@@ -142,14 +159,14 @@ export function BadgesProvider({ children }) {
 
       // --- Best of the Best ---
       if (
-        spottedStairway.rating === 5 &&
+        verifiedStairway.rating === 5 &&
         !earnedBadgeIds.has(BEST_OF_THE_BEST_ID)
       ) {
         const fiveStarStairways = stairways.filter((s) => s.rating === 5);
-        const allFiveStarSpotted = fiveStarStairways.every((s) =>
-          checkedInIds.has(s.id)
+        const allFiveStarVerified = fiveStarStairways.every((s) =>
+          verifiedIds.has(s.id)
         );
-        if (allFiveStarSpotted) {
+        if (allFiveStarVerified) {
           await awardBadge(BEST_OF_THE_BEST_ID);
           const bestBadge = SPECIAL_BADGES.find((b) => b.id === BEST_OF_THE_BEST_ID);
           newlyAwarded.push({
@@ -168,6 +185,7 @@ export function BadgesProvider({ children }) {
   const value = {
     earnedBadgeIds,
     earnedBadgeDates,
+    verifiedIds,
     loading,
     checkAndAwardBadges,
   };

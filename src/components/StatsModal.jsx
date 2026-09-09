@@ -1,7 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns } from '../CheckInsContext';
+import {
+  goalOrientedNeighborhoodSort,
+  statsNeighborhoodGroup,
+  STATS_NEIGHBORHOOD_GROUP_LABELS,
+} from '../neighborhoodSort';
 
 // Display-only shortenings for a few long neighborhood names in this
 // list -- the underlying data (used for badges and the sheet sync)
@@ -89,23 +94,7 @@ export default function StatsModal({ onClose }) {
         spotted,
         pct: total > 0 ? Math.round((spotted / total) * 100) : 0,
       }))
-      .sort((a, b) => {
-        // Three tiers: in-progress neighborhoods (the actionable ones --
-        // a little more effort finishes them) lead, sorted by how close
-        // to done they are. Fully-complete neighborhoods move to their
-        // own group after that -- nothing left to do there, so they
-        // shouldn't compete for the top slot just for being small (a
-        // tiny 1/1 neighborhood hitting 100% used to jump straight to
-        // the top, which wasn't useful). Not-yet-started stays last.
-        const tier = (n) => (n.pct === 100 ? 1 : n.spotted > 0 ? 0 : 2);
-        const aTier = tier(a);
-        const bTier = tier(b);
-        if (aTier !== bTier) return aTier - bTier;
-        if (aTier === 0) {
-          return b.pct - a.pct || b.spotted - a.spotted || a.name.localeCompare(b.name);
-        }
-        return a.name.localeCompare(b.name);
-      });
+      .sort(goalOrientedNeighborhoodSort);
 
     return { totalStairways, totalSpotted, neighborhoods };
   }, [stairways, checkedInIds]);
@@ -148,8 +137,19 @@ export default function StatsModal({ onClose }) {
 
             <h3 className="stats-section-heading">Neighborhood completion</h3>
             <div className="stats-neighborhood-list">
-              {stats.neighborhoods.map((n) => (
-                <div key={n.name} className="stats-neighborhood-row">
+              {stats.neighborhoods.map((n, index) => {
+                const group = statsNeighborhoodGroup(n);
+                const previousGroup = index > 0
+                  ? statsNeighborhoodGroup(stats.neighborhoods[index - 1])
+                  : null;
+                return (
+                <Fragment key={n.name}>
+                  {group !== previousGroup && (
+                    <h4 className="stats-neighborhood-group-heading">
+                      {STATS_NEIGHBORHOOD_GROUP_LABELS[group]}
+                    </h4>
+                  )}
+                  <div className="stats-neighborhood-row">
                   <span className="stats-neighborhood-name">{NEIGHBORHOOD_DISPLAY_OVERRIDES[n.name] || n.name}</span>
                   <div className="stats-neighborhood-bar-track">
                     <div
@@ -160,8 +160,10 @@ export default function StatsModal({ onClose }) {
                   <span className="stats-neighborhood-count">
                     {n.spotted}/{n.total}
                   </span>
-                </div>
-              ))}
+                  </div>
+                </Fragment>
+                );
+              })}
             </div>
           </>
         )}

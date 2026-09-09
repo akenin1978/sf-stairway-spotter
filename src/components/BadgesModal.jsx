@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { useCheckIns } from '../CheckInsContext';
 import { useBadges } from '../BadgesContext';
 import {
   NEIGHBORHOOD_BADGES,
@@ -65,8 +64,7 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
 }
 
 export default function BadgesModal({ onClose }) {
-  const { checkedInIds } = useCheckIns();
-  const { earnedBadgeIds, loading: badgesLoading } = useBadges();
+  const { earnedBadgeIds, verifiedIds, loading: badgesLoading } = useBadges();
   const [stairways, setStairways] = useState([]);
   const [loadingStairways, setLoadingStairways] = useState(true);
 
@@ -118,22 +116,29 @@ export default function BadgesModal({ onClose }) {
     const progress = new Map();
     stairways.forEach((stairway) => {
       const current = progress.get(stairway.neighborhood) || {
-        spotted: 0,
+        verified: 0,
         total: 0,
       };
       current.total += 1;
-      if (checkedInIds.has(stairway.id)) current.spotted += 1;
+      if (verifiedIds.has(stairway.id)) current.verified += 1;
       progress.set(stairway.neighborhood, current);
     });
     return progress;
-  }, [stairways, checkedInIds]);
+  }, [stairways, verifiedIds]);
 
-  const totalSpotted = checkedInIds.size;
+  const totalVerified = verifiedIds.size;
   const totalStairways = stairways.length;
+  const sortedNeighborhoodBadges = useMemo(
+    () =>
+      [...NEIGHBORHOOD_BADGES].sort((a, b) =>
+        a.neighborhood.localeCompare(b.neighborhood)
+      ),
+    []
+  );
 
   const fiveStarStairways = stairways.filter((s) => s.rating === 5);
-  const fiveStarSpotted = fiveStarStairways.filter((s) =>
-    checkedInIds.has(s.id)
+  const fiveStarVerified = fiveStarStairways.filter((s) =>
+    verifiedIds.has(s.id)
   );
 
   return (
@@ -147,6 +152,7 @@ export default function BadgesModal({ onClose }) {
         </button>
 
         <h2>Badges</h2>
+        <p className="modal-context">Badges are earned through verified visits.</p>
 
         {loading ? (
           <p className="modal-context">Loading…</p>
@@ -154,10 +160,10 @@ export default function BadgesModal({ onClose }) {
           <>
             <h3 className="badges-section-heading">Neighborhoods</h3>
             <div className="badges-grid">
-              {NEIGHBORHOOD_BADGES.map((badge) => {
-                const { spotted, total } =
+              {sortedNeighborhoodBadges.map((badge) => {
+                const { verified, total } =
                   neighborhoodProgressByName.get(badge.neighborhood) || {
-                    spotted: 0,
+                    verified: 0,
                     total: 0,
                   };
                 return (
@@ -165,9 +171,9 @@ export default function BadgesModal({ onClose }) {
                     key={badge.id}
                     name={badge.name}
                     subtitle={badge.neighborhood}
-                    progressLabel={total > 0 ? `${spotted}/${total}` : null}
+                    progressLabel={total > 0 ? `${verified}/${total}` : null}
                     earned={earnedBadgeIds.has(badge.id)}
-                    notificationCount={total - spotted}
+                    notificationCount={total - verified}
                     tier="neighborhood"
                   />
                 );
@@ -183,7 +189,7 @@ export default function BadgesModal({ onClose }) {
                   <BadgeMedallion
                     key={badge.id}
                     name={badge.name}
-                    progressLabel={`${Math.min(totalSpotted, threshold)}/${threshold}`}
+                    progressLabel={`${Math.min(totalVerified, threshold)}/${threshold}`}
                     earned={earnedBadgeIds.has(badge.id)}
                     tier={milestoneTier(badge.threshold)}
                   />
@@ -200,13 +206,13 @@ export default function BadgesModal({ onClose }) {
                   subtitle={badge.description}
                   progressLabel={
                     badge.id === 'special-best-of-the-best'
-                      ? `${fiveStarSpotted.length}/${fiveStarStairways.length}`
+                      ? `${fiveStarVerified.length}/${fiveStarStairways.length}`
                       : null
                   }
                   earned={earnedBadgeIds.has(badge.id)}
                   notificationCount={
                     badge.id === 'special-best-of-the-best'
-                      ? fiveStarStairways.length - fiveStarSpotted.length
+                      ? fiveStarStairways.length - fiveStarVerified.length
                       : 0
                   }
                   tier="special"

@@ -19,6 +19,15 @@ describe('stairway card regressions', () => {
     expect(spottedFlow).not.toContain('closeSelectedAfterSuccess');
   });
 
+  it('does not award badges from self-reported spotted entries', () => {
+    const start = source.indexOf('async function performCheckInToggle');
+    const end = source.indexOf('// --- Photo verification state ---', start);
+    const spottedFlow = source.slice(start, end);
+
+    expect(spottedFlow).not.toContain('checkAndAwardBadges');
+    expect(spottedFlow).toContain("'Spotted! ✓'");
+  });
+
   it('shows success feedback without replacing the card controls', () => {
     expect(source).toContain('{completionMessage && (');
     expect(source).not.toContain('{completionMessage ? (');

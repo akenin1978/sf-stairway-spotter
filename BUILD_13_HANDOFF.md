@@ -58,6 +58,20 @@ Relevant files:
 - `src/friendRequests.test.js`
 - `src/index.css`
 
+## Additional fixes approved for Build 13
+
+- Public Support, Privacy, Terms, and Delete Account pages use normal document
+  scrolling so iOS Safari no longer snaps away from the top of the page.
+- New-stairway alerts remain pending until the person dismisses the alert or
+  opens one of the newly added stairways.
+- Spotted remains an unlimited private checklist and no longer awards badges.
+- Future badge awards and visible badge progress use unique stairways in the
+  signed-in person's verified-visit history. Badges already earned are retained.
+- The verified milestone sequence now includes **High Five** at five unique
+  verified stairways and **Ten Pack** at ten.
+- Neighborhood badges are alphabetical. Stats groups neighborhoods by **Closest
+  to completing**, **In progress**, **Completed**, and **Not started**.
+
 ## Other code already after the Build 12 baseline
 
 These commits are also on `main` and should remain in Build 13 unless Alexandra
@@ -154,4 +168,3 @@ this release.
 > committed on `main`. Preserve the listed unrelated untracked files. Audit the
 > exact Build 12-to-13 diff, run all automated and native checks, and stop for my
 > explicit approval before uploading or releasing anything.
-

@@ -117,6 +117,8 @@ export const NEIGHBORHOOD_BADGES = [
 // be updated by hand.
 export const MILESTONE_BADGES = [
   { id: 'milestone-1', threshold: 1, name: 'First Steps' },
+  { id: 'milestone-5', threshold: 5, name: 'High Five' },
+  { id: 'milestone-10', threshold: 10, name: 'Ten Pack' },
   { id: 'milestone-25', threshold: 25, name: 'Quarter Climber' },
   { id: 'milestone-50', threshold: 50, name: 'Half-Century Hiker' },
   { id: 'milestone-100', threshold: 100, name: 'Century Climber' },

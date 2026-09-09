@@ -17,7 +17,7 @@ import { TIER_COLORS } from '../badgeDefinitions';
  * Usage:
  *   const [badgeQueue, setBadgeQueue] = useState([]);
  *   ...after check-in...
- *   const newBadges = await checkAndAwardBadges(userId);
+ *   const newBadges = await checkAndAwardBadges(stairways, stairwayId);
  *   if (newBadges.length > 0) setBadgeQueue(newBadges);
  *   ...
  *   {badgeQueue.length > 0 && (

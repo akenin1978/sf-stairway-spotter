@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   findNewStairwayNotice,
   knownStairwayIdsKey,
@@ -9,6 +10,10 @@ const stairways = [
   { id: 'older', updated_at: '2026-08-20T12:00:00Z' },
   { id: 'newest', updated_at: '2026-08-27T12:00:00Z' },
 ];
+const mapSource = readFileSync(
+  new URL('./components/StairwayMap.jsx', import.meta.url),
+  'utf8'
+);
 
 describe('new stairway notices', () => {
   it('stays quiet when there is no previous snapshot', () => {
@@ -48,5 +53,11 @@ describe('new stairway notices', () => {
 
   it('serializes the exact IDs for the next visit', () => {
     expect(serializeKnownStairwayIds(stairways)).toBe('["older","newest"]');
+  });
+
+  it('does not mark additions known until the notice is acknowledged', () => {
+    expect(mapSource).toContain('snapshotValue: serializeKnownStairwayIds(allRows)');
+    expect(mapSource).toContain('function acknowledgeNewStairwayNotice');
+    expect(mapSource).toContain('onDismiss={() => acknowledgeNewStairwayNotice()}');
   });
 });

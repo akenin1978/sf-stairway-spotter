@@ -652,11 +652,16 @@ html, body, #root {
 }
 
 /* --- Public launch pages --- */
+html.public-page-document,
+html.public-page-document body,
+html.public-page-document #root {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
 .public-page {
-  height: 100%;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  min-height: 100vh;
   padding: max(28px, env(safe-area-inset-top)) 18px
     max(28px, env(safe-area-inset-bottom));
   background: #f5f4ff;
@@ -2598,6 +2603,19 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.stats-neighborhood-group-heading {
+  margin: 12px 0 2px;
+  color: #6b6975;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.stats-neighborhood-group-heading:first-child {
+  margin-top: 0;
 }
 
 .stats-neighborhood-row {

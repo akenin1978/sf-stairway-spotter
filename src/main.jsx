@@ -15,6 +15,14 @@ const showLandingPage = shouldShowLandingPage(
   window.location.pathname
 );
 
+// The map is intentionally a fixed-height app, but public information pages
+// should use Safari's normal document scrolling. A nested overflow container
+// can fight the collapsing iOS address bar and snap the page back down.
+document.documentElement.classList.toggle(
+  'public-page-document',
+  Boolean(PublicPage)
+);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {showLandingPage ? (
