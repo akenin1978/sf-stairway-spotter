@@ -27,4 +27,19 @@ describe('loading recovery and deletion security', () => {
     expect(settings).toContain('signInWithNativeProvider(provider)');
     expect(settings).toContain('await onConfirmed()');
   });
+
+  it('stores and revokes Apple authorization credentials server-side', () => {
+    const nativeAuth = read('./nativeAuth.js');
+    const settings = read('./components/SettingsModal.jsx');
+    const client = read('./appleTokenRevocation.js');
+    const edgeFunction = read('../supabase/functions/apple-token/index.ts');
+    const migration = read('../supabase/migrations/20260909130000_add_apple_auth_credentials.sql');
+
+    expect(nativeAuth).toContain('storeAppleAuthorizationCode');
+    expect(settings).toContain('await revokeAppleAuthorization()');
+    expect(client).toContain("body: { action: 'revoke' }");
+    expect(edgeFunction).toContain("appleRequest('revoke'");
+    expect(edgeFunction).toContain('AES-GCM');
+    expect(migration).toContain('revoke all on table public.apple_auth_credentials');
+  });
 });

@@ -1,6 +1,7 @@
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { supabase } from './supabaseClient';
 import { isAndroidApp, isNativeApp } from './nativeDevice';
+import { storeAppleAuthorizationCode } from './appleTokenRevocation';
 
 const APPLE_CLIENT_ID = 'com.sfstairwayspotter.app';
 const googleIOSClientId = import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID;
@@ -91,6 +92,16 @@ export async function signInWithNativeProvider(provider) {
   if (error) throw error;
 
   if (provider === 'apple') {
+    const authorizationCode =
+      login.result?.authorizationCode || login.result?.accessToken?.token;
+    try {
+      await storeAppleAuthorizationCode(authorizationCode);
+    } catch (error) {
+      // Authentication itself has succeeded. Do not strand the user on the
+      // sign-in screen if credential retention is temporarily unavailable;
+      // a fresh Apple confirmation is requested again before deletion.
+      console.warn('Could not retain Apple revocation credential', error);
+    }
     const { givenName, familyName } = login.result.profile ?? {};
     const fullName = [givenName, familyName].filter(Boolean).join(' ');
     if (fullName) {

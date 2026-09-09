@@ -8,6 +8,10 @@ import { confirmLeaderboardSettingChange } from '../leaderboardSettings';
 import useDialogFocus from './useDialogFocus';
 import { isNativeApp } from '../nativeDevice';
 import { signInWithNativeProvider } from '../nativeAuth';
+import {
+  revokeAppleAuthorization,
+  userUsesApple,
+} from '../appleTokenRevocation';
 
 const profanityFilter = new Filter();
 
@@ -198,6 +202,17 @@ export default function SettingsModal({ onClose }) {
           "We couldn't delete your verification photos, so your account was not deleted. Please try again."
         );
         return;
+      }
+    }
+
+    if (userUsesApple(user)) {
+      try {
+        await revokeAppleAuthorization();
+      } catch (error) {
+        // Apple directs apps to fulfill the deletion request even if the
+        // credential needed for automatic revocation is unavailable. Log the
+        // failure for operational follow-up, but never retain the account.
+        console.error('Apple authorization could not be revoked', error);
       }
     }
 
