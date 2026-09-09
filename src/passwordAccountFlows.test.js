@@ -26,4 +26,15 @@ describe('email password account flows', () => {
     expect(authModal).toContain('supabase.auth.updateUser({ password })');
     expect(authModal).toContain('Confirm new password');
   });
+
+  it('lets people show or hide every password field', () => {
+    expect(authModal).toContain("type={visible ? 'text' : 'password'}");
+    expect(authModal).toContain("visible ? 'Hide password' : 'Show password'");
+  });
+
+  it('can resend an account confirmation email', () => {
+    expect(authModal).toContain("supabase.auth.resend({ type: 'signup', email })");
+    expect(authModal).toContain('Resend confirmation email');
+    expect(authModal).toContain('A new confirmation email has been sent.');
+  });
 });

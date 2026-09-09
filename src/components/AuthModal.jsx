@@ -28,6 +28,9 @@ export default function AuthModal({
   const awaitingProgress = status === 'loading-progress';
   const [forgotPassword, setForgotPassword] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [resendStatus, setResendStatus] = useState('idle');
+  const [resendError, setResendError] = useState('');
 
   useEffect(() => {
     if (awaitingProgress && user && accountProgressReady) onClose();
@@ -102,6 +105,22 @@ export default function AuthModal({
     setResetComplete(true);
     setStatus('success');
     onPasswordRecoveryFinished();
+  }
+
+  async function handleResendConfirmation() {
+    setResendStatus('sending');
+    setResendError('');
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    if (error) {
+      setResendStatus('error');
+      setResendError(
+        error.status === 429
+          ? 'Please wait a moment before requesting another email.'
+          : "We couldn't resend the email. Please try again."
+      );
+      return;
+    }
+    setResendStatus('sent');
   }
 
   async function handleGoogleSignIn() {
@@ -179,8 +198,9 @@ export default function AuthModal({
           ) : (
             <form onSubmit={handlePasswordReset}>
               <h2>Choose a new password</h2>
-              <input
-                type="password"
+              <PasswordField
+                visible={showPassword}
+                onToggle={() => setShowPassword((visible) => !visible)}
                 placeholder="New password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -188,8 +208,9 @@ export default function AuthModal({
                 minLength={6}
                 required
               />
-              <input
-                type="password"
+              <PasswordField
+                visible={showPassword}
+                onToggle={() => setShowPassword((visible) => !visible)}
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -256,6 +277,23 @@ export default function AuthModal({
               We sent a confirmation link to <strong>{email}</strong>. Click
               it to finish creating your account, then come back and sign in.
             </p>
+            <button
+              type="button"
+              onClick={handleResendConfirmation}
+              disabled={resendStatus === 'sending'}
+            >
+              {resendStatus === 'sending'
+                ? 'Sending…'
+                : 'Resend confirmation email'}
+            </button>
+            {resendStatus === 'sent' && (
+              <p className="modal-success" role="status">
+                A new confirmation email has been sent.
+              </p>
+            )}
+            {resendStatus === 'error' && (
+              <p className="modal-error" role="alert">{resendError}</p>
+            )}
           </div>
         ) : (
           <>
@@ -302,8 +340,9 @@ export default function AuthModal({
                 required
               />
 
-              <input
-                type="password"
+              <PasswordField
+                visible={showPassword}
+                onToggle={() => setShowPassword((visible) => !visible)}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -315,8 +354,9 @@ export default function AuthModal({
               />
 
               {mode === 'sign-up' && (
-                <input
-                  type="password"
+                <PasswordField
+                  visible={showPassword}
+                  onToggle={() => setShowPassword((visible) => !visible)}
                   placeholder="Confirm password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -404,6 +444,40 @@ export default function AuthModal({
         )}
       </div>
     </div>
+  );
+}
+
+function PasswordField({ visible, onToggle, ...inputProps }) {
+  return (
+    <div className="password-field">
+      <input type={visible ? 'text' : 'password'} {...inputProps} />
+      <button
+        type="button"
+        className="password-visibility-button"
+        onClick={onToggle}
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        title={visible ? 'Hide password' : 'Show password'}
+      >
+        {visible ? <EyeOffIcon /> : <EyeIcon />}
+      </button>
+    </div>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.75" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 3 21 21M10.6 6.1c.46-.07.93-.1 1.4-.1 6 0 9.5 6 9.5 6a17 17 0 0 1-2.3 3M6.2 7.2A17 17 0 0 0 2.5 12s3.5 6 9.5 6c1.2 0 2.3-.24 3.3-.63M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
   );
 }
 
