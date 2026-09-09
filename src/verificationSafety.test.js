@@ -27,6 +27,10 @@ describe('verification safety acknowledgment', () => {
       hasAcceptedVerificationSafety(null, VERIFICATION_SAFETY_TERMS_VERSION)
     ).toBe(true);
   });
+
+  it('uses a versioned acknowledgment when its wording changes', () => {
+    expect(VERIFICATION_SAFETY_TERMS_VERSION).toBe('2026-09-09-v2');
+  });
 });
 
 describe('terms safety coverage', () => {

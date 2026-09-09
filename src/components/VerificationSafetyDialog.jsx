@@ -3,7 +3,7 @@ import { LAUNCH_LINKS } from '../launchLinks';
 import { supabase } from '../supabaseClient';
 import useDialogFocus from './useDialogFocus';
 
-export const VERIFICATION_SAFETY_TERMS_VERSION = '2026-09-09';
+export const VERIFICATION_SAFETY_TERMS_VERSION = '2026-09-09-v2';
 
 export function hasAcceptedVerificationSafety(user, acceptedVersion = null) {
   return (
@@ -63,7 +63,8 @@ export default function VerificationSafetyDialog({ onCancel, onAccepted }) {
             onChange={(event) => setConfirmed(event.target.checked)}
           />
           <span>
-            I understand these risks and agree to the{' '}
+            I understand and accept the risks of using stairways and navigating
+            city streets. I will use my own judgment and agree to the{' '}
             <a href={LAUNCH_LINKS.terms} target="_blank" rel="noreferrer">
               Terms of Use
             </a>
