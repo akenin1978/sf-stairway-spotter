@@ -17,6 +17,9 @@ import ConfirmDialog from './ConfirmDialog';
 import AlertDialog from './AlertDialog';
 import NewStairwayModal from './NewStairwayModal';
 import VerifiedVisitPanel from './VerifiedVisitPanel';
+import VerificationSafetyDialog, {
+  hasAcceptedVerificationSafety,
+} from './VerificationSafetyDialog';
 import {
   GPS_THRESHOLD_METERS,
   distanceToStairwayMeters,
@@ -434,6 +437,8 @@ export default function StairwayMap({
   // into the new session's clean home view.
   useEffect(() => {
     setSelected(null);
+    setAcceptedSafetyVersion(null);
+    setVerificationSafetyOpen(false);
   }, [user?.id]);
 
   // Photo URLs are deliberately left out of the 1,200+ row startup query.
@@ -467,6 +472,8 @@ export default function StairwayMap({
   // --- Custom confirm dialog state (replaces window.confirm, which always
   // shows the raw site URL -- not ideal before we have a custom domain) ---
   const [confirmAction, setConfirmAction] = useState(null); // { message, onConfirm } | null
+  const [verificationSafetyOpen, setVerificationSafetyOpen] = useState(false);
+  const [acceptedSafetyVersion, setAcceptedSafetyVersion] = useState(null);
   const [completionMessage, setCompletionMessage] = useState('');
   const completionMessageRequestIdRef = useRef(0);
   const [locationBoundaryMessage, setLocationBoundaryMessage] = useState('');
@@ -829,7 +836,7 @@ export default function StairwayMap({
     if (succeeded) await clearRetainedVerificationCapture();
   }
 
-  function handlePhotoVerificationAction() {
+  function beginPhotoVerificationAction() {
     if (selected && verificationCaptureStairwayId === selected.id) {
       retryPhotoVerification();
       return;
@@ -840,6 +847,14 @@ export default function StairwayMap({
     } else {
       verifyFileInputRef.current?.click();
     }
+  }
+
+  function handlePhotoVerificationAction() {
+    if (!hasAcceptedVerificationSafety(user, acceptedSafetyVersion)) {
+      setVerificationSafetyOpen(true);
+      return;
+    }
+    beginPhotoVerificationAction();
   }
 
   // --- "My Spotted Stairways" list state ---
@@ -2122,6 +2137,17 @@ export default function StairwayMap({
             setConfirmAction(null);
           }}
           onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
+      {verificationSafetyOpen && (
+        <VerificationSafetyDialog
+          onCancel={() => setVerificationSafetyOpen(false)}
+          onAccepted={(version) => {
+            setAcceptedSafetyVersion(version);
+            setVerificationSafetyOpen(false);
+            beginPhotoVerificationAction();
+          }}
         />
       )}
     </div>

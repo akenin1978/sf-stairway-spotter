@@ -1186,6 +1186,68 @@ html.public-page-document #root {
   z-index: 120;
 }
 
+.verification-safety-dialog {
+  max-width: 390px;
+}
+
+.verification-safety-dialog h2 {
+  margin-top: 0;
+}
+
+.verification-safety-dialog p {
+  color: #444;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.verification-safety-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 18px 0;
+  color: #333;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.verification-safety-confirm input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.verification-safety-confirm a {
+  color: #4b3ce0;
+}
+
+.verification-safety-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 8px;
+}
+
+.verification-safety-actions button {
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: #4b3ce0;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.verification-safety-actions button.button-secondary {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+}
+
+.verification-safety-actions button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .safety-field {
   display: grid;
   gap: 6px;
@@ -2071,6 +2133,18 @@ html.public-page-document #root {
   font-size: 13px;
   color: #555;
   text-align: center;
+}
+
+.auth-legal {
+  margin: 12px 8px 0;
+  color: #777;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.auth-legal a {
+  color: #4b3ce0;
 }
 
 .link-button {

@@ -1,6 +1,7 @@
 import { LAUNCH_LINKS } from '../launchLinks';
 
 const EFFECTIVE_DATE = 'September 7, 2026';
+const TERMS_EFFECTIVE_DATE = 'September 9, 2026';
 const SUPPORT_EMAIL = 'info@urbanhikersf.com';
 
 const PAGE_TITLES = {
@@ -159,7 +160,7 @@ function PrivacyPage() {
 function TermsPage() {
   return (
     <PageShell title="Terms of Use">
-      <p className="public-page-updated">Effective {EFFECTIVE_DATE}</p>
+      <p className="public-page-updated">Effective {TERMS_EFFECTIVE_DATE}</p>
       <p>
         These terms govern your use of SF Stairway Spotter. By using the app, you
         agree to them. If you do not agree, please do not use the app.
@@ -172,13 +173,22 @@ function TermsPage() {
         may browse the map without creating an account.
       </p>
 
-      <h2>Outdoor activity and safety</h2>
+      <h2>Outdoor activity and assumption of risk</h2>
       <p>
-        Walking, running, climbing stairs, and navigating city streets involve
-        risks. Conditions can change because of weather, construction, closures,
-        traffic, private-property boundaries, or other hazards. Use your own
-        judgment, obey posted signs and laws, remain aware of your surroundings,
-        and do not rely on the app for emergency, accessibility, or safety advice.
+        Walking, running, climbing stairs, crossing streets, and other outdoor
+        activities involve inherent risks, including falls, uneven or damaged
+        surfaces, traffic, construction, weather, poor lighting, physical
+        exertion, crime, animals, and changing access conditions. By choosing to
+        visit a stairway or follow information provided through the app, you
+        voluntarily assume the risks inherent in those activities.
+      </p>
+      <p>
+        You are responsible for evaluating current conditions, obeying signs and
+        applicable laws, staying aware of traffic and your surroundings, and
+        deciding whether an activity is appropriate for your health, experience,
+        and abilities. Stop in a safe place before using the app. Do not interact
+        with it while walking, climbing stairs, driving, cycling, or crossing a
+        street. Children must be supervised by a responsible adult.
       </p>
 
       <h2>Map and stairway information</h2>
@@ -186,7 +196,16 @@ function TermsPage() {
         Stairway locations, descriptions, ratings, step counts, photos, routes,
         and availability may be incomplete or inaccurate. The app does not
         guarantee that a stairway is public, open, safe, accessible, or suitable
-        for any particular person or purpose.
+        for any particular person or purpose. A stairway’s appearance in the app
+        is not an instruction or recommendation to enter it. Follow closures,
+        barriers, posted restrictions, private-property boundaries, and
+        instructions from public authorities.
+      </p>
+      <p>
+        SF Stairway Spotter is not an emergency, safety, accessibility, medical,
+        or professional navigation service and does not monitor current street or
+        stairway conditions. In an emergency, stop using the app and contact the
+        appropriate emergency services.
       </p>
 
       <h2>Your content and conduct</h2>
@@ -205,6 +224,27 @@ function TermsPage() {
         The app depends on services such as Google Maps, Supabase, Apple, Google,
         and Vercel. Their services may be unavailable or governed by separate
         terms. We are not responsible for third-party services or external links.
+      </p>
+
+      <h2>Purchases and premium features</h2>
+      <p>
+        If paid features are offered, purchases are processed by the applicable
+        app store and are also subject to its terms, payment rules, refund rules,
+        and account requirements. Product descriptions shown at purchase control
+        what a purchase unlocks. We may improve, replace, or discontinue
+        individual features while continuing to provide the purchased level of
+        access as required by applicable law and app-store rules.
+      </p>
+
+      <h2>Our content and license</h2>
+      <p>
+        The app, its design, software, text, graphics, branding, curated content,
+        and compilation of information are owned by or licensed to Alexandra
+        Kenin and are protected by applicable intellectual-property laws. We give
+        you a limited, personal, nonexclusive, nontransferable, revocable license
+        to use the app for its intended, noncommercial purpose. You may not copy,
+        scrape, sell, reverse engineer, or commercially exploit the app or its
+        content except where applicable law expressly permits it.
       </p>
 
       <h2>Availability and accounts</h2>
@@ -227,11 +267,27 @@ function TermsPage() {
       <h2>Disclaimer and limitation of liability</h2>
       <p>
         The app is provided “as is” and “as available,” without warranties to the
-        fullest extent permitted by law. To the fullest extent permitted by law,
-        Alexandra Kenin will not be liable for indirect, incidental, special,
-        consequential, or punitive damages arising from use of the app or outdoor
-        activities undertaken with it. Nothing in these terms limits rights that
-        cannot legally be limited.
+        fullest extent permitted by law, including implied warranties of
+        merchantability, fitness for a particular purpose, accuracy,
+        noninfringement, and uninterrupted availability. To the fullest extent
+        permitted by law, Alexandra Kenin is not liable for losses, injuries, or
+        property damage resulting from inherent outdoor risks; public or private
+        property conditions; traffic; closures; third-party conduct or services;
+        inaccurate or outdated information; or choices made while using the app.
+        Nor will Alexandra Kenin be liable for indirect, incidental, special,
+        consequential, exemplary, or punitive damages arising from the app.
+        Nothing in these terms excludes liability, remedies, warranties, or
+        consumer rights that cannot lawfully be excluded or limited, including
+        liability for gross negligence, willful misconduct, or fraud where such a
+        limitation is prohibited.
+      </p>
+
+      <h2>Changes to these terms</h2>
+      <p>
+        We may update these terms as the app changes. We will revise the effective
+        date and provide additional notice when required by law. If any provision
+        is found unenforceable, the remaining provisions remain in effect. A
+        failure to enforce a provision is not a waiver of it.
       </p>
 
       <h2>Governing law and contact</h2>

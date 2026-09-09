@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns } from '../CheckInsContext';
+import { LAUNCH_LINKS } from '../launchLinks';
 import { isAndroidApp, isNativeApp } from '../nativeDevice';
 import {
   isNativeGoogleConfigured,
@@ -201,6 +202,18 @@ export default function AuthModal({ onClose }) {
                     : 'Create account'}
               </button>
             </form>
+
+            <p className="auth-legal">
+              By continuing, you agree to the{' '}
+              <a href={LAUNCH_LINKS.terms} target="_blank" rel="noreferrer">
+                Terms of Use
+              </a>{' '}
+              and acknowledge the{' '}
+              <a href={LAUNCH_LINKS.privacy} target="_blank" rel="noreferrer">
+                Privacy Policy
+              </a>
+              .
+            </p>
 
             <p className="auth-switch">
               {mode === 'sign-in' ? (
