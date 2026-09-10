@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import {
@@ -7,6 +9,10 @@ import {
 } from '../friendProgress';
 import ReportUserModal, { UserSafetyMenu } from './ReportUserModal';
 import useDialogFocus from './useDialogFocus';
+import {
+  friendInviteMailto,
+  friendInviteShareData,
+} from '../friendInvitations';
 
 export default function FriendsModal({ onClose, onOpenSettings }) {
   const dialogRef = useDialogFocus(onClose);
@@ -21,6 +27,7 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [reportingUser, setReportingUser] = useState(null);
   const [myUsername, setMyUsername] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
 
   async function refresh() {
     setLoading(true);
@@ -77,14 +84,21 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
 
     setSendStatus('sending');
     setSendError('');
+    setInviteEmail('');
 
     const { data: found, error: lookupError } = await supabase
       .rpc('find_user_by_email', { lookup_email: trimmed })
       .maybeSingle();
 
-    if (lookupError || !found) {
+    if (lookupError) {
       setSendStatus('error');
-      setSendError("Couldn't find anyone with that email.");
+      setSendError("We couldn't look for your friend. Check your connection and try again.");
+      return;
+    }
+
+    if (!found) {
+      setSendStatus('idle');
+      setInviteEmail(trimmed);
       return;
     }
 
@@ -114,6 +128,43 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
     setEmailInput('');
     setSendStatus('idle');
     refresh();
+  }
+
+  async function handleInvite() {
+    if (!myUsername || !inviteEmail) return;
+
+    setSendError('');
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await Share.share(friendInviteShareData());
+        setInviteEmail('');
+        setEmailInput('');
+        setFriendActionMessage('Invitation ready to send.');
+      } catch (error) {
+        if (!/cancel/i.test(error?.message || '')) {
+          setSendStatus('error');
+          setSendError("We couldn't open sharing. Please try again.");
+        }
+      }
+      return;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share(friendInviteShareData());
+        setInviteEmail('');
+        setEmailInput('');
+        setFriendActionMessage('Invitation ready to send.');
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          setSendStatus('error');
+          setSendError("We couldn't open sharing. Please try again.");
+        }
+      }
+      return;
+    }
+
+    window.location.href = friendInviteMailto(inviteEmail);
   }
 
   async function handleAccept(friendshipId) {
@@ -226,6 +277,22 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
           </button>
         </form>
         {sendStatus === 'error' && <p className="modal-error">{sendError}</p>}
+        {inviteEmail && (
+          <div className="friends-invite-card" role="status">
+            <p>
+              They don’t appear to be on SF Stairway Spotter yet. Invite them
+              by text, email, or another app.
+            </p>
+            <div className="friends-invite-actions">
+              <button type="button" onClick={handleInvite}>
+                Send invitation
+              </button>
+              <button type="button" onClick={() => setInviteEmail('')}>
+                Not now
+              </button>
+            </div>
+          </div>
+        )}
         {friendActionMessage && (
           <p className="modal-success" role="status">{friendActionMessage}</p>
         )}

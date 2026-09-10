@@ -2624,6 +2624,25 @@ html.public-page-document #root {
   margin: 0 0 10px;
 }
 
+.friends-invite-card {
+  margin: 0.75rem 0;
+  padding: 0.9rem;
+  border: 1px solid #d9d3ff;
+  border-radius: 12px;
+  background: #f7f5ff;
+}
+
+.friends-invite-card p {
+  margin: 0 0 0.75rem;
+  color: #3f3a55;
+}
+
+.friends-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .friend-request-alert {
   max-width: 420px;
 }
