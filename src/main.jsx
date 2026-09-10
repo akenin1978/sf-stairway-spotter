@@ -6,10 +6,12 @@ import { CheckInsProvider } from './CheckInsContext.jsx';
 import { BadgesProvider } from './BadgesContext.jsx';
 import { getPublicPage } from './components/PublicPages.jsx';
 import LandingPage from './components/LandingPage.jsx';
+import JoinPage from './components/JoinPage.jsx';
 import { shouldShowLandingPage } from './siteRouting.js';
 import './index.css';
 
 const PublicPage = getPublicPage(window.location.pathname);
+const showJoinPage = window.location.pathname.replace(/\/$/, '') === '/join';
 const showLandingPage = shouldShowLandingPage(
   window.location.hostname,
   window.location.pathname,
@@ -21,12 +23,14 @@ const showLandingPage = shouldShowLandingPage(
 // can fight the collapsing iOS address bar and snap the page back down.
 document.documentElement.classList.toggle(
   'public-page-document',
-  Boolean(PublicPage)
+  Boolean(PublicPage || showJoinPage)
 );
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {showLandingPage ? (
+    {showJoinPage ? (
+      <JoinPage />
+    ) : showLandingPage ? (
       <LandingPage />
     ) : PublicPage ? (
       <PublicPage />
