@@ -14,11 +14,17 @@ const PAGE_TITLES = {
 
 function PageShell({ title, children }) {
   useLayoutEffect(() => {
+    let topLockActive = true;
     const resetScroll = () => {
+      if (!topLockActive) return;
       window.scrollTo(0, 0);
       if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+    };
+
+    const releaseTopLock = () => {
+      topLockActive = false;
     };
 
     // iOS's in-app Safari can restore a previous same-origin scroll position
@@ -31,19 +37,38 @@ function PageShell({ title, children }) {
       window.requestAnimationFrame(resetScroll),
       window.requestAnimationFrame(() => window.requestAnimationFrame(resetScroll)),
     ];
-    const delayedResets = [0, 100, 300, 750, 1500].map((delay) =>
+    const delayedResets = [0, 100, 300, 750, 1500, 2500, 4000, 6000].map((delay) =>
       window.setTimeout(resetScroll, delay)
     );
+    const restorationInterval = window.setInterval(resetScroll, 100);
+    const stopRestorationInterval = window.setTimeout(() => {
+      window.clearInterval(restorationInterval);
+      topLockActive = false;
+    }, 6500);
     window.addEventListener('pageshow', resetScroll);
     window.addEventListener('load', resetScroll);
+    window.addEventListener('focus', resetScroll);
+    window.addEventListener('resize', resetScroll);
     document.addEventListener('visibilitychange', resetScroll);
+    window.addEventListener('touchstart', releaseTopLock, { passive: true, once: true });
+    window.addEventListener('pointerdown', releaseTopLock, { passive: true, once: true });
+    window.addEventListener('wheel', releaseTopLock, { passive: true, once: true });
+    window.addEventListener('keydown', releaseTopLock, { once: true });
 
     return () => {
       animationFrames.forEach((frame) => window.cancelAnimationFrame(frame));
       delayedResets.forEach((timeout) => window.clearTimeout(timeout));
+      window.clearInterval(restorationInterval);
+      window.clearTimeout(stopRestorationInterval);
       window.removeEventListener('pageshow', resetScroll);
       window.removeEventListener('load', resetScroll);
+      window.removeEventListener('focus', resetScroll);
+      window.removeEventListener('resize', resetScroll);
       document.removeEventListener('visibilitychange', resetScroll);
+      window.removeEventListener('touchstart', releaseTopLock);
+      window.removeEventListener('pointerdown', releaseTopLock);
+      window.removeEventListener('wheel', releaseTopLock);
+      window.removeEventListener('keydown', releaseTopLock);
       window.history.scrollRestoration = previousRestoration;
     };
   }, []);
