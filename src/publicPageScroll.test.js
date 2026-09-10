@@ -23,8 +23,10 @@ describe('public page scrolling', () => {
   it('overrides mobile browser scroll restoration and targets the page top', () => {
     expect(pages).toContain("window.history.scrollRestoration = 'manual'");
     expect(pages).toContain("window.addEventListener('pageshow', resetScroll)");
+    expect(entry).toContain("window.location.hash === '#top'");
+    expect(entry).toContain('window.history.replaceState');
     expect(pages).toContain('<main id="top" className="public-page">');
-    expect(links.match(/#top/g)).toHaveLength(4);
+    expect(links).not.toContain('#top');
     expect(css).toMatch(/html\.public-page-document[\s\S]*?overflow-anchor:\s*none/);
   });
 
@@ -33,6 +35,6 @@ describe('public page scrolling', () => {
       freshPublicPageUrl('https://www.sfstairwayspotter.com/support#top', 1234)
     );
     expect(freshUrl.searchParams.get('opened')).toBe('1234');
-    expect(freshUrl.hash).toBe('#top');
+    expect(freshUrl.hash).toBe('');
   });
 });

@@ -368,10 +368,12 @@ function CheckInNearbyButton({ onClick, locating, disabled }) {
         fill="none"
         aria-hidden="true"
       >
-        <rect x="1" y="17" width="5" height="6" fill="currentColor" />
-        <rect x="7" y="12" width="5" height="11" fill="currentColor" />
-        <rect x="13" y="7" width="5" height="16" fill="currentColor" />
-        <rect x="19" y="2" width="4" height="21" fill="currentColor" />
+        <g transform="translate(3.36 3.36) scale(0.72)">
+          <rect x="1" y="17" width="5" height="6" fill="currentColor" />
+          <rect x="7" y="12" width="5" height="11" fill="currentColor" />
+          <rect x="13" y="7" width="5" height="16" fill="currentColor" />
+          <rect x="19" y="2" width="4" height="21" fill="currentColor" />
+        </g>
       </svg>
       {locating ? 'Finding stairs…' : 'Nearby stairs'}
     </button>

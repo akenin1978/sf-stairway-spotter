@@ -10,6 +10,25 @@ import JoinPage from './components/JoinPage.jsx';
 import { shouldShowLandingPage } from './siteRouting.js';
 import './index.css';
 
+const publicPagePaths = new Set([
+  '/privacy',
+  '/terms',
+  '/support',
+  '/delete-account',
+]);
+const normalizedPath = window.location.pathname.replace(/\/$/, '') || '/';
+
+// Builds through 17 open these pages with #top. Remove that legacy fragment
+// before React renders so iOS cannot perform a late anchor scroll after the
+// page has already reset itself.
+if (publicPagePaths.has(normalizedPath) && window.location.hash === '#top') {
+  window.history.replaceState(
+    window.history.state,
+    '',
+    `${window.location.pathname}${window.location.search}`
+  );
+}
+
 const PublicPage = getPublicPage(window.location.pathname);
 const showJoinPage = window.location.pathname.replace(/\/$/, '') === '/join';
 const showLandingPage = shouldShowLandingPage(

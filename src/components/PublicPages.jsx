@@ -21,20 +21,29 @@ function PageShell({ title, children }) {
       document.body.scrollTop = 0;
     };
 
-    // Mobile browsers can restore a previous same-origin scroll position after
-    // React has rendered a newly opened legal/support page. Reset once during
-    // layout and again after Safari/Chrome finishes its restoration pass.
+    // iOS's in-app Safari can restore a previous same-origin scroll position
+    // several times while its browser chrome settles. Keep returning a newly
+    // opened page to the top through that restoration window.
     const previousRestoration = window.history.scrollRestoration;
     window.history.scrollRestoration = 'manual';
     resetScroll();
-    const animationFrame = window.requestAnimationFrame(resetScroll);
-    const delayedReset = window.setTimeout(resetScroll, 150);
+    const animationFrames = [
+      window.requestAnimationFrame(resetScroll),
+      window.requestAnimationFrame(() => window.requestAnimationFrame(resetScroll)),
+    ];
+    const delayedResets = [0, 100, 300, 750, 1500].map((delay) =>
+      window.setTimeout(resetScroll, delay)
+    );
     window.addEventListener('pageshow', resetScroll);
+    window.addEventListener('load', resetScroll);
+    document.addEventListener('visibilitychange', resetScroll);
 
     return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.clearTimeout(delayedReset);
+      animationFrames.forEach((frame) => window.cancelAnimationFrame(frame));
+      delayedResets.forEach((timeout) => window.clearTimeout(timeout));
       window.removeEventListener('pageshow', resetScroll);
+      window.removeEventListener('load', resetScroll);
+      document.removeEventListener('visibilitychange', resetScroll);
       window.history.scrollRestoration = previousRestoration;
     };
   }, []);
