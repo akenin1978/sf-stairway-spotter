@@ -1586,6 +1586,58 @@ html.public-page-document #root {
   position: relative;
 }
 
+.locate-me-control {
+  position: absolute;
+  right: 10px;
+  bottom: 164px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+}
+
+.locate-me-button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.locate-me-button:disabled {
+  cursor: default;
+}
+
+.locate-me-tooltip {
+  position: absolute;
+  right: 48px;
+  white-space: nowrap;
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: #29243d;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.locate-me-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  background: #29243d;
+  transform: translateY(-50%) rotate(45deg);
+}
+
 .check-in-nearby-button {
   position: absolute;
   right: 10px;

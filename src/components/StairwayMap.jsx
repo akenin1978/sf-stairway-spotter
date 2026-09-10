@@ -61,6 +61,7 @@ const SF_CENTER = { lat: 37.74, lng: -122.4194 };
 const ALL_RATING_KEYS = [5, 4, 3, 2, 1, 'unrated'];
 const VERIFICATION_PRIVACY_HINT_DISMISSED_KEY =
   'sf_stairway_verification_privacy_hint_dismissed';
+const LOCATION_TOOLTIP_SEEN_KEY = 'sf_stairway_location_tooltip_seen';
 
 // Google's photo links end in a size/crop instruction like "=w600-h315-p-k"
 // (width-height-pad/crop-flag). Swapping it for just a width (no height, no
@@ -319,47 +320,37 @@ function ViewportBoundsTracker({
 
 // The round "locate me" button that floats over the map, bottom-right,
 // positioned above Google's own zoom controls so the two don't overlap.
-function LocateMeButton({ onLocate, locating }) {
+function LocateMeButton({ onLocate, locating, showTooltip }) {
   return (
-    <button
-      type="button"
-      className="locate-me-button"
-      onClick={onLocate}
-      disabled={locating}
-      aria-label="Find my location"
-      title="Find my location"
-      style={{
-        position: 'absolute',
-        bottom: '164px',
-        right: '10px',
-        width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        border: 'none',
-        background: '#ffffff',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: locating ? 'default' : 'pointer',
-        padding: 0,
-        zIndex: 5,
-      }}
-    >
-      {locating ? (
-        <span style={{ fontSize: '14px' }}>…</span>
-      ) : (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="3" fill="#4b3ce0" />
-          <path
-            d="M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12"
-            stroke="#4b3ce0"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
+    <div className="locate-me-control">
+      {showTooltip && (
+        <div className="locate-me-tooltip" role="tooltip">
+          Your location
+        </div>
       )}
-    </button>
+      <button
+        type="button"
+        className="locate-me-button"
+        onClick={onLocate}
+        disabled={locating}
+        aria-label="Center map on my location"
+        title="Center map on my location"
+      >
+        {locating ? (
+          <span style={{ fontSize: '14px' }}>…</span>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" fill="#4b3ce0" />
+            <path
+              d="M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12"
+              stroke="#4b3ce0"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        )}
+      </button>
+    </div>
   );
 }
 
@@ -980,6 +971,13 @@ export default function StairwayMap({
   // --- "Locate me" (general map button, separate from the Spot-a-Stairway
   // "use my location" flow above) ---
   const [myLocation, setMyLocation] = useState(null);
+  const [showLocationTooltip, setShowLocationTooltip] = useState(() => {
+    try {
+      return localStorage.getItem(LOCATION_TOOLTIP_SEEN_KEY) !== 'true';
+    } catch {
+      return true;
+    }
+  });
   // Separate from myLocation -- myLocation updates continuously (for the
   // dot + flare), but panTarget only updates once per "locate me" tap,
   // so the map centers/zooms once and then leaves scroll/zoom alone
@@ -1088,6 +1086,12 @@ export default function StairwayMap({
   }, [showOutsideSanFranciscoMessage, stopLocationWatch]);
 
   async function handleLocateMe() {
+    setShowLocationTooltip(false);
+    try {
+      localStorage.setItem(LOCATION_TOOLTIP_SEEN_KEY, 'true');
+    } catch {
+      // The tooltip still dismisses for this session if storage is unavailable.
+    }
     if (!supportsDeviceGeolocation()) {
       setLocationError('Location services are not available in this browser.');
       return;
@@ -1886,7 +1890,11 @@ export default function StairwayMap({
               locating={locatingNearby}
               disabled={loading || stairways.length === 0}
             />
-            <LocateMeButton onLocate={handleLocateMe} locating={locating} />
+            <LocateMeButton
+              onLocate={handleLocateMe}
+              locating={locating}
+              showTooltip={showLocationTooltip}
+            />
           </>
         )}
         {locationError && (

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { shouldShowLandingPage } from './siteRouting';
 
 describe('shouldShowLandingPage', () => {
@@ -18,6 +19,16 @@ describe('shouldShowLandingPage', () => {
   it('leaves legal routes available on the .com host', () => {
     expect(shouldShowLandingPage('sfstairwayspotter.com', '/privacy')).toBe(false);
     expect(shouldShowLandingPage('sfstairwayspotter.com', '/join')).toBe(false);
+  });
+
+  it('routes direct invitation visits through the deployed app', () => {
+    const vercelConfig = JSON.parse(
+      readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')
+    );
+    expect(vercelConfig.rewrites).toContainEqual({
+      source: '/join',
+      destination: '/index.html',
+    });
   });
 
   it('opens the app rather than the landing page for password recovery', () => {
