@@ -248,10 +248,7 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
                   {received.map((f) => (
                     <div key={f.friendship_id} className="friends-row">
                       <span className="friends-name">
-                        {f.friend_display_name}
-                        {f.friend_email && (
-                          <span className="friends-email"> ({f.friend_email})</span>
-                        )}
+                        {f.friend_display_name || 'A stairway spotter'}
                       </span>
                       <button
                         className="friends-accept-button"

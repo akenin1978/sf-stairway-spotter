@@ -399,8 +399,7 @@ export default function App() {
               <ul>
                 {friendRequestAlert.requests.map((request) => (
                   <li key={request.friendship_id}>
-                    {request.friend_display_name || 'A stairway spotter'}{' '}
-                    ({request.friend_email || 'email unavailable'})
+                    {request.friend_display_name || 'A stairway spotter'}
                   </li>
                 ))}
               </ul>

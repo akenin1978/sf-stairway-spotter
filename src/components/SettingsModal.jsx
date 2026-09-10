@@ -222,7 +222,7 @@ export default function SettingsModal({ onClose, startWithDelete = false }) {
     if (error) {
       setDeleteStatus('error');
       setErrorMsg(
-        "We couldn't delete your account. Nothing was deleted. Check your connection and try again, or contact Support if this continues."
+        "We couldn't finish deleting your account. Check your connection and try again, or contact Support if this continues."
       );
       console.error('Account deletion failed', error);
       return;

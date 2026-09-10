@@ -29,10 +29,11 @@ describe('friend request notifications', () => {
     expect(unseenFriendRequests(requests, ['incoming-1'])).toEqual([]);
   });
 
-  it('names the sender and includes their email', () => {
+  it('names the sender without exposing their email', () => {
     expect(friendRequestNotice([requests[0]])).toBe(
-      'Stair Fan (stair@example.com) sent you a friend request.'
+      'Stair Fan sent you a friend request.'
     );
+    expect(friendRequestNotice([requests[0]])).not.toContain('stair@example.com');
   });
 
   it('keeps notification state separate for each signed-in account', () => {

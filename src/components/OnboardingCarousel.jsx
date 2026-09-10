@@ -105,7 +105,7 @@ export default function OnboardingCarousel({ totalStairways, onDismiss }) {
         </div>
       ),
       title: 'Track your progress',
-      body: 'Collect badges for your discoveries \u2014 and if you like, share your journey with friends and climb the leaderboard.',
+      body: 'Verify stairway visits to earn badges \u2014 and if you like, share progress with friends and climb the leaderboard.',
     },
   ];
 

@@ -151,7 +151,7 @@ export default function StatsModal({ onClose }) {
               </div>
             </div>
 
-            <h3 className="stats-section-heading">Neighborhood completion</h3>
+            <h3 className="stats-section-heading">Spotted by neighborhood</h3>
             <div className="stats-neighborhood-list">
               {stats.neighborhoods.map((n, index) => {
                 const group = statsNeighborhoodGroup(n);

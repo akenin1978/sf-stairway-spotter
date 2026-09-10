@@ -20,7 +20,7 @@ const features = [
     imageAlt: 'Nearby stairways displayed in the SF Stairway Spotter check-in screen',
     imagePosition: 'center',
     title: 'Track every climb',
-    body: 'Check in as you explore, build streaks, and watch your personal stairway count grow.',
+    body: 'Mark stairways as spotted for your private checklist. Verify visits on site to build streaks and earn badges.',
   },
   {
     image: badgesImageUrl,
@@ -28,7 +28,7 @@ const features = [
     imagePosition: 'center 20%',
     imageClassName: 'landing-feature-image-badges',
     title: 'Earn badges as you go',
-    body: 'Turn a walk across the city into a collection of discoveries, milestones, and local challenges.',
+    body: 'Verified visits turn a walk across the city into a collection of milestones and neighborhood challenges.',
   },
 ];
 

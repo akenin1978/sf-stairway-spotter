@@ -18,8 +18,7 @@ export function friendRequestNotice(requests) {
   if (requests.length === 1) {
     const request = requests[0];
     const username = request.friend_display_name || 'A stairway spotter';
-    const email = request.friend_email || 'email unavailable';
-    return `${username} (${email}) sent you a friend request.`;
+    return `${username} sent you a friend request.`;
   }
   return `You have ${requests.length} new friend requests.`;
 }
