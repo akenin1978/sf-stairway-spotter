@@ -1,4 +1,4 @@
-export const FRIEND_INVITE_URL = 'https://www.sfstairwayspotter.com';
+export const FRIEND_INVITE_URL = 'https://www.sfstairwayspotter.com/join';
 
 export const FRIEND_INVITE_TITLE = 'Join me on SF Stairway Spotter';
 

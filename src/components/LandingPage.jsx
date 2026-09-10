@@ -3,6 +3,8 @@ import badgesImageUrl from '../assets/landing/badges.jpg';
 import checkInImageUrl from '../assets/landing/check-in-live-preview.png';
 import mapImageUrl from '../assets/landing/map.jpg';
 import { LAUNCH_LINKS } from '../launchLinks';
+import StoreDownloadLinks from './StoreDownloadLinks';
+import { hasStoreLinks, STORE_LINKS } from '../storeLinks';
 
 const WEB_APP_URL = 'https://sfstairwayspotter.app';
 const SUPPORT_EMAIL = 'info@urbanhikersf.com';
@@ -55,6 +57,8 @@ function DotStairway() {
 }
 
 export default function LandingPage() {
+  const storesAreLive = hasStoreLinks();
+
   return (
     <main className="landing-page">
       <header className="landing-nav">
@@ -78,14 +82,23 @@ export default function LandingPage() {
             climb at a time.
           </p>
           <div className="landing-actions">
-            <a
-              className="landing-primary-button"
-              href={`mailto:${SUPPORT_EMAIL}?subject=SF%20Stairway%20Spotter%20beta`}
-            >
-              Join the beta
-            </a>
+            {storesAreLive ? (
+              <StoreDownloadLinks />
+            ) : (
+              <a
+                className="landing-primary-button"
+                href={`mailto:${SUPPORT_EMAIL}?subject=SF%20Stairway%20Spotter%20beta`}
+              >
+                Join the beta
+              </a>
+            )}
           </div>
-          <p className="landing-beta-note">iPhone beta testing is underway · Android coming soon</p>
+          {!storesAreLive && (
+            <p className="landing-beta-note">iPhone beta testing is underway · Android coming soon</p>
+          )}
+          {STORE_LINKS.appStore && !STORE_LINKS.googlePlay && (
+            <p className="landing-beta-note">Android coming soon</p>
+          )}
         </div>
 
         <div className="landing-hero-art" aria-label="Colorful stairway-rating dots">
@@ -142,7 +155,11 @@ export default function LandingPage() {
           <p className="landing-eyebrow">Ready to take the first step?</p>
           <h2>There’s always another stairway.</h2>
         </div>
-        <a className="landing-primary-button" href={WEB_APP_URL}>Open SF Stairway Spotter</a>
+        {storesAreLive ? (
+          <StoreDownloadLinks />
+        ) : (
+          <a className="landing-primary-button" href={WEB_APP_URL}>Open SF Stairway Spotter</a>
+        )}
       </section>
 
       <footer className="landing-footer">

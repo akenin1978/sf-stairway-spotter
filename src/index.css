@@ -298,6 +298,41 @@ html, body, #root {
   margin-top: 34px;
 }
 
+.store-download-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.store-download-button {
+  min-width: 176px;
+  min-height: 54px;
+  padding: 7px 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 11px;
+  background: #111;
+  color: #fff !important;
+  text-decoration: none;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.store-download-button > span:first-child {
+  font-size: 25px;
+}
+
+.store-download-button small {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
 .landing-primary-button,
 .landing-secondary-button {
   display: inline-flex;
@@ -548,6 +583,83 @@ html, body, #root {
 .landing-footer strong { font-size: 16px; }
 .landing-footer p { margin: 5px 0 0; color: #777382; font-size: 13px; }
 .landing-footer > p { grid-column: 1 / -1; }
+
+.join-page {
+  min-height: 100%;
+  padding: max(32px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #3024b4, #7657ed);
+  color: #171524;
+}
+
+.join-card {
+  width: min(620px, 100%);
+  padding: clamp(28px, 7vw, 58px);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(24, 15, 92, 0.3);
+  text-align: center;
+}
+
+.join-brand {
+  margin-bottom: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #28233c;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.join-brand img {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+}
+
+.join-card .landing-eyebrow { color: #4b3ce0; }
+
+.join-card h1 {
+  margin: 0;
+  font-size: clamp(38px, 8vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.join-intro {
+  margin: 24px auto 0;
+  color: #686573;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.join-store-links {
+  margin-top: 30px;
+  justify-content: center;
+}
+
+.join-coming-soon {
+  margin-top: 30px;
+  padding: 18px;
+  display: grid;
+  gap: 5px;
+  border-radius: 14px;
+  background: #f1efff;
+  color: #4034ad;
+}
+
+.join-platform-note {
+  margin: 16px 0 0;
+  color: #686573;
+}
+
+.join-web-link {
+  margin-top: 24px;
+  display: inline-block;
+  color: #4536cf;
+  font-weight: 750;
+}
 
 @media (max-width: 900px) {
   .landing-hero {
