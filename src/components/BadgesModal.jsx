@@ -31,8 +31,10 @@ const PAGE_SIZE = 500;
 // gallery and the badge-earned alert always render a badge identically.
 import { TIER_COLORS, milestoneTier } from '../badgeDefinitions';
 import useDialogFocus from './useDialogFocus';
+import { useAuth } from '../AuthContext';
+import { readViewedBadgeStairwayIds } from '../badgeStairwayViews';
 
-function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificationCount }) {
+function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificationCount, onShowStairways }) {
   const colors = TIER_COLORS[tier] || TIER_COLORS.neighborhood;
   const ringColor = earned ? colors.ring : '#B8B8B8';
   const fillColor = earned ? colors.fill : '#DDDDDD';
@@ -52,7 +54,14 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
           </g>
         </svg>
         {earned && notificationCount > 0 && (
-          <span className="badge-tile-notification">{notificationCount}</span>
+          <button
+            type="button"
+            className="badge-tile-notification"
+            onClick={onShowStairways}
+            aria-label={`Show ${notificationCount} new ${notificationCount === 1 ? 'stairway' : 'stairways'} for ${name}`}
+          >
+            {notificationCount}
+          </button>
         )}
       </div>
       <span className="badge-tile-name">{name}</span>
@@ -64,8 +73,9 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
   );
 }
 
-export default function BadgesModal({ onClose }) {
+export default function BadgesModal({ onClose, onShowStairways }) {
   const dialogRef = useDialogFocus(onClose);
+  const { user } = useAuth();
   const { earnedBadgeIds, verifiedIds, loading: badgesLoading } = useBadges();
   const [stairways, setStairways] = useState([]);
   const [loadingStairways, setLoadingStairways] = useState(true);
@@ -149,6 +159,7 @@ export default function BadgesModal({ onClose }) {
   const fiveStarVerified = fiveStarStairways.filter((s) =>
     verifiedIds.has(s.id)
   );
+  const viewedBadgeStairwayIds = readViewedBadgeStairwayIds(user?.id);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -182,9 +193,15 @@ export default function BadgesModal({ onClose }) {
               {sortedNeighborhoodBadges.map((badge) => {
                 const { verified, total } =
                   neighborhoodProgressByName.get(badge.neighborhood) || {
-                    verified: 0,
-                    total: 0,
+                  verified: 0,
+                  total: 0,
                   };
+                const unseenNewStairways = stairways.filter(
+                  (stairway) =>
+                    stairway.neighborhood === badge.neighborhood &&
+                    !verifiedIds.has(stairway.id) &&
+                    !viewedBadgeStairwayIds.has(stairway.id)
+                );
                 return (
                   <BadgeMedallion
                     key={badge.id}
@@ -192,7 +209,8 @@ export default function BadgesModal({ onClose }) {
                     subtitle={badge.neighborhood}
                     progressLabel={total > 0 ? `${verified}/${total}` : null}
                     earned={earnedBadgeIds.has(badge.id)}
-                    notificationCount={total - verified}
+                    notificationCount={unseenNewStairways.length}
+                    onShowStairways={() => onShowStairways?.(unseenNewStairways)}
                     tier="neighborhood"
                   />
                 );
@@ -231,8 +249,21 @@ export default function BadgesModal({ onClose }) {
                   earned={earnedBadgeIds.has(badge.id)}
                   notificationCount={
                     badge.id === 'special-best-of-the-best'
-                      ? fiveStarStairways.length - fiveStarVerified.length
+                      ? fiveStarStairways.filter(
+                          (stairway) =>
+                            !verifiedIds.has(stairway.id) &&
+                            !viewedBadgeStairwayIds.has(stairway.id)
+                        ).length
                       : 0
+                  }
+                  onShowStairways={() =>
+                    onShowStairways?.(
+                      fiveStarStairways.filter(
+                        (stairway) =>
+                          !verifiedIds.has(stairway.id) &&
+                          !viewedBadgeStairwayIds.has(stairway.id)
+                      )
+                    )
                   }
                   tier="special"
                 />

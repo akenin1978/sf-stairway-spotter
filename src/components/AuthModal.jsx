@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns } from '../CheckInsContext';
-import { LAUNCH_LINKS } from '../launchLinks';
+import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 import { friendlyAuthError } from '../authErrors';
 import { isAndroidApp, isNativeApp } from '../nativeDevice';
 import {
@@ -449,11 +449,11 @@ export default function AuthModal({
 
             <p className="auth-legal">
               By continuing, you agree to the{' '}
-              <a href={LAUNCH_LINKS.terms} target="_blank" rel="noreferrer">
+              <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)} target="_blank" rel="noreferrer">
                 Terms of Use
               </a>{' '}
               and acknowledge the{' '}
-              <a href={LAUNCH_LINKS.privacy} target="_blank" rel="noreferrer">
+              <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)} target="_blank" rel="noreferrer">
                 Privacy Policy
               </a>
               .

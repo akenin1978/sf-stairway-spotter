@@ -12,13 +12,14 @@ import LaunchAnimation from './components/LaunchAnimation';
 import { useAuth } from './AuthContext';
 import { useCheckIns } from './CheckInsContext';
 import { supabase } from './supabaseClient';
-import { LAUNCH_LINKS } from './launchLinks';
+import { LAUNCH_LINKS, freshPublicPageUrl } from './launchLinks';
 import {
   friendRequestNotice,
   seenFriendRequestStorageKey,
   unseenFriendRequests,
 } from './friendRequests';
 import useDialogFocus from './components/useDialogFocus';
+import { markBadgeStairwayViewed } from './badgeStairwayViews';
 
 export default function App() {
   const [showLaunchAnimation, setShowLaunchAnimation] = useState(true);
@@ -35,6 +36,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [spotMode, setSpotMode] = useState(false);
   const [spottedListOpen, setSpottedListOpen] = useState(false);
+  const [badgeStairwayRequest, setBadgeStairwayRequest] = useState(null);
   const { user, loading, signOut, passwordRecovery, finishPasswordRecovery } = useAuth();
   const {
     count: checkedInCount,
@@ -178,15 +180,6 @@ export default function App() {
                 onClick={() => setMenuOpen(false)}
               />
               <div className="header-menu-panel">
-                <button
-                  className="header-menu-item"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    openGeneralFeedback();
-                  }}
-                >
-                  Feedback
-                </button>
                 {!loading &&
                   (user ? (
                     <>
@@ -268,9 +261,18 @@ export default function App() {
                 >
                   How it works
                 </button>
+                <button
+                  className="header-menu-item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    openGeneralFeedback();
+                  }}
+                >
+                  Feedback
+                </button>
                 <a
                   className="header-menu-item"
-                  href={LAUNCH_LINKS.support}
+                  href={freshPublicPageUrl(LAUNCH_LINKS.support)}
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => setMenuOpen(false)}
@@ -279,7 +281,7 @@ export default function App() {
                 </a>
                 <a
                   className="header-menu-item"
-                  href={LAUNCH_LINKS.privacy}
+                  href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => setMenuOpen(false)}
@@ -288,7 +290,7 @@ export default function App() {
                 </a>
                 <a
                   className="header-menu-item"
-                  href={LAUNCH_LINKS.terms}
+                  href={freshPublicPageUrl(LAUNCH_LINKS.terms)}
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => setMenuOpen(false)}
@@ -348,6 +350,10 @@ export default function App() {
         onCancelSpot={() => setSpotMode(false)}
         spottedListOpen={spottedListOpen}
         onCloseSpottedList={() => setSpottedListOpen(false)}
+        badgeStairwayRequest={badgeStairwayRequest}
+        onBadgeStairwayViewed={(stairwayId) =>
+          markBadgeStairwayViewed(user?.id, stairwayId)
+        }
       />
 
       {feedbackOpen && (
@@ -375,7 +381,18 @@ export default function App() {
         />
       )}
 
-      {badgesOpen && <BadgesModal onClose={() => setBadgesOpen(false)} />}
+      {badgesOpen && (
+        <BadgesModal
+          onClose={() => setBadgesOpen(false)}
+          onShowStairways={(stairways) => {
+            setBadgesOpen(false);
+            setBadgeStairwayRequest({
+              ids: stairways.map((stairway) => stairway.id),
+              requestedAt: Date.now(),
+            });
+          }}
+        />
+      )}
 
       {statsOpen && <StatsModal onClose={() => setStatsOpen(false)} />}
 

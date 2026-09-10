@@ -3,7 +3,7 @@ import { Filter } from 'bad-words';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns, storagePathFromPublicUrl } from '../CheckInsContext';
-import { LAUNCH_LINKS } from '../launchLinks';
+import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 import { confirmLeaderboardSettingChange } from '../leaderboardSettings';
 import useDialogFocus from './useDialogFocus';
 import { isNativeApp } from '../nativeDevice';
@@ -12,6 +12,7 @@ import {
   revokeAppleAuthorization,
   userUsesApple,
 } from '../appleTokenRevocation';
+import { currentIdentityProvider } from '../identityProvider';
 
 const profanityFilter = new Filter();
 
@@ -314,13 +315,13 @@ export default function SettingsModal({ onClose, startWithDelete = false }) {
             </button>
 
             <div className="settings-legal-links" aria-label="Help and legal">
-              <a href={LAUNCH_LINKS.support} target="_blank" rel="noreferrer">
+              <a href={freshPublicPageUrl(LAUNCH_LINKS.support)} target="_blank" rel="noreferrer">
                 Support
               </a>
-              <a href={LAUNCH_LINKS.privacy} target="_blank" rel="noreferrer">
+              <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)} target="_blank" rel="noreferrer">
                 Privacy Policy
               </a>
-              <a href={LAUNCH_LINKS.terms} target="_blank" rel="noreferrer">
+              <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)} target="_blank" rel="noreferrer">
                 Terms of Use
               </a>
               <a
@@ -366,14 +367,7 @@ function DeleteIdentityDialog({ user, onCancel, onConfirmed }) {
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
-  const identityProviders = (user?.identities || []).map(
-    (identity) => identity.provider
-  );
-  const provider = identityProviders.includes('apple')
-    ? 'apple'
-    : identityProviders.includes('google')
-      ? 'google'
-      : user?.app_metadata?.provider || identityProviders[0] || 'email';
+  const provider = currentIdentityProvider(user);
 
   async function confirmIdentity(event) {
     event.preventDefault();

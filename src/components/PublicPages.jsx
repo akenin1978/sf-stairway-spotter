@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react';
-import { LAUNCH_LINKS } from '../launchLinks';
+import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 
 const EFFECTIVE_DATE = 'September 7, 2026';
 const TERMS_EFFECTIVE_DATE = 'September 9, 2026';
@@ -48,9 +48,9 @@ function PageShell({ title, children }) {
         <h1>{title}</h1>
         {children}
         <nav className="public-page-links" aria-label="Legal and support links">
-          <a href={LAUNCH_LINKS.privacy}>Privacy</a>
-          <a href={LAUNCH_LINKS.terms}>Terms</a>
-          <a href={LAUNCH_LINKS.support}>Support</a>
+          <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}>Privacy</a>
+          <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)}>Terms</a>
+          <a href={freshPublicPageUrl(LAUNCH_LINKS.support)}>Support</a>
           <a href={LAUNCH_LINKS.deleteAccount}>Delete Account</a>
         </nav>
         <p className="public-page-footer">© 2026 Alexandra Kenin</p>

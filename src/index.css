@@ -1454,6 +1454,8 @@ html.public-page-document #root {
   align-items: center;
   justify-content: center;
   border: 2px solid white;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .badge-tile-name {
@@ -1950,6 +1952,32 @@ html.public-page-document #root {
   object-fit: contain;
   border-radius: 6px;
   margin: 6px auto 0;
+}
+
+.badge-browse-nav {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 2px;
+  color: #4b3ce0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  touch-action: pan-y;
+}
+
+.badge-browse-nav button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #d8d3f7;
+  border-radius: 50%;
+  background: #f5f3ff;
+  color: #4b3ce0;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .info-window h3 {

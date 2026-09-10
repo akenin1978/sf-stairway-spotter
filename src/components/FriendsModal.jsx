@@ -280,7 +280,7 @@ export default function FriendsModal({ onClose, onOpenSettings }) {
         {inviteEmail && (
           <div className="friends-invite-card" role="status">
             <p>
-              They don’t appear to be on SF Stairway Spotter yet. Invite them
+              Your friend isn't on SF Stairway Spotter yet. Invite them
               by text, email, or another app.
             </p>
             <div className="friends-invite-actions">

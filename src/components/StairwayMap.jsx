@@ -368,13 +368,10 @@ function CheckInNearbyButton({ onClick, locating, disabled }) {
         fill="none"
         aria-hidden="true"
       >
-        <circle cx="12" cy="12" r="3" fill="currentColor" />
-        <path
-          d="M12 2v4m0 12v4M2 12h4m12 0h4"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+        <rect x="1" y="17" width="5" height="6" fill="currentColor" />
+        <rect x="7" y="12" width="5" height="11" fill="currentColor" />
+        <rect x="13" y="7" width="5" height="16" fill="currentColor" />
+        <rect x="19" y="2" width="4" height="21" fill="currentColor" />
       </svg>
       {locating ? 'Finding stairs…' : 'Nearby stairs'}
     </button>
@@ -405,9 +402,13 @@ export default function StairwayMap({
   onCancelSpot,
   spottedListOpen,
   onCloseSpottedList,
+  badgeStairwayRequest,
+  onBadgeStairwayViewed,
 }) {
   const [stairways, setStairways] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [badgeBrowseIds, setBadgeBrowseIds] = useState([]);
+  const badgeSwipeStart = useRef(null);
   const [newStairwayNotice, setNewStairwayNotice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -443,6 +444,7 @@ export default function StairwayMap({
   // into the new session's clean home view.
   useEffect(() => {
     setSelected(null);
+    setBadgeBrowseIds([]);
     setAcceptedSafetyVersion(null);
     setVerificationSafetyOpen(false);
   }, [user?.id]);
@@ -1294,6 +1296,67 @@ export default function StairwayMap({
   const [visibleNeighborhoods, setVisibleNeighborhoods] = useState(null);
 
   useEffect(() => {
+    if (!badgeStairwayRequest?.ids?.length || stairways.length === 0) return;
+    const validIds = badgeStairwayRequest.ids.filter((id) =>
+      stairways.some((candidate) => candidate.id === id)
+    );
+    const stairway = stairways.find((candidate) => candidate.id === validIds[0]);
+    if (!stairway) return;
+
+    setVisibleRatings((current) => {
+      const next = new Set(current);
+      next.add(ratingKey(stairway.rating));
+      return next;
+    });
+    setVisibleNeighborhoods((current) => {
+      const next = new Set(current || stairways.map((item) => item.neighborhood).filter(Boolean));
+      if (stairway.neighborhood) next.add(stairway.neighborhood);
+      return next;
+    });
+    setBadgeBrowseIds(validIds);
+    setSelected(stairway);
+  }, [badgeStairwayRequest, stairways]);
+
+  const badgeBrowseIndex = selected
+    ? badgeBrowseIds.indexOf(selected.id)
+    : -1;
+
+  useEffect(() => {
+    if (badgeBrowseIndex >= 0 && selected?.id) {
+      onBadgeStairwayViewed?.(selected.id);
+    }
+  }, [badgeBrowseIndex, selected?.id, onBadgeStairwayViewed]);
+
+  function showBadgeBrowseStairway(step) {
+    if (badgeBrowseIndex < 0 || badgeBrowseIds.length < 2) return;
+    const nextIndex =
+      (badgeBrowseIndex + step + badgeBrowseIds.length) % badgeBrowseIds.length;
+    const nextStairway = stairways.find(
+      (stairway) => stairway.id === badgeBrowseIds[nextIndex]
+    );
+    if (nextStairway) setSelected(nextStairway);
+  }
+
+  function closeSelectedStairway() {
+    setSelected(null);
+    setBadgeBrowseIds([]);
+  }
+
+  function handleBadgeBrowsePointerDown(event) {
+    badgeSwipeStart.current = { x: event.clientX, y: event.clientY };
+  }
+
+  function handleBadgeBrowsePointerUp(event) {
+    if (!badgeSwipeStart.current || badgeBrowseIds.length < 2) return;
+    const deltaX = event.clientX - badgeSwipeStart.current.x;
+    const deltaY = event.clientY - badgeSwipeStart.current.y;
+    badgeSwipeStart.current = null;
+    if (Math.abs(deltaX) >= 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      showBadgeBrowseStairway(deltaX < 0 ? 1 : -1);
+    }
+  }
+
+  useEffect(() => {
     let isMounted = true;
     let isLoadingStairways = false;
     let lastLoadedAt = 0;
@@ -1635,7 +1698,10 @@ export default function StairwayMap({
             checkedInIds={checkedInIds}
             checkedInMethods={checkedInMethods}
             spotMode={spotMode}
-            onSelect={setSelected}
+            onSelect={(stairway) => {
+              setBadgeBrowseIds([]);
+              setSelected(stairway);
+            }}
           />
 
           {spotMode && spotLocation && (
@@ -1656,12 +1722,16 @@ export default function StairwayMap({
             <InfoWindow
               position={getStairwayMarkerPosition(selected)}
               zIndex={30}
-              onCloseClick={() => setSelected(null)}
+              onCloseClick={closeSelectedStairway}
             >
-              <div className="info-window">
+              <div
+                className="info-window"
+                onPointerDown={handleBadgeBrowsePointerDown}
+                onPointerUp={handleBadgeBrowsePointerUp}
+              >
                 <button
                   className="info-window-close"
-                  onClick={() => setSelected(null)}
+                  onClick={closeSelectedStairway}
                   aria-label="Close"
                 >
                   ×
@@ -1688,6 +1758,28 @@ export default function StairwayMap({
                     </a>
                   </p>
                 ) : null}
+
+                {badgeBrowseIndex >= 0 && badgeBrowseIds.length > 1 && (
+                  <div className="badge-browse-nav" aria-label="New stairways">
+                    <button
+                      type="button"
+                      onClick={() => showBadgeBrowseStairway(-1)}
+                      aria-label="Previous new stairway"
+                    >
+                      ‹
+                    </button>
+                    <span>
+                      {badgeBrowseIndex + 1} of {badgeBrowseIds.length} new
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => showBadgeBrowseStairway(1)}
+                      aria-label="Next new stairway"
+                    >
+                      ›
+                    </button>
+                  </div>
+                )}
 
                 {completionMessage && (
                   <div className="checkin-success" role="status">

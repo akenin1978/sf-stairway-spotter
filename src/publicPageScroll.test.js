@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
+import { freshPublicPageUrl } from './launchLinks';
 
 const css = fs.readFileSync(new URL('./index.css', import.meta.url), 'utf8');
 const entry = fs.readFileSync(new URL('./main.jsx', import.meta.url), 'utf8');
@@ -25,5 +26,13 @@ describe('public page scrolling', () => {
     expect(pages).toContain('<main id="top" className="public-page">');
     expect(links.match(/#top/g)).toHaveLength(4);
     expect(css).toMatch(/html\.public-page-document[\s\S]*?overflow-anchor:\s*none/);
+  });
+
+  it('gives menu links a fresh URL so mobile browsers cannot restore an old position', () => {
+    const freshUrl = new URL(
+      freshPublicPageUrl('https://www.sfstairwayspotter.com/support#top', 1234)
+    );
+    expect(freshUrl.searchParams.get('opened')).toBe('1234');
+    expect(freshUrl.hash).toBe('#top');
   });
 });

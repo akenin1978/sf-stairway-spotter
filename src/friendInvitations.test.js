@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  FRIEND_INVITE_EMAIL_TEXT,
   FRIEND_INVITE_TEXT,
   FRIEND_INVITE_URL,
   friendInviteMailto,
@@ -10,8 +11,10 @@ describe('friend invitations', () => {
   it('uses a privacy-friendly message instead of exposing the username', () => {
     const invitation = friendInviteShareData();
 
+    expect(invitation.text).toBe(
+      "Join me on SF Stairway spotter! Discover San Francisco's public stairways, track your progress, and compare verified climbs."
+    );
     expect(invitation.text).toBe(FRIEND_INVITE_TEXT);
-    expect(invitation.text).toMatch(/^Your friend invited you/);
     expect(invitation.url).toBe(FRIEND_INVITE_URL);
   });
 
@@ -19,7 +22,8 @@ describe('friend invitations', () => {
     const href = friendInviteMailto('friend+stairs@example.com');
 
     expect(href).toContain('mailto:friend%2Bstairs%40example.com');
-    expect(decodeURIComponent(href)).toContain(FRIEND_INVITE_TEXT);
-    expect(decodeURIComponent(href)).toContain(FRIEND_INVITE_URL);
+    const decodedHref = decodeURIComponent(href);
+    expect(decodedHref).toContain(FRIEND_INVITE_EMAIL_TEXT);
+    expect(decodedHref).toContain(`${FRIEND_INVITE_EMAIL_TEXT}\n\n${FRIEND_INVITE_URL}`);
   });
 });

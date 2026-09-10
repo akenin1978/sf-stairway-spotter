@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LAUNCH_LINKS } from '../launchLinks';
+import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 import { supabase } from '../supabaseClient';
 import useDialogFocus from './useDialogFocus';
 
@@ -65,7 +65,7 @@ export default function VerificationSafetyDialog({ onCancel, onAccepted }) {
           <span>
             I understand and accept the risks of using stairways and navigating
             city streets. I will use my own judgment and agree to the{' '}
-            <a href={LAUNCH_LINKS.terms} target="_blank" rel="noreferrer">
+            <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)} target="_blank" rel="noreferrer">
               Terms of Use
             </a>
             .
