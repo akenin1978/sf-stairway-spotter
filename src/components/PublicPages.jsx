@@ -16,8 +16,7 @@ function PageShell({ title, children }) {
   const pageRef = useRef(null);
 
   useLayoutEffect(() => {
-    let topLockActive = true;
-    const forceResetScroll = () => {
+    const resetScroll = () => {
       window.scrollTo(0, 0);
       if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
       document.documentElement.scrollTop = 0;
@@ -25,67 +24,17 @@ function PageShell({ title, children }) {
       if (pageRef.current) pageRef.current.scrollTop = 0;
     };
 
-    const resetScroll = () => {
-      if (!topLockActive) return;
-      forceResetScroll();
-    };
-
-    // Chrome and other mobile browsers may reopen an existing external tab
-    // instead of loading a new document. That can happen long after the short
-    // startup lock has expired, so lifecycle resumes must bypass that lock.
-    const resetResumedPage = () => {
-      if (document.visibilityState === 'hidden') return;
-      forceResetScroll();
-    };
-
-    const releaseTopLock = () => {
-      topLockActive = false;
-    };
-
-    // iOS's in-app Safari can restore a previous same-origin scroll position
-    // several times while its browser chrome settles. Keep returning a newly
-    // opened page to the top through that restoration window.
+    // The page has its own fixed scrolling viewport, isolated from browser
+    // document restoration. Reset once on mount and once if a browser restores
+    // this document from its back-forward cache. Never reset on resize, focus,
+    // or a timer: mobile browser chrome changes those while the person scrolls.
     const previousRestoration = window.history.scrollRestoration;
     window.history.scrollRestoration = 'manual';
     resetScroll();
-    const animationFrames = [
-      window.requestAnimationFrame(resetScroll),
-      window.requestAnimationFrame(() => window.requestAnimationFrame(resetScroll)),
-    ];
-    const delayedResets = [0, 100, 300, 750, 1500, 2500, 4000, 6000].map((delay) =>
-      window.setTimeout(resetScroll, delay)
-    );
-    const restorationInterval = window.setInterval(resetScroll, 100);
-    const stopRestorationInterval = window.setTimeout(() => {
-      window.clearInterval(restorationInterval);
-      topLockActive = false;
-    }, 6500);
-    window.addEventListener('pageshow', resetResumedPage);
-    window.addEventListener('load', resetResumedPage);
-    window.addEventListener('focus', resetResumedPage);
-    window.addEventListener('resize', resetScroll);
-    document.addEventListener('visibilitychange', resetResumedPage);
-    // The tap that launches an external browser can be delivered to the newly
-    // opened page. Releasing on touchstart/pointerdown therefore lets Chrome
-    // restore its old scroll position afterward. Only a real scroll gesture
-    // should hand control back to the reader.
-    window.addEventListener('touchmove', releaseTopLock, { passive: true, once: true });
-    window.addEventListener('wheel', releaseTopLock, { passive: true, once: true });
-    window.addEventListener('keydown', releaseTopLock, { once: true });
+    window.addEventListener('pageshow', resetScroll);
 
     return () => {
-      animationFrames.forEach((frame) => window.cancelAnimationFrame(frame));
-      delayedResets.forEach((timeout) => window.clearTimeout(timeout));
-      window.clearInterval(restorationInterval);
-      window.clearTimeout(stopRestorationInterval);
-      window.removeEventListener('pageshow', resetResumedPage);
-      window.removeEventListener('load', resetResumedPage);
-      window.removeEventListener('focus', resetResumedPage);
-      window.removeEventListener('resize', resetScroll);
-      document.removeEventListener('visibilitychange', resetResumedPage);
-      window.removeEventListener('touchmove', releaseTopLock);
-      window.removeEventListener('wheel', releaseTopLock);
-      window.removeEventListener('keydown', releaseTopLock);
+      window.removeEventListener('pageshow', resetScroll);
       window.history.scrollRestoration = previousRestoration;
     };
   }, []);
