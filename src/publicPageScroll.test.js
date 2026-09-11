@@ -24,7 +24,8 @@ describe('public page scrolling', () => {
     expect(pages).toContain("window.history.scrollRestoration = 'manual'");
     expect(pages).toContain("window.addEventListener('pageshow', resetScroll)");
     expect(pages).toContain('window.setInterval(resetScroll, 100)');
-    expect(pages).toContain("window.addEventListener('touchstart', releaseTopLock");
+    expect(pages).toContain("window.addEventListener('touchmove', releaseTopLock");
+    expect(pages).not.toContain("window.addEventListener('touchstart', releaseTopLock");
     expect(entry).toContain("window.location.hash === '#top'");
     expect(entry).toContain('window.history.replaceState');
     expect(pages).toContain('<main id="top" className="public-page">');

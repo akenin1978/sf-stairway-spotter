@@ -50,8 +50,11 @@ function PageShell({ title, children }) {
     window.addEventListener('focus', resetScroll);
     window.addEventListener('resize', resetScroll);
     document.addEventListener('visibilitychange', resetScroll);
-    window.addEventListener('touchstart', releaseTopLock, { passive: true, once: true });
-    window.addEventListener('pointerdown', releaseTopLock, { passive: true, once: true });
+    // The tap that launches an external browser can be delivered to the newly
+    // opened page. Releasing on touchstart/pointerdown therefore lets Chrome
+    // restore its old scroll position afterward. Only a real scroll gesture
+    // should hand control back to the reader.
+    window.addEventListener('touchmove', releaseTopLock, { passive: true, once: true });
     window.addEventListener('wheel', releaseTopLock, { passive: true, once: true });
     window.addEventListener('keydown', releaseTopLock, { once: true });
 
@@ -65,8 +68,7 @@ function PageShell({ title, children }) {
       window.removeEventListener('focus', resetScroll);
       window.removeEventListener('resize', resetScroll);
       document.removeEventListener('visibilitychange', resetScroll);
-      window.removeEventListener('touchstart', releaseTopLock);
-      window.removeEventListener('pointerdown', releaseTopLock);
+      window.removeEventListener('touchmove', releaseTopLock);
       window.removeEventListener('wheel', releaseTopLock);
       window.removeEventListener('keydown', releaseTopLock);
       window.history.scrollRestoration = previousRestoration;
