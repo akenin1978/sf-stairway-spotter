@@ -11,24 +11,26 @@ const pages = fs.readFileSync(
 const links = fs.readFileSync(new URL('./launchLinks.js', import.meta.url), 'utf8');
 
 describe('public page scrolling', () => {
-  it('uses normal document scrolling instead of a nested mobile scroller', () => {
+  it('isolates legal pages from browser-restored document scrolling', () => {
     expect(entry).toContain("'public-page-document'");
-    expect(css).toMatch(/html\.public-page-document[\s\S]*?overflow:\s*visible/);
+    expect(entry).toContain("'legal-page-document'");
+    expect(css).toMatch(/html\.legal-page-document[\s\S]*?overflow:\s*hidden/);
 
     const publicPageRule = css.match(/\.public-page\s*\{([\s\S]*?)\}/)?.[1] ?? '';
-    expect(publicPageRule).not.toMatch(/height:\s*100%/);
-    expect(publicPageRule).not.toMatch(/overflow-y:\s*auto/);
+    expect(publicPageRule).toMatch(/position:\s*fixed/);
+    expect(publicPageRule).toMatch(/overflow-y:\s*auto/);
   });
 
   it('overrides mobile browser scroll restoration and targets the page top', () => {
     expect(pages).toContain("window.history.scrollRestoration = 'manual'");
+    expect(pages).toContain('pageRef.current.scrollTop = 0');
     expect(pages).toContain("window.addEventListener('pageshow', resetScroll)");
     expect(pages).toContain('window.setInterval(resetScroll, 100)');
     expect(pages).toContain("window.addEventListener('touchmove', releaseTopLock");
     expect(pages).not.toContain("window.addEventListener('touchstart', releaseTopLock");
     expect(entry).toContain("window.location.hash === '#top'");
     expect(entry).toContain('window.history.replaceState');
-    expect(pages).toContain('<main id="top" className="public-page">');
+    expect(pages).toContain('<main ref={pageRef} id="top" className="public-page">');
     expect(links).not.toContain('#top');
     expect(css).toMatch(/html\.public-page-document[\s\S]*?overflow-anchor:\s*none/);
   });

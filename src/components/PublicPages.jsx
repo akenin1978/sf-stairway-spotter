@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 
 const EFFECTIVE_DATE = 'September 7, 2026';
@@ -13,6 +13,8 @@ const PAGE_TITLES = {
 };
 
 function PageShell({ title, children }) {
+  const pageRef = useRef(null);
+
   useLayoutEffect(() => {
     let topLockActive = true;
     const resetScroll = () => {
@@ -21,6 +23,7 @@ function PageShell({ title, children }) {
       if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+      if (pageRef.current) pageRef.current.scrollTop = 0;
     };
 
     const releaseTopLock = () => {
@@ -76,7 +79,7 @@ function PageShell({ title, children }) {
   }, []);
 
   return (
-    <main id="top" className="public-page">
+    <main ref={pageRef} id="top" className="public-page">
       <div className="public-page-card">
         <a className="public-page-brand" href="/">
           <span aria-hidden="true">▰</span> SF Stairway Spotter

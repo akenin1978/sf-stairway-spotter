@@ -44,6 +44,10 @@ document.documentElement.classList.toggle(
   'public-page-document',
   Boolean(PublicPage || showJoinPage)
 );
+document.documentElement.classList.toggle(
+  'legal-page-document',
+  Boolean(PublicPage)
+);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -774,8 +774,23 @@ html.public-page-document #root {
   scroll-behavior: auto;
 }
 
+/* Legal/support pages use their own viewport so mobile browser history cannot
+   restore the document underneath them to a partially scrolled position. */
+html.legal-page-document,
+html.legal-page-document body,
+html.legal-page-document #root {
+  height: 100%;
+  overflow: hidden;
+}
+
 .public-page {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   min-height: 100vh;
+  min-height: 100dvh;
   padding: max(28px, env(safe-area-inset-top)) 18px
     max(28px, env(safe-area-inset-bottom));
   background: #f5f4ff;
