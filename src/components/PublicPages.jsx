@@ -56,9 +56,9 @@ function PageShell({ title, children }) {
   );
 }
 
-function PrivacyPage() {
+export function PrivacyContent() {
   return (
-    <PageShell title="Privacy Policy">
+    <>
       <p className="public-page-updated">Effective {EFFECTIVE_DATE}</p>
       <p>
         SF Stairway Spotter helps people discover and keep track of visits to
@@ -177,13 +177,21 @@ function PrivacyPage() {
         security. We may update this policy as the app changes. The effective date
         above will be revised when material changes are made.
       </p>
+    </>
+  );
+}
+
+function PrivacyPage() {
+  return (
+    <PageShell title="Privacy Policy">
+      <PrivacyContent />
     </PageShell>
   );
 }
 
-function TermsPage() {
+export function TermsContent() {
   return (
-    <PageShell title="Terms of Use">
+    <>
       <p className="public-page-updated">Effective {TERMS_EFFECTIVE_DATE}</p>
       <p>
         These terms govern your use of SF Stairway Spotter. By using the app, you
@@ -320,13 +328,21 @@ function TermsPage() {
         law principles. Questions may be sent to{' '}
         <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
       </p>
+    </>
+  );
+}
+
+function TermsPage() {
+  return (
+    <PageShell title="Terms of Use">
+      <TermsContent />
     </PageShell>
   );
 }
 
-function SupportPage() {
+export function SupportContent() {
   return (
-    <PageShell title="Support">
+    <>
       <p>
         Need help with SF Stairway Spotter, found incorrect stairway information,
         or encountered a problem?
@@ -350,6 +366,14 @@ function SupportPage() {
         This support channel is not monitored for emergencies. For an emergency,
         contact local emergency services.
       </p>
+    </>
+  );
+}
+
+function SupportPage() {
+  return (
+    <PageShell title="Support">
+      <SupportContent />
     </PageShell>
   );
 }

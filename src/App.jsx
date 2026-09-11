@@ -9,10 +9,11 @@ import StatsModal from './components/StatsModal';
 import LeaderboardModal from './components/LeaderboardModal';
 import FriendsModal from './components/FriendsModal';
 import LaunchAnimation from './components/LaunchAnimation';
+import InAppPublicPage from './components/InAppPublicPage';
 import { useAuth } from './AuthContext';
 import { useCheckIns } from './CheckInsContext';
 import { supabase } from './supabaseClient';
-import { LAUNCH_LINKS, freshPublicPageUrl } from './launchLinks';
+import { LAUNCH_LINKS } from './launchLinks';
 import {
   friendRequestNotice,
   seenFriendRequestStorageKey,
@@ -34,6 +35,7 @@ export default function App() {
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [publicPageOpen, setPublicPageOpen] = useState(null);
   const [spotMode, setSpotMode] = useState(false);
   const [spottedListOpen, setSpottedListOpen] = useState(false);
   const [badgeStairwayRequest, setBadgeStairwayRequest] = useState(null);
@@ -270,33 +272,33 @@ export default function App() {
                 >
                   Feedback
                 </button>
-                <a
+                <button
                   className="header-menu-item"
-                  href={freshPublicPageUrl(LAUNCH_LINKS.support)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setPublicPageOpen('support');
+                  }}
                 >
                   Support
-                </a>
-                <a
+                </button>
+                <button
                   className="header-menu-item"
-                  href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setPublicPageOpen('privacy');
+                  }}
                 >
                   Privacy Policy
-                </a>
-                <a
+                </button>
+                <button
                   className="header-menu-item"
-                  href={freshPublicPageUrl(LAUNCH_LINKS.terms)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setPublicPageOpen('terms');
+                  }}
                 >
                   Terms of Use
-                </a>
+                </button>
                 {user ? (
                   <button
                     className="header-menu-item"
@@ -356,6 +358,13 @@ export default function App() {
         }
       />
 
+      {publicPageOpen && (
+        <InAppPublicPage
+          page={publicPageOpen}
+          onClose={() => setPublicPageOpen(null)}
+        />
+      )}
+
       {feedbackOpen && (
         <FeedbackModal
           stairway={feedbackStairway}
@@ -374,6 +383,11 @@ export default function App() {
       {settingsOpen && (
         <SettingsModal
           startWithDelete={settingsStartWithDelete}
+          onOpenPublicPage={(page) => {
+            setSettingsOpen(false);
+            setSettingsStartWithDelete(false);
+            setPublicPageOpen(page);
+          }}
           onClose={() => {
             setSettingsOpen(false);
             setSettingsStartWithDelete(false);

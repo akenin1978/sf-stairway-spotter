@@ -3,7 +3,7 @@ import { Filter } from 'bad-words';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns, storagePathFromPublicUrl } from '../CheckInsContext';
-import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
+import { LAUNCH_LINKS } from '../launchLinks';
 import { confirmLeaderboardSettingChange } from '../leaderboardSettings';
 import useDialogFocus from './useDialogFocus';
 import { isNativeApp } from '../nativeDevice';
@@ -16,7 +16,11 @@ import { currentIdentityProvider } from '../identityProvider';
 
 const profanityFilter = new Filter();
 
-export default function SettingsModal({ onClose, startWithDelete = false }) {
+export default function SettingsModal({
+  onClose,
+  onOpenPublicPage,
+  startWithDelete = false,
+}) {
   const dialogRef = useDialogFocus(onClose);
   const { user, signOut } = useAuth();
   const { checkedInPhotoUrls } = useCheckIns();
@@ -315,15 +319,15 @@ export default function SettingsModal({ onClose, startWithDelete = false }) {
             </button>
 
             <div className="settings-legal-links" aria-label="Help and legal">
-              <a href={freshPublicPageUrl(LAUNCH_LINKS.support)} target="_blank" rel="noreferrer">
+              <button type="button" onClick={() => onOpenPublicPage('support')}>
                 Support
-              </a>
-              <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)} target="_blank" rel="noreferrer">
+              </button>
+              <button type="button" onClick={() => onOpenPublicPage('privacy')}>
                 Privacy Policy
-              </a>
-              <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)} target="_blank" rel="noreferrer">
+              </button>
+              <button type="button" onClick={() => onOpenPublicPage('terms')}>
                 Terms of Use
-              </a>
+              </button>
               <a
                 href={LAUNCH_LINKS.deleteAccount}
                 target="_blank"
