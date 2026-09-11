@@ -11,25 +11,26 @@ const pages = fs.readFileSync(
 const links = fs.readFileSync(new URL('./launchLinks.js', import.meta.url), 'utf8');
 
 describe('public page scrolling', () => {
-  it('isolates legal pages from browser-restored document scrolling', () => {
+  it('uses normal document scrolling on legal pages', () => {
     expect(entry).toContain("'public-page-document'");
-    expect(entry).toContain("'legal-page-document'");
-    expect(css).toMatch(/html\.legal-page-document[\s\S]*?overflow:\s*hidden/);
+    expect(entry).not.toContain("'legal-page-document'");
 
     const publicPageRule = css.match(/\.public-page\s*\{([\s\S]*?)\}/)?.[1] ?? '';
-    expect(publicPageRule).toMatch(/position:\s*fixed/);
-    expect(publicPageRule).toMatch(/overflow-y:\s*auto/);
+    expect(publicPageRule).not.toMatch(/position:\s*fixed/);
+    expect(publicPageRule).not.toMatch(/overflow-y:\s*auto/);
+    expect(css).toMatch(/html\.public-page-document[\s\S]*?overflow:\s*visible/);
   });
 
   it('overrides mobile browser scroll restoration and targets the page top', () => {
     expect(pages).toContain("window.history.scrollRestoration = 'manual'");
-    expect(pages).toContain('pageRef.current.scrollTop = 0');
-    expect(pages).toContain("window.addEventListener('pageshow', resetScroll)");
+    expect(entry).toContain("window.history.scrollRestoration = 'manual'");
+    expect(pages).toContain('window.requestAnimationFrame(resetScroll)');
+    expect(pages).toContain("window.addEventListener('pageshow', handlePageShow)");
     expect(pages).not.toContain("window.addEventListener('resize', resetScroll)");
     expect(pages).not.toContain('window.setInterval');
     expect(entry).toContain("window.location.hash === '#top'");
     expect(entry).toContain('window.history.replaceState');
-    expect(pages).toContain('<main ref={pageRef} id="top" className="public-page">');
+    expect(pages).toContain('<main id="top" className="public-page">');
     expect(links).not.toContain('#top');
     expect(css).toMatch(/html\.public-page-document[\s\S]*?overflow-anchor:\s*none/);
   });

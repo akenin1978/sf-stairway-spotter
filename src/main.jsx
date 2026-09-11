@@ -18,6 +18,11 @@ const publicPagePaths = new Set([
 ]);
 const normalizedPath = window.location.pathname.replace(/\/$/, '') || '/';
 
+if (publicPagePaths.has(normalizedPath)) {
+  window.history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+}
+
 // Builds through 17 open these pages with #top. Remove that legacy fragment
 // before React renders so iOS cannot perform a late anchor scroll after the
 // page has already reset itself.
@@ -43,10 +48,6 @@ const showLandingPage = shouldShowLandingPage(
 document.documentElement.classList.toggle(
   'public-page-document',
   Boolean(PublicPage || showJoinPage)
-);
-document.documentElement.classList.toggle(
-  'legal-page-document',
-  Boolean(PublicPage)
 );
 
 ReactDOM.createRoot(document.getElementById('root')).render(

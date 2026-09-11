@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect } from 'react';
 import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 
 const EFFECTIVE_DATE = 'September 7, 2026';
@@ -13,34 +13,31 @@ const PAGE_TITLES = {
 };
 
 function PageShell({ title, children }) {
-  const pageRef = useRef(null);
-
   useLayoutEffect(() => {
     const resetScroll = () => {
       window.scrollTo(0, 0);
       if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      if (pageRef.current) pageRef.current.scrollTop = 0;
     };
 
-    // The page has its own fixed scrolling viewport, isolated from browser
-    // document restoration. Reset once on mount and once if a browser restores
-    // this document from its back-forward cache. Never reset on resize, focus,
-    // or a timer: mobile browser chrome changes those while the person scrolls.
-    const previousRestoration = window.history.scrollRestoration;
+    // Use the browser's ordinary document scroller. A single after-paint reset
+    // runs after Chrome/Safari have had a chance to restore their old position,
+    // then releases the page completely so touch scrolling is never trapped.
     window.history.scrollRestoration = 'manual';
     resetScroll();
-    window.addEventListener('pageshow', resetScroll);
+    const frame = window.requestAnimationFrame(resetScroll);
+    const handlePageShow = () => window.requestAnimationFrame(resetScroll);
+    window.addEventListener('pageshow', handlePageShow);
 
     return () => {
-      window.removeEventListener('pageshow', resetScroll);
-      window.history.scrollRestoration = previousRestoration;
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('pageshow', handlePageShow);
     };
   }, []);
 
   return (
-    <main ref={pageRef} id="top" className="public-page">
+    <main id="top" className="public-page">
       <div className="public-page-card">
         <a className="public-page-brand" href="/">
           <span aria-hidden="true">▰</span> SF Stairway Spotter
