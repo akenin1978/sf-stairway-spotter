@@ -17,16 +17,28 @@ const publicPagePaths = new Set([
   '/delete-account',
 ]);
 const normalizedPath = window.location.pathname.replace(/\/$/, '') || '/';
+const publicPagePath = [...publicPagePaths].find(
+  (path) => normalizedPath === path || normalizedPath.startsWith(`${path}/opened-`)
+);
 
-if (publicPagePaths.has(normalizedPath)) {
+if (publicPagePath) {
   window.history.scrollRestoration = 'manual';
   window.scrollTo(0, 0);
+}
+
+// iOS Chrome can revive the prior scroll position when an external app opens
+// the same pathname, even if the query string is new. Builds 18+ already add
+// an `opened` nonce, so promote it to a unique pathname before rendering. That
+// forces a fresh browser document while remaining compatible with shipped apps.
+const openedNonce = new URLSearchParams(window.location.search).get('opened');
+if (publicPagePath && normalizedPath === publicPagePath && openedNonce) {
+  window.location.replace(`${publicPagePath}/opened-${encodeURIComponent(openedNonce)}`);
 }
 
 // Builds through 17 open these pages with #top. Remove that legacy fragment
 // before React renders so iOS cannot perform a late anchor scroll after the
 // page has already reset itself.
-if (publicPagePaths.has(normalizedPath) && window.location.hash === '#top') {
+if (publicPagePath && window.location.hash === '#top') {
   window.history.replaceState(
     window.history.state,
     '',

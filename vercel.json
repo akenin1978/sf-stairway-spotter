@@ -8,6 +8,15 @@
           "value": "no-store, max-age=0"
         }
       ]
+    },
+    {
+      "source": "/(privacy|terms|support|delete-account)/opened-(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -15,6 +24,10 @@
     { "source": "/terms", "destination": "/index.html" },
     { "source": "/support", "destination": "/index.html" },
     { "source": "/delete-account", "destination": "/index.html" },
+    { "source": "/privacy/opened-(.*)", "destination": "/index.html" },
+    { "source": "/terms/opened-(.*)", "destination": "/index.html" },
+    { "source": "/support/opened-(.*)", "destination": "/index.html" },
+    { "source": "/delete-account/opened-(.*)", "destination": "/index.html" },
     { "source": "/join", "destination": "/index.html" }
   ]
 }

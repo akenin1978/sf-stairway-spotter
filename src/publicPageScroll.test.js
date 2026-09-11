@@ -41,5 +41,7 @@ describe('public page scrolling', () => {
     );
     expect(freshUrl.searchParams.get('opened')).toBe('1234');
     expect(freshUrl.hash).toBe('');
+    expect(entry).toContain("window.location.replace(`${publicPagePath}/opened-");
+    expect(pages).toContain('normalizedPath.startsWith(`${path}/opened-`)');
   });
 });

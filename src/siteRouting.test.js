@@ -31,6 +31,17 @@ describe('shouldShowLandingPage', () => {
     });
   });
 
+  it('routes unique public-page launches through the deployed app', () => {
+    const vercelConfig = JSON.parse(
+      readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')
+    );
+
+    expect(vercelConfig.rewrites).toContainEqual({
+      source: '/support/opened-(.*)',
+      destination: '/index.html',
+    });
+  });
+
   it('does not cache public-page HTML in mobile browsers', () => {
     const vercelConfig = JSON.parse(
       readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')

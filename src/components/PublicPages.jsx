@@ -391,7 +391,11 @@ function DeleteAccountPage() {
 
 export function getPublicPage(pathname) {
   const normalizedPath = pathname.replace(/\/$/, '') || '/';
-  if (!PAGE_TITLES[normalizedPath]) return null;
+  const publicPagePath = Object.keys(PAGE_TITLES).find(
+    (path) =>
+      normalizedPath === path || normalizedPath.startsWith(`${path}/opened-`)
+  );
+  if (!publicPagePath) return null;
 
   const pages = {
     '/privacy': PrivacyPage,
@@ -399,5 +403,5 @@ export function getPublicPage(pathname) {
     '/support': SupportPage,
     '/delete-account': DeleteAccountPage,
   };
-  return pages[normalizedPath];
+  return pages[publicPagePath];
 }
