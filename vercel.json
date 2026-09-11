@@ -1,4 +1,15 @@
 {
+  "headers": [
+    {
+      "source": "/(privacy|terms|support|delete-account|join)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/privacy", "destination": "/index.html" },
     { "source": "/terms", "destination": "/index.html" },

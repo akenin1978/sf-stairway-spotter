@@ -31,6 +31,22 @@ describe('shouldShowLandingPage', () => {
     });
   });
 
+  it('does not cache public-page HTML in mobile browsers', () => {
+    const vercelConfig = JSON.parse(
+      readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')
+    );
+
+    expect(vercelConfig.headers).toContainEqual({
+      source: '/(privacy|terms|support|delete-account|join)',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'no-store, max-age=0',
+        },
+      ],
+    });
+  });
+
   it('opens the app rather than the landing page for password recovery', () => {
     expect(
       shouldShowLandingPage(
