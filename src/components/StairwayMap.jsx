@@ -53,10 +53,11 @@ import {
 } from '../stairwayMapGeometry';
 
 // Approved full-city phone framing: Golden Gate and Alcatraz at the top,
-// San Bruno Mountain and the northern edge of South San Francisco below.
-// The slight southern bias keeps the stairway-dense part of the city centered
-// above the bottom map controls.
-const SF_CENTER = { lat: 37.735, lng: -122.4194 };
+// San Bruno Mountain and the northern edge of South San Francisco below,
+// with only a sliver of the easternmost Treasure Island marker visible.
+// This is the map's single initial camera position—there is deliberately no
+// after-render pan that could replay when authentication state changes.
+const SF_CENTER = { lat: 37.735, lng: -122.431 };
 const SF_MOBILE_HOME_ZOOM = 12.25;
 const SF_DESKTOP_HOME_ZOOM = 11;
 
@@ -175,33 +176,6 @@ function PanToUserLocation({ target }) {
     map.panTo({ lat: target.lat, lng: target.lng });
     map.setZoom(17);
   }, [map, target]);
-
-  return null;
-}
-
-// Start visitors with the whole city framed cleanly. Authentication changes
-// must not reset a map the person is already looking at.
-function MapHomeView() {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!map) return;
-    map.setCenter(SF_CENTER);
-    // A desktop browser has much more horizontal room than a phone. Using
-    // the phone's zoom there made the city feel cropped on arrival, while
-    // zoom 11 gives web visitors an immediate whole-city overview. Keep the
-    // approved, closer phone framing unchanged.
-    map.setZoom(
-      isMobileOrTablet() ? SF_MOBILE_HOME_ZOOM : SF_DESKTOP_HOME_ZOOM
-    );
-    const frame = requestAnimationFrame(() => {
-      // Match the phone launch crop measured from the approved reference:
-      // move the map content right while retaining the centered vertical
-      // framing and one Treasure Island marker at the edge.
-      map.panBy(-40, 0);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [map]);
 
   return null;
 }
@@ -1641,7 +1615,6 @@ export default function StairwayMap({
             strictBounds: true,
           }}
         >
-          <MapHomeView />
           <MapRecenter target={selected} />
           <PanToUserLocation target={panTarget} />
           <ViewportBoundsTracker

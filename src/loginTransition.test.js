@@ -29,7 +29,11 @@ describe('post-login progress transition', () => {
   });
 
   it('does not reset the map merely because authentication changed', () => {
-    expect(map).toContain('<MapHomeView />');
+    expect(map).toContain("const SF_CENTER = { lat: 37.735, lng: -122.431 }");
+    expect(map).toContain('defaultCenter={SF_CENTER}');
+    expect(map).not.toContain('<MapHomeView />');
+    expect(map).not.toContain('map.setCenter(SF_CENTER)');
+    expect(map).not.toContain('map.panBy(-40, 0)');
     expect(map).not.toContain('sessionKey={user?.id');
     expect(map).not.toContain('[map, sessionKey]');
   });

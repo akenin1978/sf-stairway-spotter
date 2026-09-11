@@ -12,17 +12,19 @@ const mapSource = readFileSync(
 
 describe('location lifecycle', () => {
   it('keeps the approved full-city mobile home framing', () => {
-    expect(mapSource).toContain('const SF_CENTER = { lat: 37.735, lng: -122.4194 }');
+    expect(mapSource).toContain('const SF_CENTER = { lat: 37.735, lng: -122.431 }');
     expect(mapSource).toContain('const SF_MOBILE_HOME_ZOOM = 12.25');
+    expect(mapSource).not.toContain('function MapHomeView');
+    expect(mapSource).not.toContain('map.panBy(-40, 0)');
   });
 
   it('uses a close neighborhood view when centering on my location', () => {
     const panStart = mapSource.indexOf('function PanToUserLocation');
-    const homeViewStart = mapSource.indexOf('function MapHomeView', panStart);
-    const panSource = mapSource.slice(panStart, homeViewStart);
+    const markersStart = mapSource.indexOf('function StairwayMarkers', panStart);
+    const panSource = mapSource.slice(panStart, markersStart);
 
     expect(panStart).toBeGreaterThan(-1);
-    expect(homeViewStart).toBeGreaterThan(panStart);
+    expect(markersStart).toBeGreaterThan(panStart);
     expect(panSource).toContain('map.setZoom(17)');
   });
 
