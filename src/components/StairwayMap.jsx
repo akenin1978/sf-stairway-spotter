@@ -52,9 +52,13 @@ import {
   getStairwayRouteColor,
 } from '../stairwayMapGeometry';
 
-// Slightly south of the city's geographic midpoint so the dense stairway
-// area sits visually centered above the bottom map controls on a phone.
-const SF_CENTER = { lat: 37.74, lng: -122.4194 };
+// Approved full-city phone framing: Golden Gate and Alcatraz at the top,
+// San Bruno Mountain and the northern edge of South San Francisco below.
+// The slight southern bias keeps the stairway-dense part of the city centered
+// above the bottom map controls.
+const SF_CENTER = { lat: 37.735, lng: -122.4194 };
+const SF_MOBILE_HOME_ZOOM = 12.25;
+const SF_DESKTOP_HOME_ZOOM = 11;
 
 // The set of rating "buckets" that can be toggled on/off: 5 down to 1, plus
 // a special 'unrated' bucket for anything with no rating value.
@@ -187,7 +191,9 @@ function MapHomeView() {
     // the phone's zoom there made the city feel cropped on arrival, while
     // zoom 11 gives web visitors an immediate whole-city overview. Keep the
     // approved, closer phone framing unchanged.
-    map.setZoom(isMobileOrTablet() ? 12 : 11);
+    map.setZoom(
+      isMobileOrTablet() ? SF_MOBILE_HOME_ZOOM : SF_DESKTOP_HOME_ZOOM
+    );
     const frame = requestAnimationFrame(() => {
       // Match the phone launch crop measured from the approved reference:
       // move the map content right while retaining the centered vertical
@@ -1608,7 +1614,9 @@ export default function StairwayMap({
         <Map
           style={{ width: '100%', height: '100%' }}
           defaultCenter={SF_CENTER}
-          defaultZoom={isMobileOrTablet() ? 12 : 11}
+          defaultZoom={
+            isMobileOrTablet() ? SF_MOBILE_HOME_ZOOM : SF_DESKTOP_HOME_ZOOM
+          }
           minZoom={11}
           gestureHandling="greedy"
           disableDefaultUI

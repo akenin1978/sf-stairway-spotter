@@ -11,6 +11,11 @@ const mapSource = readFileSync(
 );
 
 describe('location lifecycle', () => {
+  it('keeps the approved full-city mobile home framing', () => {
+    expect(mapSource).toContain('const SF_CENTER = { lat: 37.735, lng: -122.4194 }');
+    expect(mapSource).toContain('const SF_MOBILE_HOME_ZOOM = 12.25');
+  });
+
   it('uses a close neighborhood view when centering on my location', () => {
     const panStart = mapSource.indexOf('function PanToUserLocation');
     const homeViewStart = mapSource.indexOf('function MapHomeView', panStart);
