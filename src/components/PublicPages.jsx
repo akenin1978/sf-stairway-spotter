@@ -17,13 +17,25 @@ function PageShell({ title, children }) {
 
   useLayoutEffect(() => {
     let topLockActive = true;
-    const resetScroll = () => {
-      if (!topLockActive) return;
+    const forceResetScroll = () => {
       window.scrollTo(0, 0);
       if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
       if (pageRef.current) pageRef.current.scrollTop = 0;
+    };
+
+    const resetScroll = () => {
+      if (!topLockActive) return;
+      forceResetScroll();
+    };
+
+    // Chrome and other mobile browsers may reopen an existing external tab
+    // instead of loading a new document. That can happen long after the short
+    // startup lock has expired, so lifecycle resumes must bypass that lock.
+    const resetResumedPage = () => {
+      if (document.visibilityState === 'hidden') return;
+      forceResetScroll();
     };
 
     const releaseTopLock = () => {
@@ -48,11 +60,11 @@ function PageShell({ title, children }) {
       window.clearInterval(restorationInterval);
       topLockActive = false;
     }, 6500);
-    window.addEventListener('pageshow', resetScroll);
-    window.addEventListener('load', resetScroll);
-    window.addEventListener('focus', resetScroll);
+    window.addEventListener('pageshow', resetResumedPage);
+    window.addEventListener('load', resetResumedPage);
+    window.addEventListener('focus', resetResumedPage);
     window.addEventListener('resize', resetScroll);
-    document.addEventListener('visibilitychange', resetScroll);
+    document.addEventListener('visibilitychange', resetResumedPage);
     // The tap that launches an external browser can be delivered to the newly
     // opened page. Releasing on touchstart/pointerdown therefore lets Chrome
     // restore its old scroll position afterward. Only a real scroll gesture
@@ -66,11 +78,11 @@ function PageShell({ title, children }) {
       delayedResets.forEach((timeout) => window.clearTimeout(timeout));
       window.clearInterval(restorationInterval);
       window.clearTimeout(stopRestorationInterval);
-      window.removeEventListener('pageshow', resetScroll);
-      window.removeEventListener('load', resetScroll);
-      window.removeEventListener('focus', resetScroll);
+      window.removeEventListener('pageshow', resetResumedPage);
+      window.removeEventListener('load', resetResumedPage);
+      window.removeEventListener('focus', resetResumedPage);
       window.removeEventListener('resize', resetScroll);
-      document.removeEventListener('visibilitychange', resetScroll);
+      document.removeEventListener('visibilitychange', resetResumedPage);
       window.removeEventListener('touchmove', releaseTopLock);
       window.removeEventListener('wheel', releaseTopLock);
       window.removeEventListener('keydown', releaseTopLock);

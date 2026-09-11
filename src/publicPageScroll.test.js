@@ -24,7 +24,9 @@ describe('public page scrolling', () => {
   it('overrides mobile browser scroll restoration and targets the page top', () => {
     expect(pages).toContain("window.history.scrollRestoration = 'manual'");
     expect(pages).toContain('pageRef.current.scrollTop = 0');
-    expect(pages).toContain("window.addEventListener('pageshow', resetScroll)");
+    expect(pages).toContain("window.addEventListener('pageshow', resetResumedPage)");
+    expect(pages).toContain("document.addEventListener('visibilitychange', resetResumedPage)");
+    expect(pages).toContain('forceResetScroll();');
     expect(pages).toContain('window.setInterval(resetScroll, 100)');
     expect(pages).toContain("window.addEventListener('touchmove', releaseTopLock");
     expect(pages).not.toContain("window.addEventListener('touchstart', releaseTopLock");
