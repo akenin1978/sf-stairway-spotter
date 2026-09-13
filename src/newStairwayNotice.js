@@ -6,8 +6,33 @@ export function knownStairwayIdsKey(userId) {
 }
 
 function newestFirst(stairways) {
-  const timestamp = (row) => Date.parse(row.updated_at || '') || 0;
+  const timestamp = (row) =>
+    Date.parse(row.added_at || row.updated_at || '') || 0;
   return [...stairways].sort((a, b) => timestamp(b) - timestamp(a));
+}
+
+export function findServerNewStairwayNotice(
+  stairways,
+  seenThrough,
+  snapshotThrough
+) {
+  const seenAt = Date.parse(seenThrough || '');
+  const snapshotAt = Date.parse(snapshotThrough || '');
+  if (!Number.isFinite(seenAt) || !Number.isFinite(snapshotAt)) return null;
+
+  const additions = stairways.filter((row) => {
+    const addedAt = Date.parse(row.added_at || '');
+    return Number.isFinite(addedAt) && addedAt > seenAt && addedAt <= snapshotAt;
+  });
+  if (additions.length === 0) return null;
+
+  const sortedAdditions = newestFirst(additions);
+  return {
+    stairway: sortedAdditions[0],
+    stairways: sortedAdditions,
+    addedCount: sortedAdditions.length,
+    stairwayCount: stairways.length,
+  };
 }
 
 export function findNewStairwayNotice(stairways, storedValue) {

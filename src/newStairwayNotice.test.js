@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
   findNewStairwayNotice,
+  findServerNewStairwayNotice,
   knownStairwayIdsKey,
   serializeKnownStairwayIds,
 } from './newStairwayNotice';
@@ -16,6 +17,30 @@ const mapSource = readFileSync(
 );
 
 describe('new stairway notices', () => {
+  it('finds only server-timestamped additions in the unseen window', () => {
+    const rows = [
+      { id: 'known', added_at: '2026-09-10T12:00:00Z' },
+      { id: 'new', added_at: '2026-09-12T12:00:00Z' },
+      { id: 'after-snapshot', added_at: '2026-09-14T12:00:00Z' },
+    ];
+    expect(
+      findServerNewStairwayNotice(
+        rows,
+        '2026-09-11T12:00:00Z',
+        '2026-09-13T12:00:00Z'
+      )
+    ).toEqual({
+      stairway: rows[1],
+      stairways: [rows[1]],
+      addedCount: 1,
+      stairwayCount: 3,
+    });
+  });
+
+  it('does not invent server additions without valid timestamps', () => {
+    expect(findServerNewStairwayNotice(stairways, null, null)).toBeNull();
+  });
+
   it('stays quiet when there is no previous snapshot', () => {
     expect(findNewStairwayNotice(stairways, null)).toBeNull();
   });
