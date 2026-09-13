@@ -34,7 +34,6 @@ import {
 } from '../nativeDevice';
 import {
   findNewStairwayNotice,
-  findServerNewStairwayNotice,
   knownStairwayIdsKey,
   serializeKnownStairwayIds,
 } from '../newStairwayNotice';
@@ -408,15 +407,6 @@ export default function StairwayMap({
   const { checkAndAwardBadges } = useBadges();
 
   function acknowledgeNewStairwayNotice(stairwayToShow = null) {
-    if (newStairwayNotice?.snapshotThrough) {
-      supabase
-        .rpc('acknowledge_new_stairways', {
-          p_seen_through: newStairwayNotice.snapshotThrough,
-        })
-        .then(({ error }) => {
-          if (error) console.error('Could not acknowledge new stairways', error);
-        });
-    }
     if (newStairwayNotice?.storageKey && newStairwayNotice?.snapshotValue) {
       try {
         localStorage.setItem(
@@ -1383,7 +1373,6 @@ export default function StairwayMap({
               'rating',
               'stair_count',
               'updated_at',
-              'added_at',
               'verification_radius_feet',
               'verification_line_start_lat',
               'verification_line_start_lng',
@@ -1415,26 +1404,16 @@ export default function StairwayMap({
 
       if (!isMounted) return;
 
-      // Signed-out visitors never receive this account-specific notice. The
-      // server keeps the durable account-level cursor; localStorage remains a
-      // compatibility fallback until every deployed environment has the RPCs.
+      // Signed-out visitors never receive this account-specific notice. A
+      // newly signed-in account establishes a quiet baseline on its first
+      // visit; later visits compare IDs so removals cannot hide additions.
       try {
-        if (user?.id) {
-          const stateResult = await supabase.rpc('get_new_stairway_notice_state');
-          const state = Array.isArray(stateResult.data)
-            ? stateResult.data[0]
-            : stateResult.data;
-          const serverNotice = stateResult.error
-            ? null
-            : findServerNewStairwayNotice(
-                allRows,
-                state?.seen_through,
-                state?.snapshot_through
-              );
-          const storageKey = knownStairwayIdsKey(user.id);
-          const notice = stateResult.error
-            ? findNewStairwayNotice(allRows, localStorage.getItem(storageKey))
-            : serverNotice;
+        const storageKey = knownStairwayIdsKey(user?.id);
+        if (storageKey) {
+          const notice = findNewStairwayNotice(
+            allRows,
+            localStorage.getItem(storageKey)
+          );
 
           if (notice) {
             let stairwaysWithPhotos = notice.stairways;
@@ -1457,21 +1436,9 @@ export default function StairwayMap({
               ...notice,
               stairway: stairwaysWithPhotos[0],
               stairways: stairwaysWithPhotos,
-              ...(stateResult.error
-                ? {
-                    storageKey,
-                    snapshotValue: serializeKnownStairwayIds(allRows),
-                  }
-                : { snapshotThrough: state.snapshot_through }),
+              storageKey,
+              snapshotValue: serializeKnownStairwayIds(allRows),
             });
-          } else if (!stateResult.error && state?.snapshot_through) {
-            const { error: acknowledgeError } = await supabase.rpc(
-              'acknowledge_new_stairways',
-              { p_seen_through: state.snapshot_through }
-            );
-            if (acknowledgeError) {
-              console.error('Could not advance new-stairway state', acknowledgeError);
-            }
           } else {
             localStorage.setItem(storageKey, serializeKnownStairwayIds(allRows));
           }
