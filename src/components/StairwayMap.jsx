@@ -17,6 +17,7 @@ import ConfirmDialog from './ConfirmDialog';
 import AlertDialog from './AlertDialog';
 import NewStairwayModal from './NewStairwayModal';
 import VerifiedVisitPanel from './VerifiedVisitPanel';
+import VerificationError from './VerificationError';
 import VerificationSafetyDialog, {
   hasAcceptedVerificationSafety,
 } from './VerificationSafetyDialog';
@@ -1902,6 +1903,10 @@ export default function StairwayMap({
                                 </p>
                               ))}
 
+                            {verifyStatus === 'error' && (
+                              <VerificationError message={verifyErrorMsg} />
+                            )}
+
                             {showVerificationAction &&
                               isMobileOrTablet() &&
                               showVerificationPrivacyHint && (
@@ -1921,9 +1926,6 @@ export default function StairwayMap({
                                 </div>
                               )}
 
-                            {verifyStatus === 'error' && (
-                              <p className="verify-error">{verifyErrorMsg}</p>
-                            )}
                           </>
                         )}
                       </div>

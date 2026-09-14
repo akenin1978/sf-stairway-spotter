@@ -2805,9 +2805,27 @@ html.public-page-document #root {
 }
 
 .verify-error {
-  margin: 0 0 8px;
-  font-size: 12px;
-  color: #c62828;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #e5b5b5;
+  border-left: 4px solid #a51f1f;
+  border-radius: 6px;
+  background: #fff3f3;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #851919;
+  overflow-wrap: anywhere;
+}
+
+.verify-error strong {
+  display: block;
+  font-weight: 700;
+}
+
+.verify-error span {
+  display: block;
+  margin-top: 4px;
+  font-weight: 400;
 }
 
 .visit-type-hint {
