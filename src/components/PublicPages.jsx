@@ -1,4 +1,5 @@
 import { useLayoutEffect } from 'react';
+import FaqContent from './FaqContent';
 import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 
 const EFFECTIVE_DATE = 'September 7, 2026';
@@ -6,6 +7,7 @@ const TERMS_EFFECTIVE_DATE = 'September 9, 2026';
 const SUPPORT_EMAIL = 'info@urbanhikersf.com';
 
 const PAGE_TITLES = {
+  '/faq': 'Frequently Asked Questions',
   '/privacy': 'Privacy Policy',
   '/terms': 'Terms of Use',
   '/support': 'Support',
@@ -15,6 +17,7 @@ const PAGE_TITLES = {
 function PageShell({ title, children }) {
   useLayoutEffect(() => {
     const resetScroll = () => {
+      if (title === 'Frequently Asked Questions' && window.location.hash) return;
       window.scrollTo(0, 0);
       if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
       document.documentElement.scrollTop = 0;
@@ -45,6 +48,7 @@ function PageShell({ title, children }) {
         <h1>{title}</h1>
         {children}
         <nav className="public-page-links" aria-label="Legal and support links">
+          <a href={LAUNCH_LINKS.faq}>FAQ</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}>Privacy</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)}>Terms</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.support)}>Support</a>
@@ -340,6 +344,8 @@ function TermsPage() {
   );
 }
 
+function FaqPage() { return <PageShell title="Frequently Asked Questions"><FaqContent /></PageShell>; }
+
 export function SupportContent() {
   return (
     <>
@@ -347,6 +353,7 @@ export function SupportContent() {
         Need help with SF Stairway Spotter, found incorrect stairway information,
         or encountered a problem?
       </p>
+      <p>Have a question? <a href={LAUNCH_LINKS.faq}>Browse the FAQ.</a></p>
       <a className="public-page-primary" href={`mailto:${SUPPORT_EMAIL}`}>
         Email {SUPPORT_EMAIL}
       </a>
@@ -422,6 +429,7 @@ export function getPublicPage(pathname) {
   if (!publicPagePath) return null;
 
   const pages = {
+    '/faq': FaqPage,
     '/privacy': PrivacyPage,
     '/terms': TermsPage,
     '/support': SupportPage,

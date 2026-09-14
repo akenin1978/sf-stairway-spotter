@@ -6,8 +6,11 @@ import {
   TermsContent,
 } from './PublicPages';
 import useDialogFocus from './useDialogFocus';
+import FaqContent from './FaqContent';
+const EmbeddedFaq = () => <FaqContent embedded />;
 
 const PAGE_DETAILS = {
+  faq: { title: 'FAQ', path: LAUNCH_LINKS.faq, Content: EmbeddedFaq },
   support: {
     title: 'Support',
     path: LAUNCH_LINKS.support,

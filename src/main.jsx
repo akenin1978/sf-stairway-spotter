@@ -11,6 +11,7 @@ import { shouldShowLandingPage } from './siteRouting.js';
 import './index.css';
 
 const publicPagePaths = new Set([
+  '/faq',
   '/privacy',
   '/terms',
   '/support',

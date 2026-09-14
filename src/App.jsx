@@ -272,6 +272,7 @@ export default function App() {
                 >
                   Feedback
                 </button>
+                <button className="header-menu-item" onClick={() => { setMenuOpen(false); setPublicPageOpen('faq'); }}>FAQ</button>
                 <button
                   className="header-menu-item"
                   onClick={() => {
