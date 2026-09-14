@@ -44,4 +44,12 @@ describe('email password account flows', () => {
     expect(authModal).not.toContain('setErrorMsg(error.message)');
     expect(authModal).toContain("authErrorCode === 'email_not_confirmed'");
   });
+
+  it('offers Apple OAuth on the web while retaining native Apple sign-in on iOS', () => {
+    expect(authModal).toContain("provider: 'apple'");
+    expect(authModal).toContain('options: { redirectTo: window.location.origin }');
+    expect(authModal).toContain("await signInWithNativeProvider('apple')");
+    expect(authModal).toContain('{!androidApp && (');
+    expect(authModal).not.toContain('{nativeApp && !androidApp && (');
+  });
 });

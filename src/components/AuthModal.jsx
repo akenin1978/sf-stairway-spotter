@@ -168,6 +168,21 @@ export default function AuthModal({
   async function handleAppleSignIn() {
     setStatus('submitting');
     setErrorMsg('');
+
+    if (!nativeApp) {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: { redirectTo: window.location.origin },
+      });
+      // A successful browser OAuth request navigates to Apple immediately.
+      // This code is reached only if the request could not start.
+      if (error) {
+        setStatus('error');
+        setErrorMsg(friendlyAuthError(error, 'apple-sign-in'));
+      }
+      return;
+    }
+
     try {
       await signInWithNativeProvider('apple');
       waitForAccountProgress();
@@ -323,7 +338,7 @@ export default function AuthModal({
           <>
             <h2 id="auth-dialog-title">{mode === 'sign-in' ? 'Sign in' : 'Create an account'}</h2>
 
-            {nativeApp && !androidApp && (
+            {!androidApp && (
               <button
                 type="button"
                 className="apple-signin-button"
