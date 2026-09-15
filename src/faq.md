@@ -44,7 +44,7 @@ Anyone can browse the stairway map from anywhere, but the collection and locatio
 
 Alexandra Kenin is a San Francisco-based urban hiker, the founder of the urban hiking tour company Urban Hiker SF, and the author of the bestselling guides [Urban Trails: San Francisco](https://bookshop.org/a/80384/9781680510201), [Urban Trails: East Bay](https://bookshop.org/a/80384/9781680512564), and [Urban Trails: Peninsula & South Bay](https://bookshop.org/a/80384/9781680517309). You can follow her urban adventures on [Instagram](https://www.instagram.com/urbanhikersf) and [Facebook](https://www.facebook.com/urbanhikersf). During the COVID-19 pandemic, Alexandra Kenin looked for a project to keep her busy, so she decided to visit all of San Francisco’s public stairways. She began by digitizing the stairway index from Stairway Walks in San Francisco, then expanded this collection with stairways she discovered through her own explorations. She initially created a [Google My Map](https://bit.ly/sfstairmap) with all the stairways she visited, but realized it wasn’t particularly mobile-friendly or interactive. After over 260k people visited the online map, Alexandra was inspired to create SF Stairway Spotter.
 
-## San Francisco’s Stairways
+## San Francisco’s stairways
 
 ### 10. What counts as a public stairway?
 
@@ -66,7 +66,7 @@ If you are viewing the stairway in the app, select Report an issue with this sta
 
 A stairway’s presence in SF Stairway Spotter does not guarantee that it is public, currently open, safe, accessible, or suitable for every person. Conditions can change because of construction, damage, vegetation, weather, closures, or access restrictions. The app does not provide authoritative accessibility information or real-time condition updates. Follow posted signs, remain aware of traffic and your surroundings, use your own judgment, and do not enter closed or private areas. If a stairway is closed, damaged, obstructed, or incorrectly mapped, select Report an issue with this stairway from its stairway card. You can include a description and an optional supporting photo. For general help, visit Support. Do not use feedback or Support for emergencies. Contact the appropriate emergency service instead.
 
-## Using the App
+## Using the app
 
 ### 15. How do I find a stairway?
 
@@ -118,7 +118,7 @@ Yes. A stairway can remain in your spotted collection while you record verified 
 
 SF Stairway Spotter relies on an internet connection to load current map data, sign in, save progress, and complete verification. Content already visible may remain on the screen temporarily, but the app should not be treated as a fully offline map.
 
-## Progress and Community
+## Progress and community
 
 ### 25. What badges can I earn?
 
@@ -152,7 +152,7 @@ Yes. Leaderboard participation is voluntary and opt-in. If you do not join, your
 
 Your username represents you in community features such as the leaderboard and friend lists. It is the name other users see when viewing rankings or shared progress. You can create or update your username under Menu → Settings.
 
-## Friends and Connections
+## Friends and connections
 
 ### 32. How do I add or invite a friend?
 
@@ -180,7 +180,7 @@ The pending request is deleted, and only you see confirmation that you declined 
 
 Go to Menu → Friends, find the request under Sent, and select the cancel action beside the pending request.
 
-## Privacy and Visibility
+## Privacy and visibility
 
 ### 37. What can friends see about one another?
 
@@ -198,7 +198,7 @@ For nearby searches and visit verification, precise location is used to provide 
 
 Most personal activity is private. If you voluntarily join the leaderboard, your chosen username, verified total, stairway mayorship, and aggregate 30-day mayorship count may appear publicly. Your spotted checklist, individual visit dates, temporary verification photos, and precise visit locations are not shown publicly.
 
-## Accounts and Sign-In
+## Accounts and sign-in
 
 ### 41. How do I create an account?
 
@@ -228,7 +228,7 @@ Sign in and go to Menu → Settings. Edit your username and save the change.
 
 Sign in and go to Menu → Settings → Delete my account, then follow the prompts to confirm your identity. Account deletion is permanent and removes account-linked progress, including check-ins, verification records, badges, leaderboard settings, and friend connections. If you cannot access the app, follow the instructions on the [Delete Your Account](https://www.sfstairwayspotter.com/delete-account) page.
 
-## Support and Troubleshooting
+## Support and troubleshooting
 
 ### 47. What should I do if location or photo verification fails?
 
