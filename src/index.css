@@ -1032,6 +1032,65 @@ html.public-page-document #root {
   background: rgba(255, 255, 255, 0.25);
 }
 
+.feedback-photo-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.feedback-photo-button {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #c8c5d8;
+  border-radius: 10px;
+  color: #33257f;
+  background: #fff;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.feedback-photo-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.feedback-photo-button:focus-within {
+  outline: 3px solid rgba(79, 61, 232, 0.3);
+  outline-offset: 2px;
+}
+
+.feedback-photo-help {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.feedback-photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.feedback-photo-preview img {
+  width: 88px;
+  height: 88px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.feedback-photo-preview button {
+  width: auto;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  color: #a62121;
+  background: #fff;
+  border: 1px solid #d8b3b3;
+}
+
 .report-issue-link {
   display: block;
   background: none;
@@ -2826,6 +2885,20 @@ html.public-page-document #root {
   display: block;
   margin-top: 4px;
   font-weight: 400;
+}
+
+.visit-hint-dismiss {
+  display: block;
+  margin-top: 6px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid #4b3ce0;
+  border-radius: 6px;
+  background: white;
+  color: #4b3ce0;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .visit-type-hint {

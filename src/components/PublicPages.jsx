@@ -109,8 +109,9 @@ export function PrivacyContent() {
         </li>
         <li>
           <strong>Messages and submissions:</strong> feedback, reported issues,
-          suggested stairway information, coordinates, and any optional contact
-          email you provide.
+          suggested stairway information, coordinates, any optional contact
+          email you provide, and an optional photo you choose to attach to
+          feedback or an issue report.
         </li>
       </ul>
 
@@ -145,8 +146,9 @@ export function PrivacyContent() {
       <ul>
         <li>Account and progress data are kept while your account is active.</li>
         <li>
-          Feedback messages and optional reply emails are normally kept for up to
-          12 months, unless they are needed longer to resolve an active matter.
+          Feedback messages, optional reply emails, and optional attached photos
+          are normally kept for up to 12 months, unless they are needed longer to
+          resolve an active matter.
         </li>
         <li>
           Safety reports are kept as needed to investigate abuse, enforce our
@@ -249,12 +251,14 @@ export function TermsContent() {
 
       <h2>Your content and conduct</h2>
       <p>
-        You may submit feedback, corrections, and stairway suggestions. You
-        promise that your submissions are lawful, accurate to the best of your
-        knowledge, and do not violate another person’s rights. You grant us
-        permission to review, edit, and use submitted stairway facts to operate
-        and improve the public directory. Do not misuse the app, interfere with
-        its operation, submit harmful content, impersonate others, or attempt
+        You may submit feedback, corrections, stairway suggestions, and optional
+        supporting photos. You promise that your submissions are lawful,
+        accurate to the best of your knowledge, and do not violate another
+        person’s privacy, copyright, or other rights. You grant us permission to
+        review and use your submissions to respond to the report, operate the
+        app, and improve the public directory. Do not submit photos of people
+        without their permission. Do not misuse the app, interfere with its
+        operation, submit harmful content, impersonate others, or attempt
         unauthorized access.
       </p>
 

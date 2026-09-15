@@ -18,6 +18,7 @@ import AlertDialog from './AlertDialog';
 import NewStairwayModal from './NewStairwayModal';
 import VerifiedVisitPanel from './VerifiedVisitPanel';
 import VerificationError from './VerificationError';
+import { hasAcknowledgedVisitHint, acknowledgeVisitHint } from '../visitHint';
 import VerificationSafetyDialog, {
   hasAcceptedVerificationSafety,
 } from './VerificationSafetyDialog';
@@ -390,6 +391,11 @@ export default function StairwayMap({
 }) {
   const [stairways, setStairways] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [visitHintAcknowledged, setVisitHintAcknowledged] = useState(hasAcknowledgedVisitHint);
+  function dismissVisitHint() {
+    acknowledgeVisitHint();
+    setVisitHintAcknowledged(true);
+  }
   const [badgeBrowseIds, setBadgeBrowseIds] = useState([]);
   const badgeSwipeStart = useRef(null);
   const [newStairwayNotice, setNewStairwayNotice] = useState(null);
@@ -722,8 +728,8 @@ export default function StairwayMap({
           stairway.verification_line_end_lat != null;
         setVerifyErrorMsg(
           isLine
-            ? `You're about ${distance}ft from the nearest point along this stretch -- get within ${applicableThreshold}ft to verify.`
-            : `You're about ${distance}ft away -- get within ${applicableThreshold}ft of the stairway to verify.`
+            ? `You're about ${distance} ft from the nearest point along this stretch. Get within ${applicableThreshold} ft to verify.`
+            : `You're about ${distance} ft away. Get within ${applicableThreshold} ft of the stairway to verify.`
         );
       } else if (error === 'location-failed') {
         setVerifyErrorMsg(getLocationErrorMessage(locationErrorKind));
@@ -733,7 +739,7 @@ export default function StairwayMap({
           : null;
         setVerifyErrorMsg(
           locationQuality === 'inaccurate' && accuracyFeet
-            ? `Your location is still updating (currently accurate to about ${accuracyFeet}ft). Stay in an open area for a moment, then try again.`
+            ? `Your location is still updating (currently accurate to about ${accuracyFeet} ft). Stay in an open area for a moment, then try again.`
             : 'Your location has not updated yet. Stay in an open area for a moment, then try again.'
         );
       } else if (error === 'no-geolocation') {
@@ -1869,11 +1875,16 @@ export default function StairwayMap({
                               </button>
                             )}
 
-                            <p className="visit-type-hint">
+                            {!visitHintAcknowledged && (
+                            <div className="visit-type-hint">
                               <strong>Spotted</strong> is your private checklist.{' '}
                               <strong>Verify a visit</strong> while you are at the
                               stairway to earn badges and leaderboard progress.
-                            </p>
+                              <button type="button" className="visit-hint-dismiss" onClick={dismissVisitHint}>
+                                Got it
+                              </button>
+                            </div>
+                            )}
 
                             {showVerificationAction &&
                               (isMobileOrTablet() ? (

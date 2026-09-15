@@ -1,5 +1,5 @@
 // Keep the existing message intact while separating the problem from the
-// recovery instruction. Distance messages use " -- "; others use sentences.
+// recovery instruction, keeping full sentences and their punctuation.
 export default function VerificationError({ message }) {
   if (!message) return null;
   const separator = / -- |(?<=[.!?])\s+/.exec(message);

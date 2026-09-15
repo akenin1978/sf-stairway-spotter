@@ -38,9 +38,9 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>SF Stairway Spotter uses your camera and current location for on-site stairway verification. The temporary photo is not saved or uploaded.</string>
+	<string>SF Stairway Spotter uses your camera for on-site stairway verification and when you choose to attach a photo to feedback. Verification photos are not saved or uploaded.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>SF Stairway Spotter accesses your photo library only if you choose a photo while verifying a stairway visit.</string>
+	<string>SF Stairway Spotter accesses your photo library only when you choose a photo for verification, feedback, or an issue report.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>SF Stairway Spotter uses your location to find nearby stairways and verify check-ins you choose to make.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
