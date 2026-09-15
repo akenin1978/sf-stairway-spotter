@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
+  findServerNewStairwayNotice,
   findNewStairwayNotice,
   knownStairwayIdsKey,
   serializeKnownStairwayIds,
@@ -51,6 +52,20 @@ describe('new stairway notices', () => {
     });
   });
 
+  it('uses first-added timestamps for the durable account notice', () => {
+    const rows = [
+      { id: 'existing', added_at: '2026-09-15T10:00:00Z' },
+      { id: 'added', added_at: '2026-09-15T11:00:00Z' },
+    ];
+    expect(
+      findServerNewStairwayNotice(
+        rows,
+        '2026-09-15T10:30:00Z',
+        '2026-09-15T11:30:00Z'
+      )
+    ).toMatchObject({ addedCount: 1, stairway: rows[1] });
+  });
+
   it('serializes the exact IDs for the next visit', () => {
     expect(serializeKnownStairwayIds(stairways)).toBe('["older","newest"]');
   });
@@ -66,5 +81,10 @@ describe('new stairway notices', () => {
       "if (document.visibilityState === 'visible') loadStairways();"
     );
     expect(mapSource).not.toContain('lastLoadedAt > 60_000');
+  });
+
+  it('uses the durable account cursor when the database support is available', () => {
+    expect(mapSource).toContain("rpc('get_new_stairway_notice_state')");
+    expect(mapSource).toContain("rpc('acknowledge_new_stairways'");
   });
 });
