@@ -2213,6 +2213,33 @@ html.public-page-document #root {
   color: #000;
 }
 
+.spotted-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 10px 0 8px;
+  color: #2e7d32;
+  background: #e8f5e9;
+  border: 1px solid #2e7d32;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.spotted-status--toggle {
+  min-height: 44px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+.spotted-status--fresh {
+  background: #2e7d32;
+  color: white;
+}
+
 .checkin-toggle {
   display: block;
   width: 100%;
@@ -2843,24 +2870,31 @@ html.public-page-document #root {
 .verify-photo-button {
   display: block;
   width: 100%;
+  min-height: 44px;
   margin: 0 0 8px;
   padding: 8px 10px;
   border-radius: 6px;
   border: 1px solid #4b3ce0;
-  background: white;
-  color: #4b3ce0;
-  font-size: 13px;
-  font-weight: 600;
+  background: #4b3ce0;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .verify-photo-button:hover {
-  background: #f5f4ff;
+  background: #3b2dc1;
 }
 
 .verify-photo-button:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.verify-photo-button.verify-photo-button--complete {
+  background: white;
+  color: #4b3ce0;
+  opacity: 1;
 }
 
 .verify-error {

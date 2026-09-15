@@ -391,6 +391,8 @@ export default function StairwayMap({
 }) {
   const [stairways, setStairways] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [justSpottedId, setJustSpottedId] = useState(null);
+  useEffect(() => { setJustSpottedId(null); }, [selected?.id]);
   const [visitHintAcknowledged, setVisitHintAcknowledged] = useState(hasAcknowledgedVisitHint);
   function dismissVisitHint() {
     acknowledgeVisitHint();
@@ -501,9 +503,7 @@ export default function StairwayMap({
     const result = await toggleCheckIn(stairway.id);
 
     if (!result.error) {
-      showCompletionMessage(
-        wasAdding ? 'Spotted! ✓' : 'Removed from spotted.'
-      );
+      setJustSpottedId(wasAdding ? stairway.id : null);
     }
   }
 
@@ -1794,7 +1794,7 @@ export default function StairwayMap({
                             role="status"
                             aria-live="polite"
                           >
-                            <div className="checkin-toggle checked checkin-toggle-status">
+                            <div className="spotted-status">
                               ✓ Spotted
                             </div>
                             {selectedVerificationReveal.newVisitRecorded ===
@@ -1802,6 +1802,15 @@ export default function StairwayMap({
                               <p className="verified-already-counted">
                                 ✓ Today’s verified visit was already counted.
                               </p>
+                            )}
+                            {isMobileOrTablet() && (
+                              <button
+                                className="verify-photo-button verify-photo-button--complete"
+                                type="button"
+                                disabled
+                              >
+                                ✓ Today’s visit verified
+                              </button>
                             )}
                             <VerifiedVisitPanel
                               details={selectedVerificationReveal.afterDetails}
@@ -1813,83 +1822,37 @@ export default function StairwayMap({
                                 selectedVerificationReveal.justBecameMayor
                               }
                             />
-                            {isMobileOrTablet() && (
-                              <button
-                                className="verify-photo-button"
-                                type="button"
-                                disabled
-                              >
-                                ✓ Today’s visit verified
-                              </button>
-                            )}
                           </div>
                         ) : (
                           <>
-                            {selectedVisitState.status !== 'unavailable' && (
-                              <VerifiedVisitPanel
-                                details={normalVisitDetails}
-                                loading={
-                                  !selectedVerificationReveal &&
-                                  selectedVisitState.status === 'loading'
-                                }
-                              />
-                            )}
-
-                            {selectedHasVisitHistory ? (
-                              <div className="checkin-toggle checked checkin-toggle-status">
+                            {selectedHasVisitHistory || selectedAlreadyVerified ? (
+                              <div className="spotted-status">
                                 ✓ Spotted
                               </div>
                             ) : (
                               <button
                                 className={
-                                  'checkin-toggle' +
-                                  (selectedDisplaySpotted ? ' checked' : '')
+                                  selectedDisplaySpotted
+                                    ? 'spotted-status spotted-status--toggle' + (justSpottedId === selected.id ? ' spotted-status--fresh' : '')
+                                    : 'checkin-toggle'
                                 }
+                                aria-label={selectedDisplaySpotted ? 'Spotted. Click to mark as unspotted' : 'Mark as spotted'}
+                                aria-pressed={selectedDisplaySpotted}
                                 onClick={async () => {
-                                  // A plain self-reported check-in un-toggles
-                                  // freely. A legacy photo verification needs
-                                  // confirmation because deleting it cannot be
-                                  // undone. Once private visit history exists,
-                                  // this becomes a durable Spotted status.
-                                  const isVerified =
-                                    checkedInMethods.get(selected.id) ===
-                                    'photo-verified';
-                                  if (isVerified) {
-                                    setConfirmAction({
-                                      message:
-                                        "This will remove your verification for this stairway too -- there's no way to undo it. Continue?",
-                                      onConfirm: () =>
-                                        performCheckInToggle(selected),
-                                    });
-                                    return;
-                                  }
-
+                                  if (selectedHasVisitHistory || checkedInMethods.get(selected.id) === 'photo-verified') return;
                                   await performCheckInToggle(selected);
                                 }}
                               >
-                                {selectedDisplayMethod === 'photo-verified'
-                                  ? '✓ Verified'
-                                  : selectedDisplaySpotted
+                                {selectedDisplaySpotted
                                   ? '✓ Spotted'
                                   : 'Mark as spotted'}
                               </button>
                             )}
 
-                            {!visitHintAcknowledged && (
-                            <div className="visit-type-hint">
-                              <strong>Spotted</strong> is your private checklist.{' '}
-                              <strong>Verify a visit</strong> while you are at the
-                              stairway to earn badges and leaderboard progress.
-                              <button type="button" className="visit-hint-dismiss" onClick={dismissVisitHint}>
-                                Got it
-                              </button>
-                            </div>
-                            )}
-
                             {showVerificationAction &&
                               (isMobileOrTablet() ? (
                                 <button
-                                  className="verify-photo-button"
+                                  className={'verify-photo-button' + (selectedVisitSummary?.visited_today ? ' verify-photo-button--complete' : '')}
                                   onClick={handlePhotoVerificationAction}
                                   disabled={
                                     verifyStatus === 'verifying' ||
@@ -1918,6 +1881,17 @@ export default function StairwayMap({
                               <VerificationError message={verifyErrorMsg} />
                             )}
 
+                            {!visitHintAcknowledged && (
+                              <div className="visit-type-hint">
+                                <strong>Spotted</strong> is your private checklist.{' '}
+                                <strong>Verify a visit</strong> while you are at the
+                                stairway to earn badges and leaderboard progress.
+                                <button type="button" className="visit-hint-dismiss" onClick={dismissVisitHint}>
+                                  Got it
+                                </button>
+                              </div>
+                            )}
+
                             {showVerificationAction &&
                               isMobileOrTablet() &&
                               showVerificationPrivacyHint && (
@@ -1937,6 +1911,15 @@ export default function StairwayMap({
                                 </div>
                               )}
 
+                            {selectedVisitState.status !== 'unavailable' && (
+                              <VerifiedVisitPanel
+                                details={normalVisitDetails}
+                                loading={
+                                  !selectedVerificationReveal &&
+                                  selectedVisitState.status === 'loading'
+                                }
+                              />
+                            )}
                           </>
                         )}
                       </div>
@@ -1971,7 +1954,7 @@ export default function StairwayMap({
           )}
         </Map>
 
-        {!spotMode && (
+        {!spotMode && !selected && (
           <>
             <CheckInNearbyButton
               onClick={handleCheckInNearby}
@@ -1985,7 +1968,7 @@ export default function StairwayMap({
             />
           </>
         )}
-        {locationError && (
+        {locationError && !selected && (
           <div
             style={{
               position: 'absolute',

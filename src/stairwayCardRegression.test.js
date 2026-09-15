@@ -14,7 +14,8 @@ describe('stairway card regressions', () => {
 
     expect(start).toBeGreaterThan(-1);
     expect(end).toBeGreaterThan(start);
-    expect(spottedFlow).toContain('showCompletionMessage');
+    expect(spottedFlow).not.toContain('showCompletionMessage');
+    expect(spottedFlow).not.toContain('Removed from spotted.');
     expect(spottedFlow).not.toContain('setSelected');
     expect(spottedFlow).not.toContain('closeSelectedAfterSuccess');
   });
@@ -25,7 +26,7 @@ describe('stairway card regressions', () => {
     const spottedFlow = source.slice(start, end);
 
     expect(spottedFlow).not.toContain('checkAndAwardBadges');
-    expect(spottedFlow).toContain("'Spotted! ✓'");
+    expect(spottedFlow).toContain('setJustSpottedId(wasAdding ? stairway.id : null)');
   });
 
   it('shows success feedback without replacing the card controls', () => {
