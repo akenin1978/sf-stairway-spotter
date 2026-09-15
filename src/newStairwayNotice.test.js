@@ -60,4 +60,11 @@ describe('new stairway notices', () => {
     expect(mapSource).toContain('function acknowledgeNewStairwayNotice');
     expect(mapSource).toContain('onDismiss={() => acknowledgeNewStairwayNotice()}');
   });
+
+  it('checks for additions whenever the app returns to the foreground', () => {
+    expect(mapSource).toContain(
+      "if (document.visibilityState === 'visible') loadStairways();"
+    );
+    expect(mapSource).not.toContain('lastLoadedAt > 60_000');
+  });
 });

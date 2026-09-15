@@ -1349,7 +1349,6 @@ export default function StairwayMap({
   useEffect(() => {
     let isMounted = true;
     let isLoadingStairways = false;
-    let lastLoadedAt = 0;
     setNewStairwayNotice(null);
 
     async function loadStairways() {
@@ -1458,14 +1457,16 @@ export default function StairwayMap({
       setStairways(allRows);
       setError(null);
       setLoading(false);
-      lastLoadedAt = Date.now();
       isLoadingStairways = false;
     }
 
     loadStairways();
     const refreshWhenVisible = () => {
-      const isStale = Date.now() - lastLoadedAt > 60_000;
-      if (document.visibilityState === 'visible' && isStale) loadStairways();
+      // Returning from another app is the normal moment a signed-in person
+      // will expect to learn about a stairway they just added.  Do not make
+      // them wait for an arbitrary cache window; the loading guard above
+      // prevents duplicate requests if visibility fires more than once.
+      if (document.visibilityState === 'visible') loadStairways();
     };
     document.addEventListener('visibilitychange', refreshWhenVisible);
 
