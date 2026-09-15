@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/(privacy|terms|support|delete-account|join|faq)",
+      "source": "/(privacy|terms|support|delete-account|join|faq|press)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -10,7 +10,7 @@
       ]
     },
     {
-      "source": "/(privacy|terms|support|delete-account|faq)/opened-(.*)",
+      "source": "/(privacy|terms|support|delete-account|faq|press)/opened-(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -20,6 +20,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/press", "destination": "/index.html" },
+    { "source": "/press/opened-(.*)", "destination": "/index.html" },
     { "source": "/faq", "destination": "/index.html" },
     { "source": "/faq/opened-(.*)", "destination": "/index.html" },
     { "source": "/privacy", "destination": "/index.html" },

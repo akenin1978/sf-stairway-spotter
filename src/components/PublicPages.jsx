@@ -1,5 +1,6 @@
 import { useLayoutEffect } from 'react';
 import FaqContent from './FaqContent';
+import PressContent from './PressContent';
 import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 
 const EFFECTIVE_DATE = 'September 7, 2026';
@@ -7,6 +8,7 @@ const TERMS_EFFECTIVE_DATE = 'September 9, 2026';
 const SUPPORT_EMAIL = 'info@urbanhikersf.com';
 
 const PAGE_TITLES = {
+  '/press': 'Press Resources',
   '/faq': 'Frequently Asked Questions',
   '/privacy': 'Privacy Policy',
   '/terms': 'Terms of Use',
@@ -49,6 +51,7 @@ function PageShell({ title, children }) {
         {children}
         <nav className="public-page-links" aria-label="Legal and support links">
           <a href={LAUNCH_LINKS.faq}>FAQ</a>
+          <a href="/press">Press</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}>Privacy</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)}>Terms</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.support)}>Support</a>
@@ -429,6 +432,7 @@ export function getPublicPage(pathname) {
   if (!publicPagePath) return null;
 
   const pages = {
+    '/press': PressPage,
     '/faq': FaqPage,
     '/privacy': PrivacyPage,
     '/terms': TermsPage,
@@ -436,4 +440,8 @@ export function getPublicPage(pathname) {
     '/delete-account': DeleteAccountPage,
   };
   return pages[publicPagePath];
+}
+
+function PressPage() {
+  return <PageShell title="Press Resources"><PressContent /></PageShell>;
 }

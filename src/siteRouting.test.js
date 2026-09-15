@@ -48,7 +48,7 @@ describe('shouldShowLandingPage', () => {
     );
 
     expect(vercelConfig.headers).toContainEqual({
-      source: '/(privacy|terms|support|delete-account|join)',
+      source: '/(privacy|terms|support|delete-account|join|faq|press)',
       headers: [
         {
           key: 'Cache-Control',

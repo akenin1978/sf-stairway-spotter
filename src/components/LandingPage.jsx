@@ -69,6 +69,7 @@ export default function LandingPage() {
         <nav aria-label="Main navigation">
           <a href="#how-it-works">How it works</a>
           <a href={LAUNCH_LINKS.faq}>FAQ</a>
+          <a href="/press">Press</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.support)}>Support</a>
           <a className="landing-nav-cta" href={WEB_APP_URL}>Open the map</a>
         </nav>
@@ -170,6 +171,7 @@ export default function LandingPage() {
         </div>
         <nav aria-label="Legal and support links">
           <a href={LAUNCH_LINKS.faq}>FAQ</a>
+          <a href="/press">Press</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}>Privacy</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)}>Terms</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.support)}>Support</a>
