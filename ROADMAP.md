@@ -3,6 +3,16 @@
 This file records ideas that are intentionally not required for the initial App
 Store launch.
 
+## Public-release monetization
+
+- Paid features and the paywall are intentionally deferred during beta testing.
+- Before the public release, decide exactly which features remain free and which
+  require lifetime access, then implement purchase, entitlement, restore
+  purchases, pricing, refund/support copy, and App Store in-app-purchase setup.
+- Retest the complete purchase and restore flow on a real device before public
+  launch. Do not describe paid access in the live app or store listing until it
+  is implemented and tested.
+
 ## Post-launch features
 
 ### Nearby-stairway alerts
@@ -73,4 +83,3 @@ Before App Store submission, confirm the remaining release requirements:
 
 - Interrupt connectivity after taking a verification photo, reconnect, and
   confirm **Retry verification** works without requiring a new photo.
-

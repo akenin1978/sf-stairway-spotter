@@ -1258,13 +1258,14 @@ export default function StairwayMap({
 
     setSpotStatus('submitting');
 
-    const { error } = await supabase.from('stairway_submissions').insert({
-      description: spotDescription.trim(),
-      latitude: spotLocation.lat,
-      longitude: spotLocation.lng,
-      location_source: spotLocation.source,
-      contact_email: spotEmail.trim() || null,
-      user_id: user?.id ?? null,
+    const { error } = await supabase.functions.invoke('submit-stairway-suggestion', {
+      body: {
+        description: spotDescription.trim(),
+        latitude: spotLocation.lat,
+        longitude: spotLocation.lng,
+        locationSource: spotLocation.source,
+        contactEmail: spotEmail.trim() || null,
+      },
     });
 
     if (error) {

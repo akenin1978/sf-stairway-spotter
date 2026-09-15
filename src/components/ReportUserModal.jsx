@@ -21,11 +21,14 @@ export default function ReportUserModal({ userToReport, context, onClose }) {
     setStatus('submitting');
     setError('');
 
-    const { error: reportError } = await supabase.rpc('report_user', {
-      p_target_user_id: userToReport.user_id,
-      p_category: reason,
-      p_details: details.trim() || null,
-      p_context: context,
+    const { error: reportError } = await supabase.functions.invoke('submit-user-report', {
+      body: {
+        targetUserId: userToReport.user_id,
+        reportedDisplayName: userToReport.display_name || null,
+        category: reason,
+        details: details.trim() || null,
+        context,
+      },
     });
 
     if (reportError) {
