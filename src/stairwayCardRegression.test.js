@@ -29,6 +29,16 @@ describe('stairway card regressions', () => {
     expect(spottedFlow).toContain('setJustSpottedId(wasAdding ? stairway.id : null)');
   });
 
+  it('keeps the card stationary when its internal state changes', () => {
+    expect(source).toContain('disableAutoPan');
+  });
+
+  it('places fixed map controls below the active stairway card', () => {
+    expect(source).toContain('overlay.getPanes()?.floatPane');
+    expect(source).toContain('pane.insertBefore(container, pane.firstChild)');
+    expect(source).toContain('<MapControlsPanel');
+  });
+
   it('shows success feedback without replacing the card controls', () => {
     expect(source).toContain('{completionMessage && (');
     expect(source).not.toContain('{completionMessage ? (');

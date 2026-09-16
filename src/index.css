@@ -1779,9 +1779,7 @@ html.public-page-document #root {
 
 .floating-map-actions-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -1797,6 +1795,10 @@ html.public-page-document #root {
 }
 
 .floating-map-actions > * {
+  pointer-events: auto;
+}
+
+.floating-map-actions-overlay .controls-panel {
   pointer-events: auto;
 }
 
@@ -2295,8 +2297,10 @@ html.public-page-document #root {
 .checkin-toggle {
   display: block;
   width: 100%;
-  margin: 8px 0;
-  padding: 8px 10px;
+  min-height: 44px;
+  box-sizing: border-box;
+  margin: 10px 0 8px;
+  padding: 0 8px;
   border-radius: 6px;
   border: 1px solid #ccc;
   background: #f7f7f7;

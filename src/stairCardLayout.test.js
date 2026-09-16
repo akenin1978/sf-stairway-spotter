@@ -23,7 +23,8 @@ describe('stair card action hierarchy', () => {
 
   it('keeps floating location controls available behind a selected card', () => {
     expect(source).toContain('<MapActionsOverlay>');
-    expect(source).toContain('overlay.getPanes()?.overlayMouseTarget');
+    expect(source).toContain('overlay.getPanes()?.floatPane');
+    expect(source).toContain('pane.insertBefore(container, pane.firstChild)');
     expect(source).toContain('className="floating-map-actions"');
     expect(source).not.toContain('position={ControlPosition.RIGHT_BOTTOM}');
     expect(source).not.toContain('{!spotMode && !selected && (');
@@ -38,6 +39,7 @@ describe('stair card action hierarchy', () => {
     expect(source.slice(overlayStart, overlayEnd)).toContain('<CheckInNearbyButton');
     expect(source.slice(overlayStart, overlayEnd)).toContain('<LocateMeButton');
     expect(source.slice(overlayStart, overlayEnd)).toContain('location-error-popover');
+    expect(source.slice(overlayStart, overlayEnd)).toContain('<MapControlsPanel');
   });
 
   it('keeps reversible spots compact and preserves the history safeguard', () => {

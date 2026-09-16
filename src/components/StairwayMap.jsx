@@ -364,11 +364,12 @@ function CheckInNearbyButton({ onClick, locating, disabled }) {
   );
 }
 
-// Google renders built-in map controls above InfoWindows, so placing these
-// actions in that controls layer lets them cover a stairway card. overlayMouseTarget
-// is the highest interactive map pane *below* Google's floatPane (where
-// InfoWindows live): the buttons remain tappable wherever the card does not
-// cover them, while the card always wins when the two overlap.
+// Keep all of our screen-anchored map UI in Google's float pane, but at a
+// lower z-index than InfoWindows. The pane itself moves while Google pans the
+// map, so draw() converts the viewport's top-left corner back into pane
+// coordinates on every frame. That counter-positioning is what keeps Nearby
+// Stairs, My Location, Legend, and Filters fixed to the screen instead of
+// making them jump when the map or an InfoWindow moves.
 function MapActionsOverlay({ children }) {
   const map = useMap();
   const containerRef = useRef(null);
@@ -385,20 +386,30 @@ function MapActionsOverlay({ children }) {
 
     const overlay = new window.google.maps.OverlayView();
     let resizeObserver;
-    const sizeToMap = () => {
+    const positionToMap = () => {
       const mapElement = map.getDiv();
+      const projection = overlay.getProjection();
+      if (!projection || !window.google?.maps?.Point) return;
+      const viewportTopLeft = projection.fromContainerPixelToLatLng(
+        new window.google.maps.Point(0, 0)
+      );
+      const paneTopLeft = projection.fromLatLngToDivPixel(viewportTopLeft);
+      container.style.left = `${paneTopLeft.x}px`;
+      container.style.top = `${paneTopLeft.y}px`;
       container.style.width = `${mapElement.clientWidth}px`;
       container.style.height = `${mapElement.clientHeight}px`;
     };
     overlay.onAdd = () => {
-      overlay.getPanes()?.overlayMouseTarget?.appendChild(container);
-      sizeToMap();
+      const pane = overlay.getPanes()?.floatPane;
+      if (!pane) return;
+      pane.insertBefore(container, pane.firstChild);
+      positionToMap();
       if (typeof ResizeObserver !== 'undefined') {
-        resizeObserver = new ResizeObserver(sizeToMap);
+        resizeObserver = new ResizeObserver(positionToMap);
         resizeObserver.observe(map.getDiv());
       }
     };
-    overlay.draw = sizeToMap;
+    overlay.draw = positionToMap;
     overlay.onRemove = () => {
       resizeObserver?.disconnect();
       container.remove();
@@ -1853,6 +1864,15 @@ export default function StairwayMap({
                   disabled={loading || stairways.length === 0}
                 />
               </div>
+              <MapControlsPanel
+                visibleRatings={visibleRatings}
+                onToggleRating={toggleRating}
+                allNeighborhoods={allNeighborhoods}
+                visibleNeighborhoods={visibleNeighborhoods ?? new Set()}
+                onToggleNeighborhood={toggleNeighborhood}
+                onShowAllNeighborhoods={showAllNeighborhoods}
+                onHideAllNeighborhoods={hideAllNeighborhoods}
+              />
             </MapActionsOverlay>
           )}
 
@@ -1860,6 +1880,7 @@ export default function StairwayMap({
             <InfoWindow
               position={getStairwayMarkerPosition(selected)}
               zIndex={30}
+              disableAutoPan
               onCloseClick={closeSelectedStairway}
             >
               <div
@@ -2108,16 +2129,6 @@ export default function StairwayMap({
             onClose={() => setLocationBoundaryMessage('')}
           />
         )}
-
-        <MapControlsPanel
-          visibleRatings={visibleRatings}
-          onToggleRating={toggleRating}
-          allNeighborhoods={allNeighborhoods}
-          visibleNeighborhoods={visibleNeighborhoods ?? new Set()}
-          onToggleNeighborhood={toggleNeighborhood}
-          onShowAllNeighborhoods={showAllNeighborhoods}
-          onHideAllNeighborhoods={hideAllNeighborhoods}
-        />
 
         {spotMode && !spotLocation && (
           <div className="spot-banner">
