@@ -1777,12 +1777,26 @@ html.public-page-document #root {
   position: relative;
 }
 
+.floating-map-actions-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
 .floating-map-actions {
+  position: absolute;
+  right: 10px;
+  bottom: 96px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
-  margin: 0 10px 96px 0;
+  pointer-events: none;
+}
+
+.floating-map-actions > * {
+  pointer-events: auto;
 }
 
 .locate-me-control {

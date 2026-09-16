@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   APIProvider,
   Map,
-  MapControl,
-  ControlPosition,
   Marker,
   InfoWindow,
   useMap,
@@ -363,6 +362,55 @@ function CheckInNearbyButton({ onClick, locating, disabled }) {
       {locating ? 'Finding stairs…' : 'Nearby stairs'}
     </button>
   );
+}
+
+// Google renders built-in map controls above InfoWindows, so placing these
+// actions in that controls layer lets them cover a stairway card. overlayMouseTarget
+// is the highest interactive map pane *below* Google's floatPane (where
+// InfoWindows live): the buttons remain tappable wherever the card does not
+// cover them, while the card always wins when the two overlap.
+function MapActionsOverlay({ children }) {
+  const map = useMap();
+  const containerRef = useRef(null);
+
+  if (!containerRef.current && typeof document !== 'undefined') {
+    const container = document.createElement('div');
+    container.className = 'floating-map-actions-overlay';
+    containerRef.current = container;
+  }
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!map || !container || !window.google?.maps?.OverlayView) return undefined;
+
+    const overlay = new window.google.maps.OverlayView();
+    let resizeObserver;
+    const sizeToMap = () => {
+      const mapElement = map.getDiv();
+      container.style.width = `${mapElement.clientWidth}px`;
+      container.style.height = `${mapElement.clientHeight}px`;
+    };
+    overlay.onAdd = () => {
+      overlay.getPanes()?.overlayMouseTarget?.appendChild(container);
+      sizeToMap();
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(sizeToMap);
+        resizeObserver.observe(map.getDiv());
+      }
+    };
+    overlay.draw = sizeToMap;
+    overlay.onRemove = () => {
+      resizeObserver?.disconnect();
+      container.remove();
+    };
+    overlay.setMap(map);
+
+    return () => overlay.setMap(null);
+  }, [map]);
+
+  return containerRef.current
+    ? createPortal(children, containerRef.current)
+    : null;
 }
 
 function formatNearbyDistance(distanceMeters) {
@@ -1778,24 +1826,23 @@ export default function StairwayMap({
           )}
 
           {!spotMode && (
-            <MapControl
-              position={ControlPosition.RIGHT_BOTTOM}
-              className="floating-map-actions"
-            >
-              {locationError && (
-                <div className="location-error-popover">{locationError}</div>
-              )}
-              <LocateMeButton
-                onLocate={handleLocateMe}
-                locating={locating}
-                showTooltip={showLocationTooltip}
-              />
-              <CheckInNearbyButton
-                onClick={handleCheckInNearby}
-                locating={locatingNearby}
-                disabled={loading || stairways.length === 0}
-              />
-            </MapControl>
+            <MapActionsOverlay>
+              <div className="floating-map-actions">
+                {locationError && (
+                  <div className="location-error-popover">{locationError}</div>
+                )}
+                <LocateMeButton
+                  onLocate={handleLocateMe}
+                  locating={locating}
+                  showTooltip={showLocationTooltip}
+                />
+                <CheckInNearbyButton
+                  onClick={handleCheckInNearby}
+                  locating={locatingNearby}
+                  disabled={loading || stairways.length === 0}
+                />
+              </div>
+            </MapActionsOverlay>
           )}
 
           {selected && !spotMode && (
