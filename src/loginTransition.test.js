@@ -14,6 +14,10 @@ const map = readFileSync(
   new URL('./components/StairwayMap.jsx', import.meta.url),
   'utf8'
 );
+const authContext = readFileSync(
+  new URL('./AuthContext.jsx', import.meta.url),
+  'utf8'
+);
 
 describe('post-login progress transition', () => {
   it('keeps sign-in covered until the current account history is ready', () => {
@@ -36,5 +40,18 @@ describe('post-login progress transition', () => {
     expect(map).not.toContain('map.panBy(-40, 0)');
     expect(map).not.toContain('sessionKey={user?.id');
     expect(map).not.toContain('[map, sessionKey]');
+  });
+
+  it('cannot show an old account stairway notice during sign-out', () => {
+    expect(authContext).toContain('setSigningOut(true)');
+    expect(authContext).toContain('setSession(null)');
+    expect(map).toContain('const { user, signingOut } = useAuth()');
+    expect(map).toContain('noticeIdentityRef.current !== notificationUser.id');
+    expect(map).not.toContain('const sessionResult = await supabase.auth.getSession()');
+  });
+
+  it('uses direct Google Identity Services on the web', () => {
+    expect(authModal).toContain('renderGoogleSignInButton');
+    expect(authModal).toContain('signInWithGoogleCredential');
   });
 });

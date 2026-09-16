@@ -1598,6 +1598,31 @@ html.public-page-document #root {
   gap: 2px;
 }
 
+.badge-tile-action {
+  appearance: none;
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.badge-tile-action:focus-visible {
+  outline: 3px solid #4c3ce6;
+  outline-offset: 3px;
+}
+
+.badge-tile-action:active {
+  background: #f3f0ff;
+}
+
 .badge-tile-medallion-wrap {
   position: relative;
 }
@@ -1618,8 +1643,8 @@ html.public-page-document #root {
   align-items: center;
   justify-content: center;
   border: 2px solid white;
-  cursor: pointer;
   font-family: inherit;
+  pointer-events: none;
 }
 
 .badge-tile-name {
@@ -1752,11 +1777,16 @@ html.public-page-document #root {
   position: relative;
 }
 
+.floating-map-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 0 10px 96px 0;
+}
+
 .locate-me-control {
-  position: absolute;
-  right: 10px;
-  bottom: 164px;
-  z-index: 5;
+  position: relative;
   display: flex;
   align-items: center;
 }
@@ -1805,10 +1835,7 @@ html.public-page-document #root {
 }
 
 .check-in-nearby-button {
-  position: absolute;
-  right: 10px;
-  bottom: 96px;
-  z-index: 4;
+  position: relative;
   min-height: 52px;
   padding: 0 20px 0 14px;
   border: none;
@@ -1823,6 +1850,16 @@ html.public-page-document #root {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.location-error-popover {
+  max-width: 220px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #c0392b;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  font-size: 13px;
 }
 
 .check-in-nearby-button:hover {
@@ -2563,6 +2600,20 @@ html.public-page-document #root {
 .apple-signin-button:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.google-web-signin {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.google-web-signin > div,
+.google-web-signin iframe {
+  max-width: 100%;
 }
 
 .auth-divider {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabaseClient';
 import { clearNativeGoogleSession } from './nativeAuth';
 
@@ -11,10 +11,12 @@ export function AuthProvider({ children }) {
   // avoids a flash of "signed out" UI while that check is in flight.
   const [loading, setLoading] = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const signingOutRef = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+      if (!signingOutRef.current) setSession(session);
       setLoading(false);
     });
 
@@ -22,6 +24,9 @@ export function AuthProvider({ children }) {
     // sign out, token refresh, and completing an OAuth (Google) redirect.
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // A token/session event already in flight must not restore the account
+        // after the person has pressed Log out.
+        if (signingOutRef.current && event !== 'SIGNED_OUT') return;
         setSession(session);
         if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       }
@@ -32,15 +37,33 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     const provider = session?.user?.app_metadata?.provider;
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    if (provider === 'google') await clearNativeGoogleSession();
+    signingOutRef.current = true;
+    setSigningOut(true);
+    // Clear the app's account immediately so account-scoped work cannot flash
+    // stale UI while the network sign-out request is still finishing.
+    setSession(null);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      if (provider === 'google') await clearNativeGoogleSession();
+    } catch (error) {
+      // If sign-out failed, restore the real session rather than leaving the
+      // app in a misleading half-signed-out state.
+      const { data } = await supabase.auth.getSession();
+      setSession(data?.session ?? null);
+      throw error;
+    } finally {
+      signingOutRef.current = false;
+      setSigningOut(false);
+    }
   }
 
   const value = {
     session,
     user: session?.user ?? null,
     loading,
+    signingOut,
     signOut,
     passwordRecovery,
     finishPasswordRecovery: () => setPasswordRecovery(false),

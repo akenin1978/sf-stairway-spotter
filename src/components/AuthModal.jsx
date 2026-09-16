@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import { useCheckIns } from '../CheckInsContext';
@@ -9,6 +9,12 @@ import {
   isNativeGoogleConfigured,
   signInWithNativeProvider,
 } from '../nativeAuth';
+import {
+  isWebGoogleConfigured,
+  loadGoogleIdentityServices,
+  renderGoogleSignInButton,
+  signInWithGoogleCredential,
+} from '../webGoogleAuth';
 import useDialogFocus from './useDialogFocus';
 
 export default function AuthModal({
@@ -34,6 +40,7 @@ export default function AuthModal({
   const [resendStatus, setResendStatus] = useState('idle');
   const [resendError, setResendError] = useState('');
   const [authErrorCode, setAuthErrorCode] = useState('');
+  const googleButtonRef = useRef(null);
   const dialogRef = useDialogFocus(onClose, {
     closeOnEscape: !awaitingProgress,
     returnFocusSelector: '.header-menu-button',
@@ -42,6 +49,43 @@ export default function AuthModal({
   useEffect(() => {
     if (awaitingProgress && user && accountProgressReady) onClose();
   }, [accountProgressReady, awaitingProgress, onClose, user]);
+
+  useEffect(() => {
+    if (nativeApp || awaitingProgress || !googleButtonRef.current) return;
+
+    let active = true;
+    loadGoogleIdentityServices()
+      .then(() => {
+        if (!active || !googleButtonRef.current) return;
+        renderGoogleSignInButton(
+          googleButtonRef.current,
+          async ({ credential }) => {
+            if (!active) return;
+            setStatus('submitting');
+            setErrorMsg('');
+            try {
+              await signInWithGoogleCredential(credential);
+              if (active) waitForAccountProgress();
+            } catch (error) {
+              if (!active) return;
+              setStatus('error');
+              setErrorMsg(friendlyAuthError(error, 'google-sign-in'));
+            }
+          }
+        );
+      })
+      .catch(() => {
+        if (!active) return;
+        setStatus('error');
+        setErrorMsg(
+          'Google sign-in is temporarily unavailable. Please use another method or try again later.'
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [awaitingProgress, nativeApp]);
 
   function waitForAccountProgress() {
     setStatus('loading-progress');
@@ -152,22 +196,10 @@ export default function AuthModal({
       return;
     }
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-        // Google otherwise silently reuses the browser's most recent account,
-        // making it impossible to switch app accounts after signing out.
-        queryParams: { prompt: 'select_account' },
-      },
-    });
-    // On success, the browser navigates away to Google immediately, so
-    // there's nothing further to do here. We only reach this point if the
-    // request itself failed to even start.
-    if (error) {
-      setStatus('error');
-      setErrorMsg(friendlyAuthError(error, 'google-sign-in'));
-    }
+    setStatus('error');
+    setErrorMsg(
+      'Google sign-in is temporarily unavailable. Please use another method or try again later.'
+    );
   }
 
   async function handleAppleSignIn() {
@@ -355,20 +387,32 @@ export default function AuthModal({
               </button>
             )}
 
-            <button
-              type="button"
-              className="google-signin-button"
-              onClick={handleGoogleSignIn}
-              disabled={
-                status === 'submitting' ||
-                (nativeApp && !isNativeGoogleConfigured())
-              }
-            >
-              <GoogleIcon />
-              {nativeApp && !isNativeGoogleConfigured()
-                ? 'Google sign-in setup required'
-                : 'Continue with Google'}
-            </button>
+            {nativeApp ? (
+              <button
+                type="button"
+                className="google-signin-button"
+                onClick={handleGoogleSignIn}
+                disabled={
+                  status === 'submitting' || !isNativeGoogleConfigured()
+                }
+              >
+                <GoogleIcon />
+                {!isNativeGoogleConfigured()
+                  ? 'Google sign-in setup required'
+                  : 'Continue with Google'}
+              </button>
+            ) : isWebGoogleConfigured() ? (
+              <div
+                ref={googleButtonRef}
+                className="google-web-signin"
+                aria-label="Continue with Google"
+              />
+            ) : (
+              <button type="button" className="google-signin-button" disabled>
+                <GoogleIcon />
+                Google sign-in setup required
+              </button>
+            )}
 
             <div className="auth-divider">
               <span>or</span>

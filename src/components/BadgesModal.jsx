@@ -29,7 +29,13 @@ const PAGE_SIZE = 500;
 //
 // TIER_COLORS and milestoneTier now live in badgeDefinitions.js so this
 // gallery and the badge-earned alert always render a badge identically.
-import { TIER_COLORS, milestoneTier } from '../badgeDefinitions';
+import {
+  TIER_COLORS,
+  countActiveVerifiedStairways,
+  isMilestoneEarned,
+  milestoneProgressLabel,
+  milestoneTier,
+} from '../badgeDefinitions';
 import useDialogFocus from './useDialogFocus';
 import { useAuth } from '../AuthContext';
 import { readViewedBadgeStairwayIds } from '../badgeStairwayViews';
@@ -39,9 +45,18 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
   const ringColor = earned ? colors.ring : '#B8B8B8';
   const fillColor = earned ? colors.fill : '#DDDDDD';
   const iconColor = earned ? '#FFFFFF' : '#F5F5F5';
+  const canShowStairways =
+    earned && notificationCount > 0 && typeof onShowStairways === 'function';
+  const Tile = canShowStairways ? 'button' : 'div';
+  const actionLabel = `Show ${notificationCount} new ${notificationCount === 1 ? 'stairway' : 'stairways'} for ${name}`;
 
   return (
-    <div className="badge-tile">
+    <Tile
+      className={`badge-tile${canShowStairways ? ' badge-tile-action' : ''}`}
+      {...(canShowStairways
+        ? { type: 'button', onClick: onShowStairways, 'aria-label': actionLabel }
+        : {})}
+    >
       <div className="badge-tile-medallion-wrap">
         <svg width="72" height="72" viewBox="0 0 72 72">
           <circle cx="36" cy="36" r="34" fill="none" stroke={ringColor} strokeWidth="3" />
@@ -54,14 +69,12 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
           </g>
         </svg>
         {earned && notificationCount > 0 && (
-          <button
-            type="button"
+          <span
             className="badge-tile-notification"
-            onClick={onShowStairways}
-            aria-label={`Show ${notificationCount} new ${notificationCount === 1 ? 'stairway' : 'stairways'} for ${name}`}
+            aria-hidden="true"
           >
             {notificationCount}
-          </button>
+          </span>
         )}
       </div>
       <span className="badge-tile-name">{name}</span>
@@ -69,7 +82,7 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
       {progressLabel && (
         <span className="badge-tile-progress">{progressLabel}</span>
       )}
-    </div>
+    </Tile>
   );
 }
 
@@ -145,7 +158,10 @@ export default function BadgesModal({ onClose, onShowStairways }) {
     return progress;
   }, [stairways, verifiedIds]);
 
-  const totalVerified = verifiedIds.size;
+  // Count only verified stairways that still belong to the active, mapped
+  // collection loaded above. Historical visits to removed/inactive records
+  // must not inflate milestone progress beyond what the badge gallery shows.
+  const totalVerified = countActiveVerifiedStairways(stairways, verifiedIds);
   const totalStairways = stairways.length;
   const sortedNeighborhoodBadges = useMemo(
     () =>
@@ -226,8 +242,17 @@ export default function BadgesModal({ onClose, onShowStairways }) {
                   <BadgeMedallion
                     key={badge.id}
                     name={badge.name}
-                    progressLabel={`${Math.min(totalVerified, threshold)}/${threshold}`}
-                    earned={earnedBadgeIds.has(badge.id)}
+                    progressLabel={milestoneProgressLabel(
+                      totalVerified,
+                      badge.threshold,
+                      totalStairways
+                    )}
+                    earned={isMilestoneEarned(
+                      totalVerified,
+                      badge.threshold,
+                      totalStairways,
+                      earnedBadgeIds.has(badge.id)
+                    )}
                     tier={milestoneTier(badge.threshold)}
                   />
                 );

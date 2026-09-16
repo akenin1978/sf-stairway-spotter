@@ -21,12 +21,22 @@ describe('stair card action hierarchy', () => {
     );
   });
 
-  it('hides floating location controls when a card is selected', () => {
-    expect(source).toContain('{!spotMode && !selected && (');
-    const controls = source.slice(source.indexOf('{!spotMode && !selected && ('));
-    expect(controls.indexOf('<CheckInNearbyButton')).toBeLessThan(controls.indexOf('</>'));
-    expect(controls.indexOf('<LocateMeButton')).toBeLessThan(controls.indexOf('</>'));
-    expect(source).toContain('{locationError && !selected && (');
+  it('keeps floating location controls available behind a selected card', () => {
+    expect(source).toContain('<MapControl');
+    expect(source).toContain('position={ControlPosition.RIGHT_BOTTOM}');
+    expect(source).toContain('className="floating-map-actions"');
+    expect(source).not.toContain('{!spotMode && !selected && (');
+    const mapControlStart = source.indexOf('<MapControl');
+    const mapControlEnd = source.indexOf('</MapControl>', mapControlStart);
+    const mapEnd = source.indexOf('</Map>', mapControlEnd);
+    const infoWindow = source.indexOf('<InfoWindow', mapControlEnd);
+    expect(mapControlStart).toBeGreaterThan(source.indexOf('<Map'));
+    expect(mapControlEnd).toBeGreaterThan(mapControlStart);
+    expect(mapEnd).toBeGreaterThan(mapControlEnd);
+    expect(infoWindow).toBeGreaterThan(mapControlEnd);
+    expect(source.slice(mapControlStart, mapControlEnd)).toContain('<CheckInNearbyButton');
+    expect(source.slice(mapControlStart, mapControlEnd)).toContain('<LocateMeButton');
+    expect(source.slice(mapControlStart, mapControlEnd)).toContain('location-error-popover');
   });
 
   it('keeps reversible spots compact and preserves the history safeguard', () => {

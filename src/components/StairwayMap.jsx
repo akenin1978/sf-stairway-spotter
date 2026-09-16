@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   APIProvider,
   Map,
+  MapControl,
+  ControlPosition,
   Marker,
   InfoWindow,
   useMap,
@@ -405,7 +407,10 @@ export default function StairwayMap({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
-  const { user } = useAuth();
+  const { user, signingOut } = useAuth();
+  const noticeIdentity = signingOut ? null : (user?.id ?? null);
+  const noticeIdentityRef = useRef(noticeIdentity);
+  noticeIdentityRef.current = noticeIdentity;
   const {
     checkedInIds,
     checkedInDates,
@@ -1422,56 +1427,83 @@ export default function StairwayMap({
 
       if (!isMounted) return;
 
-      // Signed-out visitors never receive this account-specific notice. The
-      // database cursor survives app restarts and device changes; localStorage
-      // remains a compatibility fallback until the migration is live.
+      // Keep a device snapshot on every successful load, even if restoring the
+      // signed-in session is delayed. The account cursor still survives app
+      // reinstalls and device changes, but it is no longer a single point of
+      // failure that can silently suppress a notice on a fresh native launch.
       try {
-        if (user?.id) {
+        // Use only the account that AuthContext has finished restoring. Reading
+        // auth storage again here could briefly recover the old account while
+        // it is signing out and show that account's notice on the logout screen.
+        const notificationUser = signingOut ? null : user;
+        const storageKey = knownStairwayIdsKey(notificationUser?.id);
+        const storedSnapshot = localStorage.getItem(storageKey);
+        const localNotice = findNewStairwayNotice(allRows, storedSnapshot);
+        let state = null;
+        let stateError = null;
+        let serverNotice = null;
+
+        if (notificationUser?.id) {
           const stateResult = await supabase.rpc('get_new_stairway_notice_state');
-          const state = Array.isArray(stateResult.data)
+          stateError = stateResult.error;
+          if (stateResult.error) {
+            console.error('Could not load new-stairway notification state', stateResult.error);
+          }
+          state = Array.isArray(stateResult.data)
             ? stateResult.data[0]
             : stateResult.data;
-          const storageKey = knownStairwayIdsKey(user.id);
-          const serverNotice = stateResult.error
+          serverNotice = stateResult.error
             ? null
             : findServerNewStairwayNotice(
                 allRows,
                 state?.seen_through,
                 state?.snapshot_through
               );
-          const notice = stateResult.error
-            ? findNewStairwayNotice(allRows, localStorage.getItem(storageKey))
-            : serverNotice;
+        }
 
-          if (notice) {
-            let stairwaysWithPhotos = notice.stairways;
+        // Prefer the account cursor, but never let a first/failed server call
+        // erase a genuine addition that the device snapshot already detected.
+        const notice = notificationUser?.id ? (serverNotice || localNotice) : null;
 
-            if (notice.addedCount > 1) {
-              const { data: photoRows } = await supabase
-                .from('stairways')
-                .select('id,direct_photo_url')
-                .in('id', notice.stairways.map((stairway) => stairway.id));
-              const photosById = new Map(
-                (photoRows ?? []).map((row) => [row.id, row.direct_photo_url])
-              );
-              stairwaysWithPhotos = notice.stairways.map((stairway) => ({
-                ...stairway,
-                direct_photo_url: photosById.get(stairway.id) || null,
-              }));
-            }
+        if (notice) {
+          let stairwaysWithPhotos = notice.stairways;
 
-            setNewStairwayNotice({
-              ...notice,
-              stairway: stairwaysWithPhotos[0],
-              stairways: stairwaysWithPhotos,
-              ...(stateResult.error
-                ? {
-                    storageKey,
-                    snapshotValue: serializeKnownStairwayIds(allRows),
-                  }
-                : { snapshotThrough: state.snapshot_through }),
-            });
-          } else if (!stateResult.error && state?.snapshot_through) {
+          if (notice.addedCount > 1) {
+            const { data: photoRows } = await supabase
+              .from('stairways')
+              .select('id,direct_photo_url')
+              .in('id', notice.stairways.map((stairway) => stairway.id));
+            const photosById = new Map(
+              (photoRows ?? []).map((row) => [row.id, row.direct_photo_url])
+            );
+            stairwaysWithPhotos = notice.stairways.map((stairway) => ({
+              ...stairway,
+              direct_photo_url: photosById.get(stairway.id) || null,
+            }));
+          }
+
+          // Async photo/RPC work may finish after an account switch. Never let
+          // that stale result escape into the next account's UI.
+          if (
+            !isMounted ||
+            noticeIdentityRef.current !== notificationUser.id
+          ) return;
+
+          setNewStairwayNotice({
+            ...notice,
+            stairway: stairwaysWithPhotos[0],
+            stairways: stairwaysWithPhotos,
+            storageKey,
+            snapshotValue: serializeKnownStairwayIds(allRows),
+            ...(!stateError && state?.snapshot_through
+              ? { snapshotThrough: state.snapshot_through }
+              : {}),
+          });
+        } else if (notificationUser?.id) {
+          // A successful load always establishes the next device baseline.
+          // Only advance the server cursor when a signed-in RPC succeeded.
+          localStorage.setItem(storageKey, serializeKnownStairwayIds(allRows));
+          if (notificationUser?.id && !stateError && state?.snapshot_through) {
             const { error: acknowledgeError } = await supabase.rpc(
               'acknowledge_new_stairways',
               { p_seen_through: state.snapshot_through }
@@ -1479,14 +1511,16 @@ export default function StairwayMap({
             if (acknowledgeError) {
               console.error('Could not advance new-stairway state', acknowledgeError);
             }
-          } else {
-            localStorage.setItem(storageKey, serializeKnownStairwayIds(allRows));
           }
         }
-      } catch {
-        // Private browsing/storage restrictions should never block the map.
+      } catch (notificationError) {
+        // A notice failure should never block the map, but it must remain
+        // diagnosable. Previously this empty catch made a broken RPC/session
+        // look exactly like "there are no new stairways."
+        console.error('Could not check for new stairways', notificationError);
       }
 
+      if (!isMounted) return;
       setStairways(allRows);
       setError(null);
       setLoading(false);
@@ -1507,7 +1541,7 @@ export default function StairwayMap({
       isMounted = false;
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
-  }, [loadAttempt, user?.id]);
+  }, [loadAttempt, user?.id, signingOut]);
 
   const allNeighborhoods = useMemo(
     () =>
@@ -1741,6 +1775,27 @@ export default function StairwayMap({
                 scale: 10,
               }}
             />
+          )}
+
+          {!spotMode && (
+            <MapControl
+              position={ControlPosition.RIGHT_BOTTOM}
+              className="floating-map-actions"
+            >
+              {locationError && (
+                <div className="location-error-popover">{locationError}</div>
+              )}
+              <LocateMeButton
+                onLocate={handleLocateMe}
+                locating={locating}
+                showTooltip={showLocationTooltip}
+              />
+              <CheckInNearbyButton
+                onClick={handleCheckInNearby}
+                locating={locatingNearby}
+                disabled={loading || stairways.length === 0}
+              />
+            </MapControl>
           )}
 
           {selected && !spotMode && (
@@ -1988,40 +2043,6 @@ export default function StairwayMap({
             </InfoWindow>
           )}
         </Map>
-
-        {!spotMode && !selected && (
-          <>
-            <CheckInNearbyButton
-              onClick={handleCheckInNearby}
-              locating={locatingNearby}
-              disabled={loading || stairways.length === 0}
-            />
-            <LocateMeButton
-              onLocate={handleLocateMe}
-              locating={locating}
-              showTooltip={showLocationTooltip}
-            />
-          </>
-        )}
-        {locationError && !selected && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '212px',
-              right: '10px',
-              maxWidth: '220px',
-              background: '#ffffff',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-              borderRadius: '8px',
-              padding: '8px 10px',
-              fontSize: '13px',
-              color: '#c0392b',
-              zIndex: 5,
-            }}
-          >
-            {locationError}
-          </div>
-        )}
 
         {locationBoundaryMessage && (
           <AlertDialog

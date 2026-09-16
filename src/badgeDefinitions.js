@@ -169,3 +169,37 @@ export function shouldCelebrateMilestone(totalVerified, threshold, totalStairway
   const resolvedThreshold = threshold === 'all' ? totalStairways : threshold;
   return totalVerified === resolvedThreshold;
 }
+
+export function isMilestoneEarned(
+  totalVerified,
+  threshold,
+  totalStairways,
+  storedEarned = false
+) {
+  if (threshold === 'all') {
+    return storedEarned ||
+      (totalStairways > 0 && totalVerified >= totalStairways);
+  }
+
+  // Fixed milestones are an exact reflection of verified progress. Deriving
+  // them here also repairs old accounts whose stored badge rows were created
+  // with an obsolete threshold mapping.
+  return totalVerified >= threshold;
+}
+
+export function countActiveVerifiedStairways(stairways, verifiedIds) {
+  if (!Array.isArray(stairways) || !(verifiedIds instanceof Set)) return 0;
+  return stairways.reduce(
+    (count, stairway) => count + (verifiedIds.has(stairway.id) ? 1 : 0),
+    0
+  );
+}
+
+export function milestoneProgressLabel(
+  totalVerified,
+  threshold,
+  totalStairways
+) {
+  const resolvedThreshold = threshold === 'all' ? totalStairways : threshold;
+  return `${Math.min(totalVerified, resolvedThreshold)}/${resolvedThreshold}`;
+}
