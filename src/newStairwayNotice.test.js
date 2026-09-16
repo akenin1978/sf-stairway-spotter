@@ -22,6 +22,13 @@ const newAccountMigration = readFileSync(
   ),
   'utf8'
 );
+const snapshotTypeFixMigration = readFileSync(
+  new URL(
+    '../supabase/migrations/20260916222500_fix_new_stairway_notice_snapshot_type.sql',
+    import.meta.url
+  ),
+  'utf8'
+);
 
 describe('new stairway notices', () => {
   it('stays quiet when there is no previous snapshot', () => {
@@ -141,6 +148,18 @@ describe('new stairway notices', () => {
     );
     expect(newAccountMigration).not.toContain(
       'values (auth.uid(), current_time)'
+    );
+  });
+
+  it('returns a timestamptz snapshot instead of PostgreSQL current_time', () => {
+    expect(snapshotTypeFixMigration).toContain(
+      'snapshot_at timestamptz := now()'
+    );
+    expect(snapshotTypeFixMigration).toContain(
+      'select state.seen_through, snapshot_at'
+    );
+    expect(snapshotTypeFixMigration).not.toContain(
+      'current_time timestamptz'
     );
   });
 
