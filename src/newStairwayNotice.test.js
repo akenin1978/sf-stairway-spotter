@@ -117,6 +117,7 @@ describe('new stairway notices', () => {
     expect(mapSource).toContain('snapshotValue: serializeKnownStairwayIds(allRows)');
     expect(mapSource).toContain('function acknowledgeNewStairwayNotice');
     expect(mapSource).toContain('onDismiss={() => acknowledgeNewStairwayNotice()}');
+    expect(mapSource).toContain('onBadgeStairwayViewed?.(stairwayToShow.id)');
   });
 
   it('checks for additions whenever the app returns to the foreground', () => {

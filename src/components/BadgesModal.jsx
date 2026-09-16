@@ -38,8 +38,6 @@ import {
   milestoneTier,
 } from '../badgeDefinitions';
 import useDialogFocus from './useDialogFocus';
-import { useAuth } from '../AuthContext';
-import { readViewedBadgeStairwayIds } from '../badgeStairwayViews';
 
 function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificationCount, onShowStairways }) {
   const colors = TIER_COLORS[tier] || TIER_COLORS.neighborhood;
@@ -87,9 +85,13 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
   );
 }
 
-export default function BadgesModal({ onClose, onShowStairways }) {
+export default function BadgesModal({
+  onClose,
+  onShowStairways,
+  viewedBadgeStairwayIds = new Set(),
+  badgeViewsLoading = false,
+}) {
   const dialogRef = useDialogFocus(onClose);
-  const { user } = useAuth();
   const { earnedBadgeIds, verifiedIds, loading: badgesLoading } = useBadges();
   const [stairways, setStairways] = useState([]);
   const [loadingStairways, setLoadingStairways] = useState(true);
@@ -143,7 +145,7 @@ export default function BadgesModal({ onClose, onShowStairways }) {
     };
   }, [loadAttempt]);
 
-  const loading = badgesLoading || loadingStairways;
+  const loading = badgesLoading || loadingStairways || badgeViewsLoading;
 
   const neighborhoodProgressByName = useMemo(() => {
     const progress = new Map();
@@ -176,8 +178,6 @@ export default function BadgesModal({ onClose, onShowStairways }) {
   const fiveStarVerified = fiveStarStairways.filter((s) =>
     verifiedIds.has(s.id)
   );
-  const viewedBadgeStairwayIds = readViewedBadgeStairwayIds(user?.id);
-
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div

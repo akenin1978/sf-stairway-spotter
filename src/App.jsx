@@ -20,7 +20,11 @@ import {
   unseenFriendRequests,
 } from './friendRequests';
 import useDialogFocus from './components/useDialogFocus';
-import { markBadgeStairwayViewed } from './badgeStairwayViews';
+import {
+  loadSyncedBadgeStairwayIds,
+  markBadgeStairwayViewed,
+  syncBadgeStairwayViewed,
+} from './badgeStairwayViews';
 
 export default function App() {
   const [showLaunchAnimation, setShowLaunchAnimation] = useState(true);
@@ -39,6 +43,8 @@ export default function App() {
   const [spotMode, setSpotMode] = useState(false);
   const [spottedListOpen, setSpottedListOpen] = useState(false);
   const [badgeStairwayRequest, setBadgeStairwayRequest] = useState(null);
+  const [viewedBadgeStairwayIds, setViewedBadgeStairwayIds] = useState(new Set());
+  const [badgeViewsLoading, setBadgeViewsLoading] = useState(false);
   const { user, loading, signOut, passwordRecovery, finishPasswordRecovery } = useAuth();
   const {
     count: checkedInCount,
@@ -111,6 +117,71 @@ export default function App() {
   useEffect(() => {
     setBadgeStairwayRequest(null);
   }, [user?.id]);
+
+  useEffect(() => {
+    let active = true;
+    setViewedBadgeStairwayIds(new Set());
+    if (!user?.id) {
+      setBadgeViewsLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    setBadgeViewsLoading(true);
+    loadSyncedBadgeStairwayIds(supabase, user.id)
+      .then((ids) => {
+        if (active) setViewedBadgeStairwayIds(ids);
+      })
+      .catch((error) => {
+        console.error('Could not load viewed badge stairways', error);
+      })
+      .finally(() => {
+        if (active) setBadgeViewsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
+
+  // Refresh whenever the gallery opens so an account that was also used on
+  // another phone/browser immediately sees the same cleared indicators.
+  useEffect(() => {
+    if (!badgesOpen || !user?.id) return;
+    let active = true;
+    setBadgeViewsLoading(true);
+    loadSyncedBadgeStairwayIds(supabase, user.id)
+      .then((ids) => {
+        if (active) setViewedBadgeStairwayIds(ids);
+      })
+      .catch((error) => {
+        console.error('Could not refresh viewed badge stairways', error);
+      })
+      .finally(() => {
+        if (active) setBadgeViewsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [badgesOpen, user?.id]);
+
+  const recordBadgeStairwayViewed = useCallback(
+    (stairwayId) => {
+      if (!user?.id || !stairwayId) return;
+      markBadgeStairwayViewed(user.id, stairwayId);
+      setViewedBadgeStairwayIds((current) => {
+        if (current.has(stairwayId)) return current;
+        const next = new Set(current);
+        next.add(stairwayId);
+        return next;
+      });
+      syncBadgeStairwayViewed(supabase, user.id, stairwayId).catch((error) => {
+        console.error('Could not sync viewed badge stairway', error);
+      });
+    },
+    [user?.id]
+  );
 
   function dismissFriendRequestAlert({ openFriends = false } = {}) {
     if (!friendRequestAlert) return;
@@ -369,9 +440,7 @@ export default function App() {
         onCloseSpottedList={() => setSpottedListOpen(false)}
         badgeStairwayRequest={badgeStairwayRequest}
         onBadgeStairwayRequestConsumed={consumeBadgeStairwayRequest}
-        onBadgeStairwayViewed={(stairwayId) =>
-          markBadgeStairwayViewed(user?.id, stairwayId)
-        }
+        onBadgeStairwayViewed={recordBadgeStairwayViewed}
       />
 
       {publicPageOpen && (
@@ -414,6 +483,8 @@ export default function App() {
       {badgesOpen && (
         <BadgesModal
           onClose={() => setBadgesOpen(false)}
+          viewedBadgeStairwayIds={viewedBadgeStairwayIds}
+          badgeViewsLoading={badgeViewsLoading}
           onShowStairways={(stairways) => {
             setBadgesOpen(false);
             setBadgeStairwayRequest({

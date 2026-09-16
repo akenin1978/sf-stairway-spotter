@@ -492,7 +492,10 @@ export default function StairwayMap({
         // return later rather than being silently lost before acknowledgment.
       }
     }
-    if (stairwayToShow) setSelected(stairwayToShow);
+    if (stairwayToShow) {
+      onBadgeStairwayViewed?.(stairwayToShow.id);
+      setSelected(stairwayToShow);
+    }
     setNewStairwayNotice(null);
   }
 
