@@ -106,6 +106,12 @@ export default function App() {
     };
   }, [user?.id]);
 
+  // A badge-gallery request belongs only to the account and interaction that
+  // created it. Never carry a selected badge stairway through sign-in/out.
+  useEffect(() => {
+    setBadgeStairwayRequest(null);
+  }, [user?.id]);
+
   function dismissFriendRequestAlert({ openFriends = false } = {}) {
     if (!friendRequestAlert) return;
     const requestIds = friendRequestAlert.requests.map(
@@ -133,6 +139,14 @@ export default function App() {
     setFeedbackStairway(stairway);
     setFeedbackOpen(true);
   };
+
+  const consumeBadgeStairwayRequest = useCallback((requestToken) => {
+    setBadgeStairwayRequest((current) => {
+      if (!current) return null;
+      const currentToken = current.requestedAt ?? current.ids?.join(',');
+      return currentToken === requestToken ? null : current;
+    });
+  }, []);
 
   return (
     <div className="app">
@@ -354,6 +368,7 @@ export default function App() {
         spottedListOpen={spottedListOpen}
         onCloseSpottedList={() => setSpottedListOpen(false)}
         badgeStairwayRequest={badgeStairwayRequest}
+        onBadgeStairwayRequestConsumed={consumeBadgeStairwayRequest}
         onBadgeStairwayViewed={(stairwayId) =>
           markBadgeStairwayViewed(user?.id, stairwayId)
         }

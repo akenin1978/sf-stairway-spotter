@@ -438,6 +438,7 @@ export default function StairwayMap({
   spottedListOpen,
   onCloseSpottedList,
   badgeStairwayRequest,
+  onBadgeStairwayRequestConsumed,
   onBadgeStairwayViewed,
 }) {
   const [stairways, setStairways] = useState([]);
@@ -450,6 +451,7 @@ export default function StairwayMap({
     setVisitHintAcknowledged(true);
   }
   const [badgeBrowseIds, setBadgeBrowseIds] = useState([]);
+  const handledBadgeRequestRef = useRef(null);
   const badgeSwipeStart = useRef(null);
   const [newStairwayNotice, setNewStairwayNotice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1350,6 +1352,12 @@ export default function StairwayMap({
 
   useEffect(() => {
     if (!badgeStairwayRequest?.ids?.length || stairways.length === 0) return;
+    const requestToken =
+      badgeStairwayRequest.requestedAt ?? badgeStairwayRequest.ids.join(',');
+    if (handledBadgeRequestRef.current === requestToken) return;
+    handledBadgeRequestRef.current = requestToken;
+    onBadgeStairwayRequestConsumed?.(requestToken);
+
     const validIds = badgeStairwayRequest.ids.filter((id) =>
       stairways.some((candidate) => candidate.id === id)
     );
@@ -1368,7 +1376,7 @@ export default function StairwayMap({
     });
     setBadgeBrowseIds(validIds);
     setSelected(stairway);
-  }, [badgeStairwayRequest, stairways]);
+  }, [badgeStairwayRequest, stairways, onBadgeStairwayRequestConsumed]);
 
   const badgeBrowseIndex = selected
     ? badgeBrowseIds.indexOf(selected.id)
