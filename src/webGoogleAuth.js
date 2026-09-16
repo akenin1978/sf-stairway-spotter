@@ -1,7 +1,13 @@
 import { supabase } from './supabaseClient';
 
 const GOOGLE_IDENTITY_SCRIPT = 'https://accounts.google.com/gsi/client';
-const googleWebClientId = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID;
+// OAuth client IDs are public identifiers embedded in browser applications,
+// not secrets. Keep the environment override for alternate deployments, with
+// the production app's registered client as a fallback for Vercel builds.
+const DEFAULT_GOOGLE_WEB_CLIENT_ID =
+  '736603816888-a5tk3vk48aprg0158lue5fqce1j7c04n.apps.googleusercontent.com';
+const googleWebClientId =
+  import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID || DEFAULT_GOOGLE_WEB_CLIENT_ID;
 
 let googleIdentityPromise;
 

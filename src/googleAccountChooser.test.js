@@ -19,5 +19,6 @@ describe('direct Google sign-in on the web', () => {
     expect(webGoogleAuth).toContain('https://accounts.google.com/gsi/client');
     expect(webGoogleAuth).toContain('window.google.accounts.id.renderButton');
     expect(webGoogleAuth).toContain('supabase.auth.signInWithIdToken');
+    expect(webGoogleAuth).toContain('DEFAULT_GOOGLE_WEB_CLIENT_ID');
   });
 });
