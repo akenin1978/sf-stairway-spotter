@@ -187,6 +187,21 @@ export function isMilestoneEarned(
   return totalVerified >= threshold;
 }
 
+export function isCollectionBadgeEarned(
+  verifiedCount,
+  totalCount,
+  storedEarned = false
+) {
+  // A legacy award row created by the old Spotted-based logic must never
+  // color a badge when this account has verified none of its stairways.
+  if (verifiedCount <= 0 || totalCount <= 0) return false;
+
+  // Once somebody genuinely completes a collection, keep it earned if new
+  // stairways are added later. The stored row provides that permanence; a
+  // current full completion also repairs a missing stored row in the UI.
+  return storedEarned || verifiedCount >= totalCount;
+}
+
 export function countActiveVerifiedStairways(stairways, verifiedIds) {
   if (!Array.isArray(stairways) || !(verifiedIds instanceof Set)) return 0;
   return stairways.reduce(

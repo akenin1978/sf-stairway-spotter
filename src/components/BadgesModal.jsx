@@ -32,6 +32,7 @@ const PAGE_SIZE = 500;
 import {
   TIER_COLORS,
   countActiveVerifiedStairways,
+  isCollectionBadgeEarned,
   isMilestoneEarned,
   milestoneProgressLabel,
   milestoneTier,
@@ -218,13 +219,18 @@ export default function BadgesModal({ onClose, onShowStairways }) {
                     !verifiedIds.has(stairway.id) &&
                     !viewedBadgeStairwayIds.has(stairway.id)
                 );
+                const earned = isCollectionBadgeEarned(
+                  verified,
+                  total,
+                  earnedBadgeIds.has(badge.id)
+                );
                 return (
                   <BadgeMedallion
                     key={badge.id}
                     name={badge.name}
                     subtitle={badge.neighborhood}
                     progressLabel={total > 0 ? `${verified}/${total}` : null}
-                    earned={earnedBadgeIds.has(badge.id)}
+                    earned={earned}
                     notificationCount={unseenNewStairways.length}
                     onShowStairways={() => onShowStairways?.(unseenNewStairways)}
                     tier="neighborhood"
@@ -271,7 +277,15 @@ export default function BadgesModal({ onClose, onShowStairways }) {
                       ? `${fiveStarVerified.length}/${fiveStarStairways.length}`
                       : null
                   }
-                  earned={earnedBadgeIds.has(badge.id)}
+                  earned={
+                    badge.id === 'special-best-of-the-best'
+                      ? isCollectionBadgeEarned(
+                          fiveStarVerified.length,
+                          fiveStarStairways.length,
+                          earnedBadgeIds.has(badge.id)
+                        )
+                      : earnedBadgeIds.has(badge.id)
+                  }
                   notificationCount={
                     badge.id === 'special-best-of-the-best'
                       ? fiveStarStairways.filter(

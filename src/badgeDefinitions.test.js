@@ -5,6 +5,7 @@ import {
   SPECIAL_BADGES,
   NEIGHBORHOOD_BADGES,
   countActiveVerifiedStairways,
+  isCollectionBadgeEarned,
   isMilestoneEarned,
   milestoneProgressLabel,
   milestoneTier,
@@ -60,7 +61,7 @@ describe('isMilestoneEarned', () => {
     expect(earnedThresholds).toEqual([1, 5, 10, 25, 50, 100]);
   });
 
-  it('is applied to milestone tiles while neighborhood awards remain permanent', () => {
+  it('is applied to milestone tiles while neighborhood awards validate progress', () => {
     const neighborhoodSection = badgesModalSource.slice(
       badgesModalSource.indexOf('sortedNeighborhoodBadges.map'),
       badgesModalSource.indexOf('MILESTONE_BADGES.map')
@@ -70,9 +71,29 @@ describe('isMilestoneEarned', () => {
       badgesModalSource.indexOf('SPECIAL_BADGES.map')
     );
 
-    expect(neighborhoodSection).toContain('earned={earnedBadgeIds.has(badge.id)}');
+    expect(neighborhoodSection).toContain('const earned = isCollectionBadgeEarned(');
+    expect(neighborhoodSection).toContain('earned={earned}');
     expect(neighborhoodSection).not.toContain('earned={isMilestoneEarned(');
     expect(milestoneSection).toContain('earned={isMilestoneEarned(');
+  });
+});
+
+describe('isCollectionBadgeEarned', () => {
+  it('never colors a zero-progress badge even if a stale award row exists', () => {
+    expect(isCollectionBadgeEarned(0, 2, true)).toBe(false);
+    expect(isCollectionBadgeEarned(0, 16, true)).toBe(false);
+  });
+
+  it('earns a completed collection without relying on a stored row', () => {
+    expect(isCollectionBadgeEarned(2, 2, false)).toBe(true);
+  });
+
+  it('keeps a genuinely earned collection colored after new stairs are added', () => {
+    expect(isCollectionBadgeEarned(2, 4, true)).toBe(true);
+  });
+
+  it('does not award an empty collection', () => {
+    expect(isCollectionBadgeEarned(0, 0, true)).toBe(false);
   });
 });
 
