@@ -154,7 +154,12 @@ export default function AuthModal({
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+        // Google otherwise silently reuses the browser's most recent account,
+        // making it impossible to switch app accounts after signing out.
+        queryParams: { prompt: 'select_account' },
+      },
     });
     // On success, the browser navigates away to Google immediately, so
     // there's nothing further to do here. We only reach this point if the
