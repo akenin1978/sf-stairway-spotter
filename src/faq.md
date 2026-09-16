@@ -126,11 +126,11 @@ Badges recognize milestones and exploration across the city, including progress 
 
 ### 26. What happens when new stairways are added?
 
-Newly added stairways become part of the map. When you are signed in and the map loads new additions since your previous visit on that device or browser, an in-app notice lets you know. Select **Show me** for a single addition or **See all** when there are several, then choose a stairway to open it on the map. Your first signed-in visit on a device or browser establishes a starting point, so it does not announce the entire collection as new.
+Newly added stairways become part of the map. When you are signed in and the map loads new additions since your previous visit, an in-app notice lets you know. Select **Show me** for a single addition or **See all** when there are several, then choose a stairway to open it on the map. Your first signed-in visit establishes a starting point, so it does not announce the entire collection as new.
 
-An earned neighborhood badge may also show a numbered indicator for stairways you have not yet verified or viewed through the badge’s map view. Tap the indicator to explore them. The count decreases as you view them and disappears once none remain. Viewing a stairway does not mark it as spotted or verify a visit, and your earned badge stays earned.
+An earned neighborhood badge may also show a numbered indicator for newly added stairways you have not yet verified or opened. Tap the badge to explore them. The notification number decreases as you open each new stairway card and disappears when none remain. Viewing a card does not mark the stairway as Spotted or Verified, and the viewed status follows your account across devices. Your earned badge stays earned.
 
-These are in-app notices. Which additions you have seen is remembered separately on each device or browser.
+These are in-app notices. Which additions you have seen follows your signed-in account across devices and browsers.
 
 ### 27. How does the leaderboard work?
 

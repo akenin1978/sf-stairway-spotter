@@ -352,6 +352,10 @@ export default function SettingsModal({
                   : 'Delete my account'}
               </button>
             </div>
+
+            <p className="settings-version">
+              Version 1.0{isNativeApp() ? ' (Build 26)' : ''}
+            </p>
           </form>
         )}
         {deleteConfirmationOpen && (

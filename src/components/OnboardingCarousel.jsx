@@ -12,16 +12,10 @@ import { TIER_COLORS } from '../badgeDefinitions';
 function StairIcon() {
   return (
     <svg width="130" height="130" viewBox="0 0 130 130" aria-hidden="true">
-      <rect x="10" y="100" width="20" height="20" fill="#4F831A" />
-      <rect x="30" y="80" width="20" height="40" fill="#4F831A" />
-      <rect x="50" y="60" width="20" height="60" fill="#4F831A" />
-      <rect x="70" y="40" width="20" height="80" fill="#4F831A" />
-      <rect x="90" y="20" width="20" height="100" fill="#4F831A" />
-      <rect x="10" y="98" width="100" height="4" fill="#27500A" />
-      <rect x="30" y="78" width="80" height="4" fill="#27500A" />
-      <rect x="50" y="58" width="60" height="4" fill="#27500A" />
-      <rect x="70" y="38" width="40" height="4" fill="#27500A" />
-      <rect x="90" y="18" width="20" height="4" fill="#27500A" />
+      <rect x="12" y="92" width="22" height="26" fill="#4B3CE0" />
+      <rect x="40" y="68" width="22" height="50" fill="#4B3CE0" />
+      <rect x="68" y="44" width="22" height="74" fill="#4B3CE0" />
+      <rect x="96" y="20" width="22" height="98" fill="#4B3CE0" />
     </svg>
   );
 }
@@ -276,13 +270,13 @@ export default function OnboardingCarousel({ totalStairways, onDismiss }) {
         }
 
         .onboarding-dot.active::after {
-          background: #4F831A;
+          background: #4b3ce0;
         }
 
         .onboarding-next {
           position: absolute;
           bottom: 40px;
-          background: #27500A;
+          background: #4b3ce0;
           color: #FFFFFF;
           border: none;
           border-radius: 999px;
@@ -295,7 +289,7 @@ export default function OnboardingCarousel({ totalStairways, onDismiss }) {
         .onboarding-get-started {
           position: absolute;
           bottom: 40px;
-          background: #27500A;
+          background: #4b3ce0;
           color: #FFFFFF;
           border: none;
           border-radius: 999px;

@@ -2578,6 +2578,13 @@ html.public-page-document #root {
   cursor: default;
 }
 
+.settings-version {
+  margin: 18px 0 0;
+  color: #999;
+  font-size: 11px;
+  text-align: center;
+}
+
 /* --- Auth modal (sign in / sign up) --- */
 .google-signin-button,
 .apple-signin-button {
