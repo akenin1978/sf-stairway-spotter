@@ -201,6 +201,7 @@ function StairwayMarkers({
       <Marker
         key={stairway.id}
         position={getStairwayMarkerPosition(stairway)}
+        title={stairway.description || 'Stairway'}
         onClick={() => {
           if (!spotMode) onSelect(stairway);
         }}
@@ -466,6 +467,7 @@ export default function StairwayMap({
   const badgeSwipeStart = useRef(null);
   const [newStairwayNotice, setNewStairwayNotice] = useState(null);
   const [loading, setLoading] = useState(true);
+  const hasLoadedStairwaysRef = useRef(false);
   const [error, setError] = useState(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const { user, signingOut } = useAuth();
@@ -579,10 +581,15 @@ export default function StairwayMap({
   // the "confirmed via dialog" path call the exact same code.
   async function performCheckInToggle(stairway) {
     const wasAdding = !checkedInIds.has(stairway.id);
+    // toggleCheckIn updates the checklist optimistically before its database
+    // request finishes. Set the matching visual state just as eagerly so a
+    // newly spotted stairway goes straight from gray to dark green instead of
+    // briefly rendering the light-green resting state while the request runs.
+    setJustSpottedId(wasAdding ? stairway.id : null);
     const result = await toggleCheckIn(stairway.id);
 
-    if (!result.error) {
-      setJustSpottedId(wasAdding ? stairway.id : null);
+    if (result.error && wasAdding) {
+      setJustSpottedId(null);
     }
   }
 
@@ -1439,7 +1446,10 @@ export default function StairwayMap({
     async function loadStairways() {
       if (isLoadingStairways) return;
       isLoadingStairways = true;
-      setLoading(true);
+      // Only the first load owns the full-screen loading state. Session
+      // restoration and foreground refreshes keep the already-rendered map
+      // usable while fresh data and notices are checked in the background.
+      if (!hasLoadedStairwaysRef.current) setLoading(true);
       setError(null);
       // A single unbounded request silently caps out at Supabase's
       // default max-rows-per-request limit (1,000) -- with 1,100+
@@ -1496,6 +1506,15 @@ export default function StairwayMap({
       }
 
       if (!isMounted) return;
+
+      // The map data is ready now. Render it immediately instead of keeping
+      // the whole app behind "Loading stairways…" while the optional notice
+      // RPC and its thumbnail lookup finish. A slow or unavailable notice
+      // service must never delay the primary map experience.
+      setStairways(allRows);
+      hasLoadedStairwaysRef.current = true;
+      setError(null);
+      setLoading(false);
 
       // Keep a device snapshot on every successful load, even if restoring the
       // signed-in session is delayed. The account cursor still survives app
@@ -1587,9 +1606,6 @@ export default function StairwayMap({
       }
 
       if (!isMounted) return;
-      setStairways(allRows);
-      setError(null);
-      setLoading(false);
       isLoadingStairways = false;
     }
 

@@ -4,6 +4,7 @@ import {
   findServerNewStairwayNotice,
   findNewStairwayNotice,
   knownStairwayIdsKey,
+  MAX_NOTICE_STAIRWAYS,
   serializeKnownStairwayIds,
 } from './newStairwayNotice';
 
@@ -13,6 +14,10 @@ const stairways = [
 ];
 const mapSource = readFileSync(
   new URL('./components/StairwayMap.jsx', import.meta.url),
+  'utf8'
+);
+const modalSource = readFileSync(
+  new URL('./components/NewStairwayModal.jsx', import.meta.url),
   'utf8'
 );
 const newAccountMigration = readFileSync(
@@ -100,6 +105,26 @@ describe('new stairway notices', () => {
     expect(serializeKnownStairwayIds(stairways)).toBe('["older","newest"]');
   });
 
+  it('bounds oversized notices without losing the true addition count', () => {
+    const additions = Array.from(
+      { length: MAX_NOTICE_STAIRWAYS + 5 },
+      (_, index) => ({
+        id: `new-${index}`,
+        added_at: `2026-09-16T12:00:${String(index).padStart(2, '0')}Z`,
+      })
+    );
+
+    const notice = findServerNewStairwayNotice(
+      additions,
+      '2026-09-16T11:59:59Z',
+      '2026-09-16T12:01:00Z'
+    );
+
+    expect(notice.addedCount).toBe(MAX_NOTICE_STAIRWAYS + 5);
+    expect(notice.stairways).toHaveLength(MAX_NOTICE_STAIRWAYS);
+    expect(modalSource).toContain('See latest ${stairways.length} of ${addedCount}');
+  });
+
   it('covers the complete baseline, sync, relaunch, and dismiss flow', () => {
     const baselineRows = [
       { id: 'known', added_at: '2026-09-15T10:00:00Z' },
@@ -137,6 +162,24 @@ describe('new stairway notices', () => {
   it('uses the durable account cursor when the database support is available', () => {
     expect(mapSource).toContain("rpc('get_new_stairway_notice_state')");
     expect(mapSource).toContain("rpc('acknowledge_new_stairways'");
+  });
+
+  it('renders the map before waiting for the optional notice request', () => {
+    const renderMapAt = mapSource.indexOf('setStairways(allRows)');
+    const requestNoticeAt = mapSource.indexOf(
+      "rpc('get_new_stairway_notice_state')"
+    );
+
+    expect(renderMapAt).toBeGreaterThan(-1);
+    expect(requestNoticeAt).toBeGreaterThan(renderMapAt);
+  });
+
+  it('does not restore the global loading state for background refreshes', () => {
+    expect(mapSource).toContain('const hasLoadedStairwaysRef = useRef(false)');
+    expect(mapSource).toContain(
+      'if (!hasLoadedStairwaysRef.current) setLoading(true)'
+    );
+    expect(mapSource).toContain('hasLoadedStairwaysRef.current = true');
   });
 
   it('starts new accounts after the legacy collection instead of after recent additions', () => {

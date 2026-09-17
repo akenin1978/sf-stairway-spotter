@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   MAX_FEEDBACK_PHOTO_BYTES,
   validateFeedbackPhoto,
@@ -24,5 +25,11 @@ describe('validateFeedbackPhoto', () => {
         size: MAX_FEEDBACK_PHOTO_BYTES + 1,
       })
     ).toContain('smaller than 5 MB');
+  });
+
+  it('keeps the submit action visually separate from a photo preview', () => {
+    const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8');
+    const previewRule = css.match(/\.feedback-photo-preview\s*\{[^}]+\}/)?.[0] || '';
+    expect(previewRule).toContain('margin-bottom: 1rem');
   });
 });

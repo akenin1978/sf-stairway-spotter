@@ -2,6 +2,7 @@ const KNOWN_STAIRWAY_IDS_KEY_PREFIX =
   'sf-stairway-spotter:known-stairway-ids:v2';
 const DEVICE_KNOWN_STAIRWAY_IDS_KEY =
   `${KNOWN_STAIRWAY_IDS_KEY_PREFIX}:this-device`;
+export const MAX_NOTICE_STAIRWAYS = 20;
 
 export function knownStairwayIdsKey(userId) {
   return userId
@@ -45,7 +46,10 @@ export function findServerNewStairwayNotice(
   const sortedAdditions = newestFirst(additions);
   return {
     stairway: sortedAdditions[0],
-    stairways: sortedAdditions,
+    // A malformed cursor or bulk import must not create an enormous photo
+    // request or an unusable modal. Keep the true count for the headline, but
+    // browse only the newest bounded set.
+    stairways: sortedAdditions.slice(0, MAX_NOTICE_STAIRWAYS),
     addedCount: sortedAdditions.length,
     stairwayCount: stairways.length,
   };
@@ -74,7 +78,7 @@ export function findNewStairwayNotice(stairways, storedValue) {
 
   return {
     stairway: sortedAdditions[0],
-    stairways: sortedAdditions,
+    stairways: sortedAdditions.slice(0, MAX_NOTICE_STAIRWAYS),
     addedCount: additions.length,
     stairwayCount: stairways.length,
   };

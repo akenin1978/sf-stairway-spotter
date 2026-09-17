@@ -1073,6 +1073,7 @@ html.public-page-document #root {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .feedback-photo-preview img {
@@ -2279,6 +2280,7 @@ html.public-page-document #root {
   background: #e8f5e9;
   border: 1px solid #2e7d32;
   border-radius: 6px;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
 }
@@ -3237,9 +3239,13 @@ html.public-page-document #root {
 
 .stats-streak-number {
   display: block;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
   color: #27500A;
+}
+
+.stats-streak-unit {
+  font-size: 14px;
 }
 
 .stats-streak-label {
@@ -3252,18 +3258,34 @@ html.public-page-document #root {
 .stats-streak-hint {
   font-size: 12px;
   color: #888888;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
 }
 
 .stats-summary-row {
   display: flex;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .stats-summary-block {
   flex: 1;
   text-align: center;
+  padding: 10px 8px;
+  border-radius: 8px;
+  background: #f5f5f5;
+}
+
+.stats-summary-block--primary {
+  background: #f0edff;
+}
+
+.stats-summary-block--primary .stats-summary-number {
+  color: #4b3ce0;
+}
+
+.stats-summary-block--primary .stats-summary-label {
+  color: #3b3470;
+  font-weight: 600;
 }
 
 .stats-summary-number {
@@ -3276,15 +3298,84 @@ html.public-page-document #root {
 .stats-summary-label {
   display: block;
   font-size: 12px;
+  font-weight: 600;
   color: #888888;
   margin-top: 2px;
 }
 
-.stats-section-heading {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 10px;
+.stats-summary-note {
+  display: block;
+  margin-top: 3px;
+  color: #777777;
+  font-size: 9px;
+}
+
+.stats-progress-view-label {
+  margin: 0 0 5px;
+  color: #5f5e68;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.stats-progress-switch {
+  display: grid;
+  grid-template-columns: 1.15fr 0.9fr 1.1fr;
+  gap: 3px;
+  padding: 3px;
+  margin: 0 0 12px;
+  border-radius: 9px;
+  background: #efeff3;
+}
+
+.stats-progress-switch button {
+  min-height: 34px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #666666;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stats-progress-switch button[aria-pressed='true'] {
+  background: #ffffff;
+  color: #3e31c9;
+  box-shadow: 0 1px 4px rgba(30, 25, 80, 0.16);
+}
+
+.stats-progress-legend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: -5px 0 16px;
+  color: #696969;
+  font-size: 10px;
+}
+
+.stats-progress-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stats-progress-key {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.stats-progress-key--verified,
+.stats-neighborhood-bar-segment--verified {
+  background: #5b46e8;
+}
+
+.stats-progress-key--spotted,
+.stats-neighborhood-bar-segment--spotted {
+  background: #82a957;
 }
 
 .stats-neighborhood-list {
@@ -3300,6 +3391,10 @@ html.public-page-document #root {
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+}
+
+.stats-neighborhood-list > .stats-neighborhood-group-heading:first-child {
+  margin-top: 0;
 }
 
 .stats-neighborhood-group-heading:first-child {
@@ -3329,8 +3424,12 @@ html.public-page-document #root {
   overflow: hidden;
 }
 
-.stats-neighborhood-bar-fill {
+.stats-neighborhood-bar-fill,
+.stats-neighborhood-bar-segment {
   height: 100%;
+}
+
+.stats-neighborhood-bar-fill {
   background: #4F831A;
   border-radius: 3px;
 }
@@ -3340,4 +3439,11 @@ html.public-page-document #root {
   font-size: 12px;
   color: #888888;
   text-align: right;
+}
+
+.stats-neighborhood-empty {
+  margin: 2px 0 0;
+  color: #6b6975;
+  font-size: 12px;
+  line-height: 1.45;
 }

@@ -13,6 +13,7 @@ import {
   userUsesApple,
 } from '../appleTokenRevocation';
 import { currentIdentityProvider } from '../identityProvider';
+import { APP_VERSION, NATIVE_BUILD_NUMBER } from '../appVersion';
 
 const profanityFilter = new Filter();
 
@@ -354,7 +355,10 @@ export default function SettingsModal({
             </div>
 
             <p className="settings-version">
-              Version 1.0{isNativeApp() ? ' (Build 26)' : ''}
+              Version {APP_VERSION}
+              {isNativeApp() && NATIVE_BUILD_NUMBER
+                ? ` (Build ${NATIVE_BUILD_NUMBER})`
+                : ''}
             </p>
           </form>
         )}

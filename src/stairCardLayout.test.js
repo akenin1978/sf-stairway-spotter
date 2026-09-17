@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('./components/StairwayMap.jsx', import.meta.url), 'utf8');
+const styles = readFileSync(new URL('./index.css', import.meta.url), 'utf8');
 
 describe('stair card action hierarchy', () => {
   it('places verification and its error before guidance and past visits', () => {
@@ -48,5 +49,32 @@ describe('stair card action hierarchy', () => {
     expect(source).toContain('{selectedHasVisitHistory || selectedAlreadyVerified ? (');
     expect(source).toContain('aria-pressed={selectedDisplaySpotted}');
     expect(source).toContain('justSpottedId === selected.id');
+  });
+
+  it('shows the dark-green just-spotted state before the save request finishes', () => {
+    const toggleStart = source.indexOf('async function performCheckInToggle');
+    const toggleEnd = source.indexOf('// --- Photo verification state ---', toggleStart);
+    const toggleSource = source.slice(toggleStart, toggleEnd);
+    const optimisticVisual = toggleSource.indexOf(
+      'setJustSpottedId(wasAdding ? stairway.id : null)'
+    );
+    const saveRequest = toggleSource.indexOf(
+      'await toggleCheckIn(stairway.id)'
+    );
+
+    expect(optimisticVisual).toBeGreaterThan(-1);
+    expect(saveRequest).toBeGreaterThan(optimisticVisual);
+    expect(toggleSource).toContain(
+      'if (result.error && wasAdding)'
+    );
+    expect(toggleSource).toContain('setJustSpottedId(null)');
+  });
+
+  it('uses the same typeface for button and non-button spotted states', () => {
+    const spottedStatusStart = styles.indexOf('.spotted-status {');
+    const spottedStatusEnd = styles.indexOf('}', spottedStatusStart);
+    const spottedStatusStyles = styles.slice(spottedStatusStart, spottedStatusEnd);
+
+    expect(spottedStatusStyles).toContain('font-family: inherit;');
   });
 });

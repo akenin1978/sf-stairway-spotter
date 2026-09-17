@@ -46,6 +46,7 @@ export default function FiltersPanel({
       </p>
       <input
         className="filters-search"
+        aria-label="Search neighborhoods"
         placeholder="Search neighborhoods…"
         value={neighborhoodSearch}
         onChange={(e) => setNeighborhoodSearch(e.target.value)}

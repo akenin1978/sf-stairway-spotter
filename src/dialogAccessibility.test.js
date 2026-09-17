@@ -27,4 +27,20 @@ describe('dialog accessibility foundation', () => {
     expect(source).toContain('height: 44px');
     expect(source).toContain("aria-current={i === slide ? 'step' : undefined}");
   });
+
+  it('labels feedback and report fields for assistive technology', () => {
+    const source = read('./components/FeedbackModal.jsx');
+    expect(source).toContain("aria-label={stairway ? 'Issue details' : 'Feedback'}");
+    expect(source).toContain('aria-label="Your email (optional)"');
+  });
+
+  it('labels the neighborhood filter search field', () => {
+    const source = read('./components/FiltersPanel.jsx');
+    expect(source).toContain('aria-label="Search neighborhoods"');
+  });
+
+  it('gives every interactive stairway marker an accessible name', () => {
+    const source = read('./components/StairwayMap.jsx');
+    expect(source).toContain("title={stairway.description || 'Stairway'}");
+  });
 });

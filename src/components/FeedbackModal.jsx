@@ -95,6 +95,7 @@ export default function FeedbackModal({ stairway, onClose }) {
             )}
 
             <textarea
+              aria-label={stairway ? 'Issue details' : 'Feedback'}
               placeholder={
                 stairway
                   ? "What's wrong with this stairway's listing?"
@@ -108,6 +109,7 @@ export default function FeedbackModal({ stairway, onClose }) {
 
             <input
               type="email"
+              aria-label="Your email (optional)"
               placeholder="Your email (optional, if you'd like a reply)"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

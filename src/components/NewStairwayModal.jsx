@@ -14,6 +14,7 @@ export default function NewStairwayModal({
   onDismiss,
 }) {
   const hasMultiple = addedCount > 1;
+  const listIsTruncated = stairways.length < addedCount;
   const [showList, setShowList] = useState(false);
   const dialogRef = useDialogFocus(onDismiss);
   const headline =
@@ -89,7 +90,10 @@ export default function NewStairwayModal({
             className="new-stairway-show"
             onClick={() => setShowList(true)}
           >
-            See all {addedCount} <span aria-hidden="true">→</span>
+            {listIsTruncated
+              ? `See latest ${stairways.length} of ${addedCount}`
+              : `See all ${addedCount}`}{' '}
+            <span aria-hidden="true">→</span>
           </button>
         ) : (
           <button
