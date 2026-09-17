@@ -1,6 +1,7 @@
 import { useLayoutEffect } from 'react';
 import FaqContent from './FaqContent';
 import PressContent from './PressContent';
+import { Capacitor } from '@capacitor/core';
 import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
 
 const EFFECTIVE_DATE = 'September 7, 2026';
@@ -51,7 +52,7 @@ function PageShell({ title, children }) {
         {children}
         <nav className="public-page-links" aria-label="Legal and support links">
           <a href={LAUNCH_LINKS.faq}>FAQ</a>
-          <a href="/press">Press</a>
+          {!Capacitor.isNativePlatform() && <a href="/press">Press</a>}
           <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}>Privacy</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.terms)}>Terms</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.support)}>Support</a>
