@@ -9,7 +9,7 @@ const styles = readFileSync(new URL('./index.css', import.meta.url), 'utf8');
 
 describe('stats metric hierarchy', () => {
   it('shows verified progress first and retains spotted checklist progress', () => {
-    expect(source).toContain('const { checkedInIds, checkedInMethods, verifiedCount } = useCheckIns()');
+    expect(source).toContain('const { checkedInIds, checkedInMethods } = useCheckIns()');
 
     const verified = source.indexOf('stairways verified');
     const spotted = source.indexOf('stairways spotted');
@@ -17,9 +17,19 @@ describe('stats metric hierarchy', () => {
     expect(verified).toBeGreaterThan(-1);
     expect(spotted).toBeGreaterThan(verified);
     expect(source).toContain('stats-summary-block stats-summary-block--primary');
-    expect(source).toContain('{verifiedCount} / {stats.totalStairways}');
+    expect(source).toContain('{stats.totalVerified} / {stats.totalStairways}');
     expect(source).toContain('{stats.totalSpotted} / {stats.totalStairways}');
-    expect(source).toContain('includes {verifiedCount} verified');
+    expect(source).toContain('includes {stats.totalVerified} verified');
+  });
+
+  it('uses the same active, mapped stairway scope as badge progress', () => {
+    expect(source).toContain(".eq('active', true)");
+    expect(source).toContain(".not('latitude', 'is', null)");
+    expect(source).toContain(".not('longitude', 'is', null)");
+    expect(source).toContain(".order('id', { ascending: true })");
+    expect(source).toContain('if (isSpotted) totalSpotted += 1;');
+    expect(source).toContain('if (isVerified) totalVerified += 1;');
+    expect(source).toContain('return { totalStairways, totalSpotted, totalVerified, neighborhoods };');
   });
 
   it('gives both metrics card structure while reserving lavender for verified', () => {
@@ -30,6 +40,8 @@ describe('stats metric hierarchy', () => {
 
     expect(styles.slice(summaryStart, summaryEnd)).toContain('background: #f5f5f5;');
     expect(styles.slice(primaryStart, primaryEnd)).toContain('background: #f0edff;');
+    expect(styles).toContain('.stats-summary-label {');
+    expect(styles).toContain('font-weight: 700;');
   });
 
   it('uses a consistent 16px rhythm between the main stats sections', () => {
@@ -58,6 +70,14 @@ describe('stats metric hierarchy', () => {
     expect(source).toContain('stats-neighborhood-bar-segment--spotted');
     expect(source).toContain("checkedInMethods.get(s.id) === 'photo-verified'");
     expect(source).toContain('Math.max(0, spotted - verified)');
+
+    const trackStart = styles.indexOf('.stats-neighborhood-bar-track {');
+    const trackEnd = styles.indexOf('}', trackStart);
+    expect(styles.slice(trackStart, trackEnd)).toContain('display: flex;');
+
+    const segmentStart = styles.indexOf('.stats-neighborhood-bar-fill,');
+    const segmentEnd = styles.indexOf('}', segmentStart);
+    expect(styles.slice(segmentStart, segmentEnd)).toContain('flex-shrink: 0;');
   });
 
   it('treats spotted-only progress as a saved-for-later list', () => {

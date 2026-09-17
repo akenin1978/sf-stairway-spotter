@@ -3285,7 +3285,6 @@ html.public-page-document #root {
 
 .stats-summary-block--primary .stats-summary-label {
   color: #3b3470;
-  font-weight: 600;
 }
 
 .stats-summary-number {
@@ -3298,8 +3297,8 @@ html.public-page-document #root {
 .stats-summary-label {
   display: block;
   font-size: 12px;
-  font-weight: 600;
-  color: #888888;
+  font-weight: 700;
+  color: #5f5e68;
   margin-top: 2px;
 }
 
@@ -3418,6 +3417,7 @@ html.public-page-document #root {
 
 .stats-neighborhood-bar-track {
   flex: 1;
+  display: flex;
   height: 6px;
   background: #EEEEEE;
   border-radius: 3px;
@@ -3426,6 +3426,7 @@ html.public-page-document #root {
 
 .stats-neighborhood-bar-fill,
 .stats-neighborhood-bar-segment {
+  flex-shrink: 0;
   height: 100%;
 }
 

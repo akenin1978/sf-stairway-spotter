@@ -45,7 +45,7 @@ function weekUnit(value) {
 export default function StatsModal({ onClose }) {
   const dialogRef = useDialogFocus(onClose);
   const { user } = useAuth();
-  const { checkedInIds, checkedInMethods, verifiedCount } = useCheckIns();
+  const { checkedInIds, checkedInMethods } = useCheckIns();
   const [stairways, setStairways] = useState([]);
   const [streak, setStreak] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +69,11 @@ export default function StatsModal({ onClose }) {
           .from('stairways')
           .select('id, neighborhood')
           .eq('active', true)
+          // Match the Badges screen exactly: only stairways that can appear
+          // on the map count toward totals or neighborhood progress.
+          .not('latitude', 'is', null)
+          .not('longitude', 'is', null)
+          .order('id', { ascending: true })
           .range(from, from + pageSize - 1);
         if (error || !data) throw error || new Error('Missing stairway data');
         all = all.concat(data);
@@ -108,10 +113,18 @@ export default function StatsModal({ onClose }) {
 
   const stats = useMemo(() => {
     const totalStairways = stairways.length;
-    const totalSpotted = checkedInIds.size;
+    let totalSpotted = 0;
+    let totalVerified = 0;
 
     const neighborhoodMap = new Map();
     for (const s of stairways) {
+      const isSpotted = checkedInIds.has(s.id);
+      const isVerified =
+        checkedInMethods.get(s.id) === 'photo-verified';
+
+      if (isSpotted) totalSpotted += 1;
+      if (isVerified) totalVerified += 1;
+
       if (!s.neighborhood) continue;
       const entry = neighborhoodMap.get(s.neighborhood) || {
         total: 0,
@@ -119,9 +132,9 @@ export default function StatsModal({ onClose }) {
         verified: 0,
       };
       entry.total += 1;
-      if (checkedInIds.has(s.id)) {
+      if (isSpotted) {
         entry.spotted += 1;
-        if (checkedInMethods.get(s.id) === 'photo-verified') entry.verified += 1;
+        if (isVerified) entry.verified += 1;
       }
       neighborhoodMap.set(s.neighborhood, entry);
     }
@@ -137,7 +150,7 @@ export default function StatsModal({ onClose }) {
       }))
       .sort(goalOrientedNeighborhoodSort);
 
-    return { totalStairways, totalSpotted, neighborhoods };
+    return { totalStairways, totalSpotted, totalVerified, neighborhoods };
   }, [stairways, checkedInIds, checkedInMethods]);
 
   const visibleNeighborhoods = useMemo(() => {
@@ -227,7 +240,7 @@ export default function StatsModal({ onClose }) {
             <div className="stats-summary-row">
               <div className="stats-summary-block stats-summary-block--primary">
                 <span className="stats-summary-number">
-                  {verifiedCount} / {stats.totalStairways}
+                  {stats.totalVerified} / {stats.totalStairways}
                 </span>
                 <span className="stats-summary-label">stairways verified</span>
               </div>
@@ -237,7 +250,7 @@ export default function StatsModal({ onClose }) {
                 </span>
                 <span className="stats-summary-label">stairways spotted</span>
                 <span className="stats-summary-note">
-                  includes {verifiedCount} verified
+                  includes {stats.totalVerified} verified
                 </span>
               </div>
             </div>
