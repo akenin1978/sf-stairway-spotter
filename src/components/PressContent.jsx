@@ -10,7 +10,10 @@ export const pressQuestions = source.split(/^### /m).slice(1).map((entry) => {
 function Inline({ text }) {
   return text.split(/(\[[^\]]+\]\((?:https?:\/\/|mailto:)[^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, i) => {
     const link = part.match(/^\[([^\]]+)\]\(((?:https?:\/\/|mailto:)[^)]+)\)$/);
-    if (link) return <a key={i} href={link[2]}><Inline text={link[1]} /></a>;
+    if (link) {
+      const isPressDownload = link[2].startsWith('https://www.sfstairwayspotter.com/press-assets/') && link[2].endsWith('.zip');
+      return <a key={i} href={link[2]} className={isPressDownload ? 'public-page-primary' : undefined} download={isPressDownload || undefined}><Inline text={link[1]} /></a>;
+    }
     if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
     if (part.startsWith('*') && part.endsWith('*')) return <em key={i}>{part.slice(1, -1)}</em>;
     return part;

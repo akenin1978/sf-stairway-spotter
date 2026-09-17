@@ -53,7 +53,7 @@ Planned pricing is a **one-time payment of $6.99 during Stairway Month and $9.99
 
 The press kit includes four original iPhone screenshots, updated app icons, purple and white logos in PNG and SVG formats, press information, captions, and usage notes.
 
-For a headshot, standalone stairway photographs, or additional images, contact [info@urbanhikersf.com](mailto:info@urbanhikersf.com) with a brief description of your story and the images you need. Please confirm permissions and credit information before publication.
+For stairway photographs or additional images, contact [info@urbanhikersf.com](mailto:info@urbanhikersf.com) with a brief description of your story and what you need. Please confirm image permissions and credit information before publication.
 
 ### Interviews and press inquiries
 
