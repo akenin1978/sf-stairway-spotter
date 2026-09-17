@@ -1570,18 +1570,14 @@ export default function StairwayMap({
               : {}),
           });
         } else if (notificationUser?.id) {
-          // A successful load always establishes the next device baseline.
-          // Only advance the server cursor when a signed-in RPC succeeded.
+          // Keep the device fallback current, but never advance the durable
+          // account cursor merely because one refresh found no matching rows.
+          // A visibility refresh can race a spreadsheet sync or a paged map
+          // fetch; treating that transient result as acknowledgement made an
+          // undismissed alert disappear after backgrounding the app. The
+          // server cursor advances only through acknowledgeNewStairwayNotice,
+          // after an explicit Close / Show action from the person.
           localStorage.setItem(storageKey, serializeKnownStairwayIds(allRows));
-          if (notificationUser?.id && !stateError && state?.snapshot_through) {
-            const { error: acknowledgeError } = await supabase.rpc(
-              'acknowledge_new_stairways',
-              { p_seen_through: state.snapshot_through }
-            );
-            if (acknowledgeError) {
-              console.error('Could not advance new-stairway state', acknowledgeError);
-            }
-          }
         }
       } catch (notificationError) {
         // A notice failure should never block the map, but it must remain

@@ -39,6 +39,12 @@ describe('stairway card regressions', () => {
     expect(source).toContain('<MapControlsPanel');
   });
 
+  it('acknowledges new stairways only through an explicit alert action', () => {
+    const acknowledgmentCalls = source.match(/acknowledge_new_stairways/g) || [];
+    expect(acknowledgmentCalls).toHaveLength(1);
+    expect(source).toContain('function acknowledgeNewStairwayNotice');
+  });
+
   it('shows success feedback without replacing the card controls', () => {
     expect(source).toContain('{completionMessage && (');
     expect(source).not.toContain('{completionMessage ? (');
