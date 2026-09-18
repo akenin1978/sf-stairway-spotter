@@ -7,7 +7,6 @@ import StoreDownloadLinks from './StoreDownloadLinks';
 import { hasStoreLinks, STORE_LINKS } from '../storeLinks';
 
 const WEB_APP_URL = 'https://sfstairwayspotter.app';
-const SUPPORT_EMAIL = 'info@urbanhikersf.com';
 
 const features = [
   {
@@ -83,18 +82,11 @@ export default function LandingPage() {
             Discover, track, and explore more than 1,200 public stairways — one
             climb at a time.
           </p>
-          <div className="landing-actions">
-            {storesAreLive ? (
+          {storesAreLive && (
+            <div className="landing-actions">
               <StoreDownloadLinks />
-            ) : (
-              <a
-                className="landing-primary-button"
-                href={`mailto:${SUPPORT_EMAIL}?subject=SF%20Stairway%20Spotter%20beta`}
-              >
-                Join the beta
-              </a>
-            )}
-          </div>
+            </div>
+          )}
           {!storesAreLive && (
             <p className="landing-beta-note">iPhone beta testing is underway · Android coming soon</p>
           )}
