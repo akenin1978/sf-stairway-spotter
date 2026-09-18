@@ -3448,3 +3448,15 @@ html.public-page-document #root {
   font-size: 12px;
   line-height: 1.45;
 }
+/* Public website analytics choice; never rendered in the native app. */
+.website-analytics-banner {
+  position: fixed; bottom: 16px; left: 16px; right: 16px; z-index: 10000;
+  max-width: 700px; margin: 0 auto; padding: 18px; border-radius: 14px;
+  background: white; color: #242034; border: 1px solid #ded9f4;
+  box-shadow: 0 4px 24px #21165026; font-size: 14px; line-height: 1.5;
+}
+.website-analytics-banner p { margin: 0 0 12px; }
+.website-analytics-banner a { color: #4c35df; text-decoration: underline; }
+.website-analytics-banner > div { display: flex; flex-wrap: wrap; gap: 10px; }
+.website-analytics-banner button { background: #fff; color: #4730ce; border: 1px solid #4730ce; border-radius: 8px; padding: 10px 14px; cursor: pointer; font: inherit; }
+.website-analytics-settings { position: fixed; bottom: 8px; left: 8px; z-index: 1000; background: #fff; color: #4730ce; border: 1px solid #ded9f4; border-radius: 6px; padding: 7px 10px; font-size: 12px; cursor: pointer; }

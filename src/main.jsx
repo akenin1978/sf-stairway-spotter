@@ -9,6 +9,7 @@ import LandingPage from './components/LandingPage.jsx';
 import JoinPage from './components/JoinPage.jsx';
 import { shouldShowLandingPage } from './siteRouting.js';
 import './index.css';
+import WebsiteAnalytics from './components/WebsiteAnalytics';
 
 const publicPagePaths = new Set([
   '/press',
@@ -66,6 +67,7 @@ document.documentElement.classList.toggle(
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <WebsiteAnalytics />
     {showJoinPage ? (
       <JoinPage />
     ) : showLandingPage ? (

@@ -133,6 +133,20 @@ export function PrivacyContent() {
         providers process information under their own terms and privacy policies.
       </p>
 
+      <h2>Optional website analytics</h2>
+      <p>
+        Website analytics notice updated September 18, 2026. On
+        sfstairwayspotter.com, we use Google Analytics only if you select
+        “Allow analytics.” It uses cookies to measure public-page visits,
+        referral sources, campaign links, and basic browser and device information.
+        This helps us understand which newsletters and other sources bring visitors
+        to the website. This integration does not run in the mobile app or the
+        interactive map, and we do not send it account details, stairway visit
+        history, or precise device location. Advertising features are disabled.
+        You can decline or change your choice using “Analytics preferences” on
+        the website. Declining does not prevent you from using the site.
+        Learn more about <a href="https://policies.google.com/technologies/partner-sites">how Google uses this information</a>.
+      </p>
       <h2>Sharing and advertising</h2>
       <p>
         We do not sell personal information. At launch, the app does not contain
