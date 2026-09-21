@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
+import PasswordResetPage from './components/PasswordResetPage.jsx';
+
+const showPasswordReset = new URLSearchParams(window.location.search).has('password-reset');
 import { AuthProvider } from './AuthContext.jsx';
 import { CheckInsProvider } from './CheckInsContext.jsx';
 import { BadgesProvider } from './BadgesContext.jsx';
@@ -62,13 +65,15 @@ const showLandingPage = shouldShowLandingPage(
 // can fight the collapsing iOS address bar and snap the page back down.
 document.documentElement.classList.toggle(
   'public-page-document',
-  Boolean(PublicPage || showJoinPage)
+  Boolean(PublicPage || showJoinPage || showPasswordReset)
 );
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <WebsiteAnalytics />
-    {showJoinPage ? (
+    {showPasswordReset ? (
+      <PasswordResetPage />
+    ) : showJoinPage ? (
       <JoinPage />
     ) : showLandingPage ? (
       <LandingPage />
