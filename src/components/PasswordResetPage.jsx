@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { friendlyAuthError } from '../authErrors';
 import { LAUNCH_LINKS } from '../launchLinks';
+import { PasswordField } from './AuthModal';
 import { readRecoveryCallback, checkRecoverySession } from '../passwordRecovery';
 
 const callback = readRecoveryCallback(window.location.hash);
@@ -12,6 +13,7 @@ export default function PasswordResetPage() {
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [visible, setVisible] = useState(false);
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -60,9 +62,8 @@ export default function PasswordResetPage() {
           <p>This reset link is missing, invalid, expired, or already used. Request a new link below.</p>
           <label>Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
         </> : <>
-          <label>New password<input type={visible ? 'text' : 'password'} autoComplete="new-password" minLength={6} required value={password} onChange={e => setPassword(e.target.value)} /></label>
-          <label>Confirm new password<input type={visible ? 'text' : 'password'} autoComplete="new-password" minLength={6} required value={confirmation} onChange={e => setConfirmation(e.target.value)} /></label>
-          <button type="button" className="reset-text-button" aria-pressed={visible} onClick={() => setVisible(!visible)}>{visible ? 'Hide passwords' : 'Show passwords'}</button>
+          <PasswordField label="New password" visible={visible} onToggle={() => setVisible(value => !value)} autoComplete="new-password" minLength={6} required value={password} onChange={e => setPassword(e.target.value)} />
+          <PasswordField label="Confirm new password" visible={confirmationVisible} onToggle={() => setConfirmationVisible(value => !value)} autoComplete="new-password" minLength={6} required value={confirmation} onChange={e => setConfirmation(e.target.value)} />
         </>}
         {error && <p role="alert">{error}</p>}
         <button type="submit" disabled={busy}>{busy ? 'Please wait…' : phase === 'reset' ? 'Update password' : 'Send a new reset link'}</button>
@@ -80,6 +81,9 @@ export default function PasswordResetPage() {
       .password-reset-card button { background:#4b3ce0; color:white; padding:12px 18px; border:0; border-radius:10px; font:inherit; cursor:pointer; }
       .password-reset-card button:disabled { opacity:.6; cursor:wait; }
       .password-reset-card .reset-text-button { display:block; background:none; color:#4b3ce0; padding:10px 0; }
+      .password-reset-card .auth-field-label { margin:16px 0; font-size:16px; }
+      .password-reset-card .password-field input { padding-right:48px; }
+      .password-reset-card .password-visibility-button { background:transparent; color:#5e5e68; padding:9px; }
       .password-reset-card a { color:#4b3ce0; }
       .password-reset-card [role=alert] { color:#a12020; }
     `}</style>
