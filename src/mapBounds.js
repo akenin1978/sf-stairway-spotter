@@ -9,10 +9,10 @@ export const SF_LOCATION_BOUNDS = {
   east: -122.34,
 };
 
-// Used only while stairway data is loading. Once it arrives, the restriction
-// is calculated from the real outermost markers below.
+// Stable navigation limits, independent of the opening camera and dataset.
+// Include room to explore Angel Island without shifting the initial SF view.
 export const DEFAULT_MAP_RESTRICTION_BOUNDS = {
-  north: 37.925,
+  north: 37.96,
   south: 37.605,
   west: -122.63,
   east: -122.24,

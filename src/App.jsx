@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import StairwayMap from './components/StairwayMap';
 import OnboardingCarousel from './components/OnboardingCarousel';
+import { onboardingKey, hasSeenOnboarding, rememberOnboarding } from './onboardingState';
 import FeedbackModal from './components/FeedbackModal';
 import AuthModal from './components/AuthModal';
 import SettingsModal from './components/SettingsModal';
@@ -52,7 +53,11 @@ export default function App() {
     ready: accountProgressReady,
   } = useCheckIns();
   const [totalStairways, setTotalStairways] = useState(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingOwner, setOnboardingOwner] = useState(null);
+  const dismissedOnboarding = useRef(new Set());
+  const currentOnboardingKey = onboardingKey(user?.id);
+  const showOnboarding = onboardingOwner === currentOnboardingKey
+    && !loading && !authOpen && !passwordRecovery && !showLaunchAnimation;
   const [friendRequestAlert, setFriendRequestAlert] = useState(null);
   const friendRequestDialogRef = useDialogFocus(
     () => dismissFriendRequestAlert(),
@@ -69,16 +74,16 @@ export default function App() {
       });
   }, []);
 
-  // Shown once on the first launch of this installation/device, regardless
-  // of whether an account session already exists. Dismissing (Skip,
-  // "Get started", or swiping past the last slide) sets a permanent local
-  // flag, so logging in or out never makes the slides appear again.
+  // A prior visitor's dismissal must not suppress a new account's guide.
+  // Keep it pending while authentication/recovery or the launch screen is open.
   useEffect(() => {
-    if (!loading) {
-      const seen = localStorage.getItem('sf_stairway_onboarding_seen') === 'true';
-      if (!seen) setShowOnboarding(true);
-    }
-  }, [loading]);
+    if (loading) return;
+    setOnboardingOwner(
+      hasSeenOnboarding(currentOnboardingKey, dismissedOnboarding.current)
+        ? null
+        : currentOnboardingKey
+    );
+  }, [loading, currentOnboardingKey]);
 
   useEffect(() => {
     if (passwordRecovery) setAuthOpen(true);
@@ -197,8 +202,8 @@ export default function App() {
   }
 
   function dismissOnboarding() {
-    localStorage.setItem('sf_stairway_onboarding_seen', 'true');
-    setShowOnboarding(false);
+    rememberOnboarding(currentOnboardingKey, dismissedOnboarding.current);
+    setOnboardingOwner(null);
   }
 
   const openGeneralFeedback = () => {
@@ -227,6 +232,7 @@ export default function App() {
 
       {showOnboarding && (
         <OnboardingCarousel
+          key={currentOnboardingKey}
           totalStairways={totalStairways}
           onDismiss={dismissOnboarding}
         />
@@ -343,7 +349,7 @@ export default function App() {
                   className="header-menu-item"
                   onClick={() => {
                     setMenuOpen(false);
-                    setShowOnboarding(true);
+                    setOnboardingOwner(currentOnboardingKey);
                   }}
                 >
                   How it works

@@ -41,7 +41,7 @@ import {
   knownStairwayIdsKey,
   serializeKnownStairwayIds,
 } from '../newStairwayNotice';
-import { getStairwayMapBounds, isWithinBounds } from '../mapBounds';
+import { DEFAULT_MAP_RESTRICTION_BOUNDS, isWithinBounds } from '../mapBounds';
 import {
   didBecomeMayor,
   verificationButtonLabel,
@@ -64,6 +64,12 @@ import {
 const SF_CENTER = { lat: 37.735, lng: -122.431 };
 const SF_MOBILE_HOME_ZOOM = 12.25;
 const SF_DESKTOP_HOME_ZOOM = 11;
+// Keep navigation limits stable while data loads/refetches. Changing strict
+// bounds makes Google adjust the camera, even with unchanged defaultCenter.
+const MAP_RESTRICTION = {
+  latLngBounds: DEFAULT_MAP_RESTRICTION_BOUNDS,
+  strictBounds: true,
+};
 
 // The set of rating "buckets" that can be toggled on/off: 5 down to 1, plus
 // a special 'unrated' bucket for anything with no rating value.
@@ -1686,10 +1692,6 @@ export default function StairwayMap({
   }, [visibleStairways, mapBounds]);
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const mapRestrictionBounds = useMemo(
-    () => getStairwayMapBounds(stairways),
-    [stairways]
-  );
   const selectedVisitState =
     verifiedVisitState.stairwayId === selected?.id
       ? verifiedVisitState
@@ -1768,10 +1770,7 @@ export default function StairwayMap({
             }
             setSelected(null);
           }}
-          restriction={{
-            latLngBounds: mapRestrictionBounds,
-            strictBounds: true,
-          }}
+          restriction={MAP_RESTRICTION}
         >
           <MapRecenter target={selected} />
           <PanToUserLocation target={panTarget} />
