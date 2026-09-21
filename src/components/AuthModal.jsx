@@ -563,7 +563,7 @@ export default function AuthModal({
   );
 }
 
-function PasswordField({ label, visible, onToggle, ...inputProps }) {
+export function PasswordField({ label, visible, onToggle, ...inputProps }) {
   return (
     <div className="auth-field-label">
       <span>{label}</span>

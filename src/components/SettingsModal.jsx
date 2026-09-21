@@ -6,6 +6,7 @@ import { useCheckIns, storagePathFromPublicUrl } from '../CheckInsContext';
 import { LAUNCH_LINKS } from '../launchLinks';
 import { confirmLeaderboardSettingChange } from '../leaderboardSettings';
 import useDialogFocus from './useDialogFocus';
+import { PasswordField } from './AuthModal';
 import { isNativeApp } from '../nativeDevice';
 import { signInWithNativeProvider } from '../nativeAuth';
 import {
@@ -377,6 +378,7 @@ export default function SettingsModal({
 function DeleteIdentityDialog({ user, onCancel, onConfirmed }) {
   const dialogRef = useDialogFocus(onCancel);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
   const provider = currentIdentityProvider(user);
@@ -428,17 +430,16 @@ function DeleteIdentityDialog({ user, onCancel, onConfirmed }) {
         </p>
         <form onSubmit={confirmIdentity}>
           {provider === 'email' ? (
-            <label className="auth-field-label">
-              <span>Current password</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                required
-                data-dialog-initial-focus
-              />
-            </label>
+            <PasswordField
+              label="Current password"
+              visible={showPassword}
+              onToggle={() => setShowPassword((visible) => !visible)}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+              data-dialog-initial-focus
+            />
           ) : (
             <p>You’ll confirm using {providerLabel}, the way you signed in.</p>
           )}
