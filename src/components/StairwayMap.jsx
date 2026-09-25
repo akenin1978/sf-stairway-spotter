@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import StairwayMarker from './StairwayMarker';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   APIProvider,
@@ -197,49 +198,16 @@ function StairwayMarkers({
   spotMode,
   onSelect,
 }) {
-  return stairways.map((stairway) => {
-    const style = getRatingStyle(stairway.rating);
-    const isChecked = checkedInIds.has(stairway.id);
-    const isVerified =
-      checkedInMethods.get(stairway.id) === 'photo-verified';
-
-    return (
-      <Marker
-        key={stairway.id}
-        position={getStairwayMarkerPosition(stairway)}
-        title={stairway.description || 'Stairway'}
-        onClick={() => {
-          if (!spotMode) onSelect(stairway);
-        }}
-        icon={{
-          path: window.google.maps.SymbolPath.CIRCLE,
-          fillColor: style.color,
-          fillOpacity: 0.9,
-          strokeColor: '#ffffff',
-          strokeWeight: 1.5,
-          scale: 8,
-        }}
-        label={
-          isVerified
-            ? {
-                text: '★',
-                color: '#ffffff',
-                fontSize: '10px',
-                fontWeight: 'bold',
-              }
-            : isChecked
-            ? {
-                text: '✓',
-                color: '#ffffff',
-                fontSize: '10px',
-                fontWeight: 'bold',
-              }
-            : undefined
-        }
-      />
-    );
-  });
+  return stairways.map((stairway) => <StairwayMarker
+    key={stairway.id}
+    stairway={stairway}
+    isChecked={checkedInIds.has(stairway.id)}
+    isVerified={checkedInMethods.get(stairway.id) === 'photo-verified'}
+    spotMode={spotMode}
+    onSelect={onSelect}
+  />);
 }
+const MemoStairwayMarkers = memo(StairwayMarkers);
 
 // Tracks the map's current visible area (with some padding) so the
 // stairway list can be culled to only what's on/near screen, instead of
@@ -249,8 +217,6 @@ function StairwayMarkers({
 // re-render storm during the gesture.
 function ViewportBoundsTracker({
   onBoundsChange,
-  onInteractionChange,
-  onZoomChange,
 }) {
   const map = useMap();
 
@@ -273,38 +239,13 @@ function ViewportBoundsTracker({
       });
     }
 
-    function handleInteractionStart() {
-      onInteractionChange(true);
-    }
-
-    function handleIdle() {
-      updateBounds();
-      onZoomChange(map.getZoom());
-      onInteractionChange(false);
-    }
-
-    const listeners = [
-      map.addListener('dragstart', handleInteractionStart),
-      map.addListener('zoom_changed', handleInteractionStart),
-      map.addListener('idle', handleIdle),
-    ];
-
-    // Pointer events catch touch, pen, and mouse interaction immediately,
-    // including mobile pinch gestures that Google Maps may classify
-    // differently from a desktop drag.
-    const container = map.getDiv();
-    container.addEventListener('pointerdown', handleInteractionStart, {
-      passive: true,
-    });
-
+    const listener = map.addListener('idle', updateBounds);
     updateBounds();
-    onZoomChange(map.getZoom());
 
     return () => {
-      listeners.forEach((listener) => listener.remove());
-      container.removeEventListener('pointerdown', handleInteractionStart);
+      listener.remove();
     };
-  }, [map, onBoundsChange, onInteractionChange, onZoomChange]);
+  }, [map, onBoundsChange]);
 
   return null;
 }
@@ -1673,8 +1614,10 @@ export default function StairwayMap({
   }, [stairways, visibleRatings, visibleNeighborhoods]);
 
   const [mapBounds, setMapBounds] = useState(null);
-  const [, setIsMapInteracting] = useState(false);
-  const [mapZoom, setMapZoom] = useState(12);
+  const selectMapStairway = useCallback((stairway) => {
+    setBadgeBrowseIds([]);
+    setSelected(stairway);
+  }, []);
 
   // Further narrows visibleStairways (already filtered by rating/
   // neighborhood toggles) down to just what's within the current map
@@ -1776,8 +1719,6 @@ export default function StairwayMap({
           <PanToUserLocation target={panTarget} />
           <ViewportBoundsTracker
             onBoundsChange={setMapBounds}
-            onInteractionChange={setIsMapInteracting}
-            onZoomChange={setMapZoom}
           />
           {myLocation && (
             <>
@@ -1833,15 +1774,12 @@ export default function StairwayMap({
             </>
           )}
           <StairwayRouteLines stairways={culledStairways} />
-          <StairwayMarkers
+          <MemoStairwayMarkers
             stairways={culledStairways}
             checkedInIds={checkedInIds}
             checkedInMethods={checkedInMethods}
             spotMode={spotMode}
-            onSelect={(stairway) => {
-              setBadgeBrowseIds([]);
-              setSelected(stairway);
-            }}
+            onSelect={selectMapStairway}
           />
 
           {spotMode && spotLocation && (

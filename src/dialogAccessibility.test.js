@@ -40,7 +40,8 @@ describe('dialog accessibility foundation', () => {
   });
 
   it('gives every interactive stairway marker an accessible name', () => {
-    const source = read('./components/StairwayMap.jsx');
+    const source = read('./components/StairwayMarker.jsx');
+    expect(source).toContain("optimized={false}");
     expect(source).toContain("title={stairway.description || 'Stairway'}");
   });
 });
