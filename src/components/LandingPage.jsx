@@ -67,6 +67,8 @@ export default function LandingPage() {
         </a>
         <nav aria-label="Main navigation">
           <a href="#how-it-works">How it works</a>
+          <a href="/mailing-list">Mailing list</a>
+          <a href="/pricing">Pricing</a>
           <a href={LAUNCH_LINKS.faq}>FAQ</a>
           <a href="/press">Press</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.support)}>Support</a>
@@ -93,6 +95,7 @@ export default function LandingPage() {
           {STORE_LINKS.appStore && !STORE_LINKS.googlePlay && (
             <p className="landing-beta-note">Android coming soon</p>
           )}
+          <p><a className="landing-primary-button" href="/mailing-list">Get launch updates</a></p>
         </div>
 
         <div className="landing-hero-art" aria-label="Colorful stairway-rating dots">
@@ -162,6 +165,8 @@ export default function LandingPage() {
           <p>Discover San Francisco, one stairway at a time.</p>
         </div>
         <nav aria-label="Legal and support links">
+          <a href="/mailing-list">Mailing list</a>
+          <a href="/pricing">Pricing</a>
           <a href={LAUNCH_LINKS.faq}>FAQ</a>
           <a href="/press">Press</a>
           <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}>Privacy</a>

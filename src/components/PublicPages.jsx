@@ -1,14 +1,19 @@
-import { useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
+import MailingListForm from './MailingListForm';
 import FaqContent from './FaqContent';
 import PressContent from './PressContent';
 import { Capacitor } from '@capacitor/core';
 import { LAUNCH_LINKS, freshPublicPageUrl } from '../launchLinks';
+
+const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 const EFFECTIVE_DATE = 'September 7, 2026';
 const TERMS_EFFECTIVE_DATE = 'September 9, 2026';
 const SUPPORT_EMAIL = 'info@urbanhikersf.com';
 
 const PAGE_TITLES = {
+  '/mailing-list': 'Join the mailing list',
+  '/pricing': 'Pricing',
   '/press': 'Press Resources',
   '/faq': 'Frequently Asked Questions',
   '/privacy': 'Privacy Policy',
@@ -18,7 +23,7 @@ const PAGE_TITLES = {
 };
 
 function PageShell({ title, children }) {
-  useLayoutEffect(() => {
+  useBrowserLayoutEffect(() => {
     const resetScroll = () => {
       if (title === 'Frequently Asked Questions' && window.location.hash) return;
       window.scrollTo(0, 0);
@@ -51,6 +56,8 @@ function PageShell({ title, children }) {
         <h1>{title}</h1>
         {children}
         <nav className="public-page-links" aria-label="Legal and support links">
+          <a href="/mailing-list">Mailing list</a>
+          <a href="/pricing">Pricing</a>
           <a href={LAUNCH_LINKS.faq}>FAQ</a>
           {!Capacitor.isNativePlatform() && <a href="/press">Press</a>}
           <a href={freshPublicPageUrl(LAUNCH_LINKS.privacy)}>Privacy</a>
@@ -133,6 +140,8 @@ export function PrivacyContent() {
         providers process information under their own terms and privacy policies.
       </p>
 
+      <h2>Optional mailing list</h2>
+      <p>Mailing-list notice updated September 26, 2026. If you choose to subscribe, your email address and email-marketing consent are sent to Mailchimp to manage Urban Hiker SF emails, including SF Stairway Spotter news. Subscribing is optional and separate from creating an app account. You can unsubscribe using the link in any marketing email. Contact us with questions about your subscription data.</p>
       <h2>Optional website analytics</h2>
       <p>
         Website analytics notice updated September 18, 2026. On
@@ -451,6 +460,8 @@ export function getPublicPage(pathname) {
   if (!publicPagePath) return null;
 
   const pages = {
+    '/mailing-list': MailingListPage,
+    '/pricing': PricingPage,
     '/press': PressPage,
     '/faq': FaqPage,
     '/privacy': PrivacyPage,
@@ -463,4 +474,25 @@ export function getPublicPage(pathname) {
 
 function PressPage() {
   return <PageShell title="Press Resources"><PressContent /></PageShell>;
+}
+
+function PricingPage() {
+  return <PageShell title="Pricing">
+    <p className="public-page-updated">Planned launch pricing in U.S. dollars. Launch timing and prices are subject to change. Paid features are not yet available.</p>
+    <h2>Free to explore</h2>
+    <p>Browse the map and stairway photos, and maintain an unlimited private checklist of spotted stairways. Your first 10 unique verified stairways are also free.</p>
+    <h2>Full access</h2>
+    <p>Planned one-time purchase: <strong>$6.99 during October 2026</strong>, increasing to <strong>$9.99 on November 1, 2026</strong>.</p>
+    <h2>Visitor pass</h2>
+    <p>Planned price: <strong>$3.99 for 30 days</strong> of access to paid features.</p>
+    <p>Paid access is planned to include unlimited verified visits, repeat-visit tracking, the full badge collection, mayorships, and the leaderboard. Confirm the available features and price at purchase.</p>
+    <p><a href="/faq">Read the FAQ</a> for more about spotting and verification.</p>
+  </PageShell>;
+}
+
+function MailingListPage() {
+  return <PageShell title="Join the mailing list">
+    <p>Hear when SF Stairway Spotter launches, get app updates, and keep exploring with Urban Hiker SF.</p>
+    <MailingListForm />
+  </PageShell>;
 }

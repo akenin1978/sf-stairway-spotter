@@ -27,7 +27,7 @@ describe('shouldShowLandingPage', () => {
     );
     expect(vercelConfig.rewrites).toContainEqual({
       source: '/join',
-      destination: '/index.html',
+      destination: '/app-shell.html',
     });
   });
 
@@ -38,7 +38,7 @@ describe('shouldShowLandingPage', () => {
 
     expect(vercelConfig.rewrites).toContainEqual({
       source: '/support/opened-(.*)',
-      destination: '/index.html',
+      destination: '/support/index.html',
     });
   });
 
@@ -48,7 +48,7 @@ describe('shouldShowLandingPage', () => {
     );
 
     expect(vercelConfig.headers).toContainEqual({
-      source: '/(privacy|terms|support|delete-account|join|faq|press)',
+      source: '/(mailing-list|pricing|welcome|privacy|terms|support|delete-account|join|faq|press)',
       headers: [
         {
           key: 'Cache-Control',

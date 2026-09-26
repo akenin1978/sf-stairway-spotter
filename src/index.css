@@ -3460,3 +3460,13 @@ html.public-page-document #root {
 .website-analytics-banner > div { display: flex; flex-wrap: wrap; gap: 10px; }
 .website-analytics-banner button { background: #fff; color: #4730ce; border: 1px solid #4730ce; border-radius: 8px; padding: 10px 14px; cursor: pointer; font: inherit; }
 .website-analytics-settings { position: fixed; bottom: 8px; left: 8px; z-index: 1000; background: #fff; color: #4730ce; border: 1px solid #ded9f4; border-radius: 6px; padding: 7px 10px; font-size: 12px; cursor: pointer; }
+
+/* Optional public mailing-list signup */
+.mailing-list-form { position: relative; max-width: 560px; margin-top: 24px; }
+.mailing-list-form > label:first-child { display: block; font-weight: 700; margin-bottom: 8px; }
+.mailing-list-form input[type="email"] { box-sizing: border-box; width: 100%; min-height: 48px; border: 1px solid #8d85a8; border-radius: 8px; padding: 12px; font: inherit; }
+.mailing-list-consent { display: flex; gap: 12px; align-items: flex-start; margin: 20px 0; cursor: pointer; }
+.mailing-list-consent input { flex-shrink: 0; width: 20px; height: 20px; margin-top: 4px; accent-color: #4c35e9; }
+.mailing-list-form .mailing-list-note { font-size: 14px; line-height: 1.6; color: #554f69; }
+.mailing-list-form button { border: 0; border-radius: 10px; background: #4c35e9; color: white; min-height: 48px; padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; }
+.mailing-list-form :focus-visible { outline: 3px solid #7968ef; outline-offset: 3px; }

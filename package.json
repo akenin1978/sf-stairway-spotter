@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build.mjs",
     "native:sync": "npm run build && cap sync",
     "native:ios": "npm run native:sync && cap open ios",
     "native:android": "npm run native:sync && cap open android",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:public-html": "node scripts/check-public-html.mjs",
+    "build:web": "node scripts/build.mjs --outDir web-dist --web"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

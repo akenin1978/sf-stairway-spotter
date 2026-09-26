@@ -1,4 +1,5 @@
 import React from 'react';
+import { PUBLIC_METADATA } from './publicMetadata';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import PasswordResetPage from './components/PasswordResetPage.jsx';
@@ -15,6 +16,8 @@ import './index.css';
 import WebsiteAnalytics from './components/WebsiteAnalytics';
 
 const publicPagePaths = new Set([
+  '/mailing-list',
+  '/pricing',
   '/press',
   '/faq',
   '/privacy',
@@ -65,8 +68,11 @@ const showLandingPage = shouldShowLandingPage(
 // can fight the collapsing iOS address bar and snap the page back down.
 document.documentElement.classList.toggle(
   'public-page-document',
-  Boolean(PublicPage || showJoinPage || showPasswordReset)
+  Boolean(PublicPage || showJoinPage || showPasswordReset || showLandingPage)
 );
+
+const pageMetadata = PUBLIC_METADATA[showLandingPage ? '/welcome' : publicPagePath];
+if (pageMetadata) document.title = pageMetadata[0];
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

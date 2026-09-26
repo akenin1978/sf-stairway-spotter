@@ -52,7 +52,7 @@ export default function FaqContent({ embedded = false }) {
     </nav>
     {faqSections.map((section) => <section key={section.id} id={section.id} className="faq-section">
       <h2>{section.title}</h2>
-      {section.questions.map((entry) => <details key={entry.id} id={entry.id} open={!embedded && window.location.hash === `#${entry.id}` ? true : undefined}>
+      {section.questions.map((entry) => <details key={entry.id} id={entry.id} open={!embedded && typeof window !== 'undefined' && window.location.hash === `#${entry.id}` ? true : undefined}>
         <summary>{entry.question}</summary>
         <div className="faq-answer">
           {entry.answer.split(/\n\s*\n/).map((paragraph, i) => paragraph.startsWith('- ')

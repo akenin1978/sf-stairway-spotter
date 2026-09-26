@@ -9,7 +9,7 @@ export function shouldShowLandingPage(hostname, pathname, search = '') {
   const isPasswordRecovery = new URLSearchParams(search).has('password-reset');
 
   return (
-    normalizedPath === '/welcome' ||
+    normalizedPath === '/welcome' || normalizedPath.startsWith('/welcome/opened-') ||
     (normalizedPath === '/' &&
       LANDING_HOSTS.has(normalizedHost) &&
       !isPasswordRecovery)

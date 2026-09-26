@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/(privacy|terms|support|delete-account|join|faq|press)",
+      "source": "/(mailing-list|pricing|welcome|privacy|terms|support|delete-account|join|faq|press)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -10,7 +10,7 @@
       ]
     },
     {
-      "source": "/(privacy|terms|support|delete-account|faq|press)/opened-(.*)",
+      "source": "/(mailing-list|pricing|welcome|privacy|terms|support|delete-account|faq|press)/opened-(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -20,18 +20,107 @@
     }
   ],
   "rewrites": [
-    { "source": "/press", "destination": "/index.html" },
-    { "source": "/press/opened-(.*)", "destination": "/index.html" },
-    { "source": "/faq", "destination": "/index.html" },
-    { "source": "/faq/opened-(.*)", "destination": "/index.html" },
-    { "source": "/privacy", "destination": "/index.html" },
-    { "source": "/terms", "destination": "/index.html" },
-    { "source": "/support", "destination": "/index.html" },
-    { "source": "/delete-account", "destination": "/index.html" },
-    { "source": "/privacy/opened-(.*)", "destination": "/index.html" },
-    { "source": "/terms/opened-(.*)", "destination": "/index.html" },
-    { "source": "/support/opened-(.*)", "destination": "/index.html" },
-    { "source": "/delete-account/opened-(.*)", "destination": "/index.html" },
-    { "source": "/join", "destination": "/index.html" }
-  ]
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "password-reset"
+        }
+      ],
+      "destination": "/app-shell.html"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "(www\\.)?sfstairwayspotter.com"
+        }
+      ],
+      "destination": "/welcome/index.html"
+    },
+    {
+      "source": "/",
+      "destination": "/app-shell.html"
+    },
+    {
+      "source": "/welcome",
+      "destination": "/welcome/index.html"
+    },
+    {
+      "source": "/welcome/opened-(.*)",
+      "destination": "/welcome/index.html"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/pricing/index.html"
+    },
+    {
+      "source": "/pricing/opened-(.*)",
+      "destination": "/pricing/index.html"
+    },
+    {
+      "source": "/press",
+      "destination": "/press/index.html"
+    },
+    {
+      "source": "/press/opened-(.*)",
+      "destination": "/press/index.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/faq/index.html"
+    },
+    {
+      "source": "/faq/opened-(.*)",
+      "destination": "/faq/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/privacy/opened-(.*)",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms/index.html"
+    },
+    {
+      "source": "/terms/opened-(.*)",
+      "destination": "/terms/index.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/support/index.html"
+    },
+    {
+      "source": "/support/opened-(.*)",
+      "destination": "/support/index.html"
+    },
+    {
+      "source": "/delete-account",
+      "destination": "/delete-account/index.html"
+    },
+    {
+      "source": "/delete-account/opened-(.*)",
+      "destination": "/delete-account/index.html"
+    },
+    {
+      "source": "/join",
+      "destination": "/app-shell.html"
+    },
+    {
+      "source": "/mailing-list",
+      "destination": "/mailing-list/index.html"
+    },
+    {
+      "source": "/mailing-list/opened-(.*)",
+      "destination": "/mailing-list/index.html"
+    }
+  ],
+  "buildCommand": "npm run build:web",
+  "outputDirectory": "web-dist"
 }
