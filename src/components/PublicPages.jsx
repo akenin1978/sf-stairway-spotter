@@ -141,7 +141,7 @@ export function PrivacyContent() {
       </p>
 
       <h2>Optional mailing list</h2>
-      <p>Mailing-list notice updated September 26, 2026. If you choose to subscribe, your email address and email-marketing consent are sent to Mailchimp to manage Urban Hiker SF emails, including SF Stairway Spotter news. Subscribing is optional and separate from creating an app account. You can unsubscribe using the link in any marketing email. Contact us with questions about your subscription data.</p>
+      <p>Mailing-list notice updated September 26, 2026. If you choose to subscribe, your email address and email-marketing consent are sent to Mailchimp to manage emails about SF Stairway Spotter. Subscribing is optional and separate from creating an app account. You can unsubscribe using the link in any marketing email. Contact us with questions about your subscription data.</p>
       <h2>Optional website analytics</h2>
       <p>
         Website analytics notice updated September 18, 2026. On
@@ -492,7 +492,7 @@ function PricingPage() {
 
 function MailingListPage() {
   return <PageShell title="Take the next step with us." className="mailing-list-page">
-    <p className="mailing-list-intro">Get SF Stairway Spotter launch news, app updates, and more ways to explore San Francisco from Urban Hiker SF.</p>
+    <p className="mailing-list-intro">Get SF Stairway Spotter launch news, app updates, and stairway discoveries.</p>
     <MailingListForm />
   </PageShell>;
 }

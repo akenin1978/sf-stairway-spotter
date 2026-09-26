@@ -29,7 +29,7 @@ export default function MailingListForm() {
     <input type="email" name="EMAIL" id="mce-EMAIL" autoComplete="email" required placeholder="you@example.com" />
     <label className="mailing-list-consent" htmlFor="gdpr_91744">
       <input type="checkbox" id="gdpr_91744" name="gdpr[91744]" value="Y" required />
-      <span>Yes, send me news and updates from Urban Hiker SF.</span>
+      <span>Yes, email me about SF Stairway Spotter.</span>
     </label>
     <div style={{position:'absolute',left:'-5000px'}} aria-hidden="true"><input type="text" name="b_1554420032553d4d674c87ce9_281e883bf2" tabIndex={-1} defaultValue="" autoComplete="off" /></div>
     <button type="submit" name="subscribe" disabled={state.status === 'pending'}>{state.status === 'pending' ? 'Signing you up…' : 'Keep me in the loop'}</button>

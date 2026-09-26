@@ -1,5 +1,5 @@
 export const PUBLIC_METADATA = {
-  '/mailing-list': ['Join the Mailing List | SF Stairway Spotter', 'Get SF Stairway Spotter launch news and updates from Urban Hiker SF. Subscribe to the optional mailing list.'],
+  '/mailing-list': ['Join the Mailing List | SF Stairway Spotter', 'Get SF Stairway Spotter launch news, app updates, and stairway discoveries. Subscribe to the optional mailing list.'],
   '/welcome': ['SF Stairway Spotter — Explore San Francisco’s Stairways', 'Discover more than 1,200 San Francisco stairways with photos, an interactive map, visit tracking, and neighborhood badges.'],
   '/pricing': ['Pricing | SF Stairway Spotter', 'Free browsing and private spotted checklists, plus planned full-access and 30-day visitor-pass options.'],
   '/faq': ['Frequently Asked Questions | SF Stairway Spotter', 'Learn how spotting, photo verification, badges, mayorships, and accounts work.'],
