@@ -3478,3 +3478,8 @@ html.public-page-document #root {
 .mailing-list-form button:hover { background: #3c28c5; }
 .mailing-list-form :focus-visible { outline: 3px solid #7968ef; outline-offset: 3px; }
 @media (max-width: 480px) { .mailing-list-form { padding: 20px 16px; } }
+
+.mailing-list-confirmation { margin-top: 28px; padding: 24px; background: #f2efff; border-radius: 16px; }
+.mailing-list-form button:disabled { opacity: .65; cursor: wait; }
+.mailing-list-form .mailing-list-error { color: #8b2236; font-size: 15px; }
+.mailing-list-form .mailing-list-fallback { background: transparent; color: #4332bb; border: 1px solid #7968ef; margin-top: 8px; }
