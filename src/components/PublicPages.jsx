@@ -22,7 +22,7 @@ const PAGE_TITLES = {
   '/delete-account': 'Delete Your Account',
 };
 
-function PageShell({ title, children }) {
+function PageShell({ title, children, className = '' }) {
   useBrowserLayoutEffect(() => {
     const resetScroll = () => {
       if (title === 'Frequently Asked Questions' && window.location.hash) return;
@@ -48,7 +48,7 @@ function PageShell({ title, children }) {
   }, []);
 
   return (
-    <main id="top" className="public-page">
+    <main id="top" className={`public-page ${className}`}>
       <div className="public-page-card">
         <a className="public-page-brand" href="/">
           <span aria-hidden="true">▰</span> SF Stairway Spotter
@@ -491,8 +491,8 @@ function PricingPage() {
 }
 
 function MailingListPage() {
-  return <PageShell title="Join the mailing list">
-    <p>Hear when SF Stairway Spotter launches, get app updates, and keep exploring with Urban Hiker SF.</p>
+  return <PageShell title="Take the next step with us." className="mailing-list-page">
+    <p className="mailing-list-intro">Get SF Stairway Spotter launch news, app updates, and more ways to explore San Francisco from Urban Hiker SF.</p>
     <MailingListForm />
   </PageShell>;
 }
