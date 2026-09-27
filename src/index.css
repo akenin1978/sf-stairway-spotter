@@ -474,7 +474,7 @@ html, body, #root {
 
 .landing-features {
   width: min(1120px, calc(100% - 48px));
-  margin: 130px auto 0;
+  margin: 65px auto 0;
 }
 
 .landing-section-heading {
@@ -735,7 +735,7 @@ html, body, #root {
 
   .landing-features {
     width: calc(100% - 36px);
-    margin-top: 90px;
+    margin-top: 45px;
   }
 
   .landing-cta-section {
