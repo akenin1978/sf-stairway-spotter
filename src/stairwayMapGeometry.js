@@ -21,11 +21,11 @@ export const MAP_GUIDE_ROUTES = [
 // stairway to the other; markerPosition is the user-approved point where the
 // existing clickable rating marker should appear.
 const STAIRWAY_MAP_GEOMETRY = new Map([
-  // Sibert Loop: street curve between building 344 and 338B.
+  // Sibert Loop: street curve toward 338B, with the user-selected
+  // southern endpoint shortened to 37.795810, -122.460847.
   ['ee0a000e-e399-41d0-b9e1-85a96c3273de', {
     path: [
-      { lat: 37.795696, lng: -122.46096 },
-      { lat: 37.795731593, lng: -122.460871814 },
+      { lat: 37.795810, lng: -122.460847 },
       { lat: 37.795837619, lng: -122.460713879 },
       { lat: 37.79592386, lng: -122.46058878 },
       { lat: 37.796031634, lng: -122.460470316 },
