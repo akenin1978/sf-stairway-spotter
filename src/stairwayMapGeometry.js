@@ -1,5 +1,21 @@
 import { getRatingStyle } from './ratingColors';
 
+// User-requested geographic guides, independent of any individual stairway's
+// rating, saved pin, counts, or verification area.
+export const MAP_GUIDE_ROUTES = [
+  {
+    id: 'infantry-terrace-thomas-to-328b',
+    color: getRatingStyle(2).color,
+    path: [
+      { lat: 37.797264, lng: -122.461940 },
+      { lat: 37.797105793, lng: -122.461978420 },
+      { lat: 37.796704346, lng: -122.462268213 },
+      { lat: 37.796452649, lng: -122.462403936 },
+      { lat: 37.796416, lng: -122.462445 },
+    ],
+  },
+];
+
 // Selected long stairways can opt into a visible route without changing the
 // location data used by verification. Paths are ordered from one end of the
 // stairway to the other; markerPosition is the user-approved point where the

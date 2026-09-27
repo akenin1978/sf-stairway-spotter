@@ -52,6 +52,7 @@ import { getLocationErrorMessage } from '../locationErrors';
 import { isLocationFresh } from '../locationLifecycle';
 import useDialogFocus from './useDialogFocus';
 import {
+  MAP_GUIDE_ROUTES,
   getStairwayMapGeometry,
   getStairwayMarkerPosition,
   getStairwayRouteColor,
@@ -140,10 +141,10 @@ function MapRecenter({ target }) {
   return null;
 }
 
-function StairwayRouteLine({ stairway }) {
+function StairwayRouteLine({ stairway, guide }) {
   const map = useMap();
-  const geometry = getStairwayMapGeometry(stairway.id);
-  const color = getStairwayRouteColor(stairway);
+  const geometry = guide || getStairwayMapGeometry(stairway.id);
+  const color = guide?.color || getStairwayRouteColor(stairway);
 
   useEffect(() => {
     if (!map || !geometry) return undefined;
@@ -1774,6 +1775,9 @@ export default function StairwayMap({
             </>
           )}
           <StairwayRouteLines stairways={culledStairways} />
+          {MAP_GUIDE_ROUTES.map((guide) => (
+            <StairwayRouteLine key={guide.id} guide={guide} />
+          ))}
           <MemoStairwayMarkers
             stairways={culledStairways}
             checkedInIds={checkedInIds}
