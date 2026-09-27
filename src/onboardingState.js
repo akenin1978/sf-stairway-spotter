@@ -25,3 +25,18 @@ export function rememberOnboarding(key, dismissed, storage = () => window.localS
     }
   }
 }
+
+// This is a UI preference, never an authorization or safety-consent flag.
+export const ONBOARDING_ACCOUNT_FLAG = 'stairway_intro_seen';
+export function accountHasSeenOnboarding(user) {
+  return user?.user_metadata?.[ONBOARDING_ACCOUNT_FLAG] === true;
+}
+export async function syncOnboardingCompletion(auth, userId) {
+  try {
+    const { data, error } = await auth.getUser();
+    if (error || data?.user?.id !== userId) return false;
+    if (accountHasSeenOnboarding(data.user)) return true;
+    const result = await auth.updateUser({ data: { [ONBOARDING_ACCOUNT_FLAG]: true } });
+    return !result.error;
+  } catch { return false; }
+}

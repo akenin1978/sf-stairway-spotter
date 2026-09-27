@@ -3,12 +3,9 @@ import React, { useState, useRef } from 'react';
 import { TIER_COLORS } from '../badgeDefinitions';
 
 /**
- * OnboardingCarousel
- *
- * Full-screen, swipeable 3-slide intro shown once to first-time,
- * unauthenticated visitors. Dismissing (Skip, "Get started", or
- * swiping past the last slide) is permanent -- App.jsx sets a
- * localStorage flag and never shows this again on this device.
+ * Swipeable three-slide guide. App.jsx remembers dismissal locally and,
+ * for signed-in users, syncs completion to their account across browsers.
+ * The guide remains available from the How it works menu.
  */
 function StairIcon() {
   return (

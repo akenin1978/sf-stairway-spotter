@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { onboardingKey, hasSeenOnboarding, rememberOnboarding } from './onboardingState';
+import { describe, expect, it, vi } from 'vitest';
+import { onboardingKey, hasSeenOnboarding, rememberOnboarding, accountHasSeenOnboarding, syncOnboardingCompletion } from './onboardingState';
 
 function fixture() {
   const values = new Map();
@@ -34,5 +34,31 @@ describe('first-account onboarding', () => {
     expect(() => rememberOnboarding(key, dismissed, storage)).not.toThrow();
     expect(hasSeenOnboarding(key, dismissed, storage)).toBe(true);
     expect(hasSeenOnboarding(onboardingKey('account-b'), dismissed, storage)).toBe(false);
+  });
+});
+
+describe('account intro completion', () => {
+  it('recognizes completion without browser storage', () => {
+    expect(accountHasSeenOnboarding({user_metadata:{stairway_intro_seen:true}})).toBe(true);
+    expect(accountHasSeenOnboarding({user_metadata:{}})).toBe(false);
+  });
+  it('writes only the intro preference for the matching account', async () => {
+    const auth={getUser:vi.fn().mockResolvedValue({data:{user:{id:'a'}}}),updateUser:vi.fn().mockResolvedValue({error:null})};
+    expect(await syncOnboardingCompletion(auth,'a')).toBe(true);
+    expect(auth.updateUser).toHaveBeenCalledWith({data:{stairway_intro_seen:true}});
+  });
+  it('does not mark another account after sign-out or account switch', async () => {
+    const auth={getUser:vi.fn().mockResolvedValue({data:{user:{id:'b'}}}),updateUser:vi.fn()};
+    expect(await syncOnboardingCompletion(auth,'a')).toBe(false);
+    expect(auth.updateUser).not.toHaveBeenCalled();
+  });
+  it('does not rewrite an already completed account', async () => {
+    const auth={getUser:vi.fn().mockResolvedValue({data:{user:{id:'a',user_metadata:{stairway_intro_seen:true}}}}),updateUser:vi.fn()};
+    expect(await syncOnboardingCompletion(auth,'a')).toBe(true);
+    expect(auth.updateUser).not.toHaveBeenCalled();
+  });
+  it('reports failed sync without preventing local dismissal', async () => {
+    const auth={getUser:vi.fn().mockRejectedValue(new Error('offline'))};
+    expect(await syncOnboardingCompletion(auth,'a')).toBe(false);
   });
 });

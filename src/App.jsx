@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import StairwayMap from './components/StairwayMap';
 import OnboardingCarousel from './components/OnboardingCarousel';
-import { onboardingKey, hasSeenOnboarding, rememberOnboarding } from './onboardingState';
+import { onboardingKey, hasSeenOnboarding, rememberOnboarding, accountHasSeenOnboarding, syncOnboardingCompletion } from './onboardingState';
 import FeedbackModal from './components/FeedbackModal';
 import AuthModal from './components/AuthModal';
 import SettingsModal from './components/SettingsModal';
@@ -55,6 +55,7 @@ export default function App() {
   const [totalStairways, setTotalStairways] = useState(null);
   const [onboardingOwner, setOnboardingOwner] = useState(null);
   const dismissedOnboarding = useRef(new Set());
+  const guestIntroCompleted = useRef(false);
   const currentOnboardingKey = onboardingKey(user?.id);
   const showOnboarding = onboardingOwner === currentOnboardingKey
     && !loading && !authOpen && !passwordRecovery && !showLaunchAnimation;
@@ -74,15 +75,34 @@ export default function App() {
       });
   }, []);
 
-  // A prior visitor's dismissal must not suppress a new account's guide.
-  // Keep it pending while authentication/recovery or the launch screen is open.
+  // Check account completion before showing the guide on a new browser.
+  // Local completion is migrated to the account without replaying the slides.
   useEffect(() => {
     if (loading) return;
-    setOnboardingOwner(
-      hasSeenOnboarding(currentOnboardingKey, dismissedOnboarding.current)
-        ? null
-        : currentOnboardingKey
-    );
+    let cancelled = false;
+    const seenLocally = hasSeenOnboarding(currentOnboardingKey, dismissedOnboarding.current);
+    if (!user) {
+      setOnboardingOwner(seenLocally ? null : currentOnboardingKey);
+      return;
+    }
+    setOnboardingOwner(null);
+    if (seenLocally || accountHasSeenOnboarding(user) || guestIntroCompleted.current) {
+      rememberOnboarding(currentOnboardingKey, dismissedOnboarding.current);
+      if (!accountHasSeenOnboarding(user)) void syncOnboardingCompletion(supabase.auth, user.id);
+      guestIntroCompleted.current = false;
+      return;
+    }
+    supabase.auth.getUser().then(({ data, error }) => {
+      if (cancelled) return;
+      if (!error && data?.user?.id === user.id && accountHasSeenOnboarding(data.user)) {
+        rememberOnboarding(currentOnboardingKey, dismissedOnboarding.current);
+      } else {
+        setOnboardingOwner(currentOnboardingKey);
+      }
+    }).catch(() => {
+      if (!cancelled) setOnboardingOwner(currentOnboardingKey);
+    });
+    return () => { cancelled = true; };
   }, [loading, currentOnboardingKey]);
 
   useEffect(() => {
@@ -203,6 +223,8 @@ export default function App() {
 
   function dismissOnboarding() {
     rememberOnboarding(currentOnboardingKey, dismissedOnboarding.current);
+    if (user) void syncOnboardingCompletion(supabase.auth, user.id);
+    else guestIntroCompleted.current = true;
     setOnboardingOwner(null);
   }
 
