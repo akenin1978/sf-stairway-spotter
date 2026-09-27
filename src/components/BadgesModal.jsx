@@ -1,3 +1,4 @@
+import StairGlyph from './StairGlyph';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useBadges } from '../BadgesContext';
@@ -60,12 +61,9 @@ function BadgeMedallion({ name, subtitle, progressLabel, earned, tier, notificat
         <svg width="72" height="72" viewBox="0 0 72 72">
           <circle cx="36" cy="36" r="34" fill="none" stroke={ringColor} strokeWidth="3" />
           <circle cx="36" cy="36" r="29" fill={fillColor} />
-          <g transform="translate(20,24)">
-            <rect x="0" y="18" width="8" height="6" fill={iconColor} />
-            <rect x="8" y="12" width="8" height="12" fill={iconColor} />
-            <rect x="16" y="6" width="8" height="18" fill={iconColor} />
-            <rect x="24" y="0" width="8" height="24" fill={iconColor} />
-          </g>
+          <g transform="translate(13.9,12.54) scale(0.34)">
+        <StairGlyph color={iconColor} />
+      </g>
         </svg>
         {earned && notificationCount > 0 && (
           <span

@@ -1,3 +1,4 @@
+import StairGlyph from './StairGlyph';
 import React, { useEffect, useState } from 'react';
 import { getRandomBadgeMessage } from '../badgeMessages';
 import { TIER_COLORS } from '../badgeDefinitions';
@@ -45,12 +46,9 @@ function BadgeMedallion({ tier }) {
       <svg width="140" height="140" viewBox="0 0 72 72" aria-hidden="true">
         <circle cx="36" cy="36" r="34" fill="none" stroke={colors.ring} strokeWidth="3" />
         <circle cx="36" cy="36" r="29" fill={colors.fill} />
-        <g transform="translate(20,24)">
-          <rect x="0" y="18" width="8" height="6" fill="#FFFFFF" />
-          <rect x="8" y="12" width="8" height="12" fill="#FFFFFF" />
-          <rect x="16" y="6" width="8" height="18" fill="#FFFFFF" />
-          <rect x="24" y="0" width="8" height="24" fill="#FFFFFF" />
-        </g>
+        <g transform="translate(13.9,12.54) scale(0.34)">
+        <StairGlyph color="#FFFFFF" />
+      </g>
       </svg>
     </div>
   );

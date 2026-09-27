@@ -1,3 +1,4 @@
+import StairGlyph from './StairGlyph';
 import React, { useState, useRef } from 'react';
 import { TIER_COLORS } from '../badgeDefinitions';
 
@@ -53,11 +54,8 @@ function BadgeMedallionIcon({ tier }) {
     <svg width="64" height="64" viewBox="0 0 72 72" aria-hidden="true">
       <circle cx="36" cy="36" r="34" fill="none" stroke={colors.ring} strokeWidth="3" />
       <circle cx="36" cy="36" r="29" fill={colors.fill} />
-      <g transform="translate(20,24)" fill="#fff">
-        <rect x="0" y="18" width="8" height="6" />
-        <rect x="8" y="12" width="8" height="12" />
-        <rect x="16" y="6" width="8" height="18" />
-        <rect x="24" y="0" width="8" height="24" />
+      <g transform="translate(13.9,12.54) scale(0.34)">
+        <StairGlyph color="#fff" />
       </g>
     </svg>
   );
