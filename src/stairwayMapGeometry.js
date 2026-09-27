@@ -5,6 +5,23 @@ import { getRatingStyle } from './ratingColors';
 // stairway to the other; markerPosition is the user-approved point where the
 // existing clickable rating marker should appear.
 const STAIRWAY_MAP_GEOMETRY = new Map([
+  // Sibert Loop: street curve between building 344 and 338B.
+  ['ee0a000e-e399-41d0-b9e1-85a96c3273de', {
+    path: [
+      { lat: 37.795696, lng: -122.46096 },
+      { lat: 37.795731593, lng: -122.460871814 },
+      { lat: 37.795837619, lng: -122.460713879 },
+      { lat: 37.79592386, lng: -122.46058878 },
+      { lat: 37.796031634, lng: -122.460470316 },
+      { lat: 37.796146904, lng: -122.460479424 },
+      { lat: 37.796227768, lng: -122.460533116 },
+      { lat: 37.796250343, lng: -122.460621663 },
+      { lat: 37.796231854, lng: -122.460721256 },
+      { lat: 37.796122922, lng: -122.460909444 },
+      { lat: 37.796131, lng: -122.46093 },
+    ],
+  }],
+
   // Lake Street, 30th Avenue to El Camino del Mar: follows the south-side
   // street geometry (DataSF Streets, CNN 8040101). Trim intersection connectors
   // at both ends so the visible line stays on Lake. Keep the saved map pin.
