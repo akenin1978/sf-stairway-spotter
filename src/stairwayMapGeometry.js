@@ -6,10 +6,10 @@ import { getRatingStyle } from './ratingColors';
 // existing clickable rating marker should appear.
 const STAIRWAY_MAP_GEOMETRY = new Map([
   // Lake Street, 30th Avenue to El Camino del Mar: follows the south-side
-  // street geometry (DataSF Streets, CNN 8040101). Keep the saved map pin.
+  // street geometry (DataSF Streets, CNN 8040101). Trim intersection connectors
+  // at both ends so the visible line stays on Lake. Keep the saved map pin.
   ['60ef32ab-9dd0-4c91-93d7-65eeb1793426', {
     path: [
-      { lat: 37.785118745, lng: -122.49047449 },
       { lat: 37.78509518, lng: -122.490593928 },
       { lat: 37.785122038, lng: -122.490994368 },
       { lat: 37.78520251, lng: -122.491452347 },
@@ -18,7 +18,6 @@ const STAIRWAY_MAP_GEOMETRY = new Map([
       { lat: 37.785646064, lng: -122.492063437 },
       { lat: 37.785978815, lng: -122.492127291 },
       { lat: 37.786306807, lng: -122.492157839 },
-      { lat: 37.786381706, lng: -122.492080319 },
     ],
   }],
 
