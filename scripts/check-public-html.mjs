@@ -45,3 +45,11 @@ assert.ok(!signup.includes('mc-validate.js'));
 assert.ok((await readFile(`${output}/sitemap.xml`,'utf8')).includes('/mailing-list'));
 assert.ok((await readFile(`${output}/robots.txt`,'utf8')).includes('Sitemap:'));
 console.log('PASS signup fields, unchecked consent, spam trap, sitemap and robots');
+
+// Before React starts, the map shell must show only its loading screen.
+const initialMap = app.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
+assert.ok(initialMap.includes('Loading your map…'));
+assert.ok(!initialMap.includes('href="/mailing-list"'));
+assert.ok(!initialMap.includes('<form'));
+assert.ok(app.includes('<noscript>'));
+console.log('PASS map startup has no signup UI; no-JavaScript information preserved');
